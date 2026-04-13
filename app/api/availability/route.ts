@@ -22,14 +22,14 @@ export async function GET(request: Request) {
   // Get max_units for this area
   const { data: areaData, error: areaError } = await supabase
     .from('areas')
-    .select('max_units')
+    .select('*')
     .eq('label', area)
     .single()
 
   if (areaError) {
     console.error('[availability] area query error:', areaError.message)
   }
-  const maxUnits = areaData?.max_units ?? 0
+  const maxUnits = typeof areaData?.max_units === 'number' ? areaData.max_units : 0
 
   if (maxUnits === 0) {
     // All slots blocked for this area

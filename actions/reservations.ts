@@ -45,11 +45,11 @@ async function checkAvailability(
   // Get max_units
   const { data: areaData } = await supabase
     .from('areas')
-    .select('max_units')
+    .select('*')
     .eq('label', area)
     .single()
 
-  const maxUnits = areaData?.max_units ?? 0
+  const maxUnits = typeof areaData?.max_units === 'number' ? areaData.max_units : 0
   if (maxUnits === 0) {
     return { ok: false, reason: 'このエリアは現在準備中です' }
   }
@@ -179,22 +179,20 @@ export async function getAreasWithUnits() {
   const supabase = await createClient()
   const { data, error } = await supabase
     .from('areas')
-    .select('id, label, max_units')
+    .select('*')
     .eq('is_active', true)
     .order('created_at')
 
   if (error) {
     console.error('[getAreasWithUnits] error:', error.message)
-    // max_units カラムが未追加の場合、label のみで取得してデフォルト値をつける
-    const { data: fallback } = await supabase
-      .from('areas')
-      .select('id, label')
-      .eq('is_active', true)
-      .order('created_at')
-    return (fallback || []).map((a: { id: string; label: string }) => ({ ...a, max_units: 0 }))
+    return []
   }
 
-  return data || []
+  return (data || []).map((a: Record<string, unknown>) => ({
+    id: a.id as string,
+    label: a.label as string,
+    max_units: typeof a.max_units === 'number' ? a.max_units : 0,
+  }))
 }
 
 export async function getFlavors() {
