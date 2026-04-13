@@ -30,7 +30,7 @@ export async function updateStatus(id: string, status: string) {
   revalidatePath('/admin')
 }
 
-export async function createReservation(formData: FormData) {
+export async function createReservation(formData: FormData): Promise<void> {
   const supabase = await createClient()
 
   const name = (formData.get('customer_name') as string)?.trim()
@@ -44,7 +44,7 @@ export async function createReservation(formData: FormData) {
   const notes = (formData.get('notes') as string)?.trim() || null
 
   if (!name || !phone || !reservationDate || !reservationTime || !area || !location) {
-    return { error: '必須項目を入力してください' }
+    redirect('/reserve')
   }
 
   // 顧客を作成または既存を検索
@@ -65,7 +65,7 @@ export async function createReservation(formData: FormData) {
       .select('id')
       .single()
     if (customerError || !newCustomer) {
-      return { error: '顧客情報の登録に失敗しました' }
+      redirect('/reserve')
     }
     customerId = newCustomer.id
   }
@@ -83,7 +83,7 @@ export async function createReservation(formData: FormData) {
   })
 
   if (reservationError) {
-    return { error: '予約の登録に失敗しました' }
+    redirect('/reserve')
   }
 
   redirect('/reserve/complete')
