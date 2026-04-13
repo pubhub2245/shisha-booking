@@ -44,7 +44,7 @@ export async function createReservation(formData: FormData): Promise<void> {
   const notes = (formData.get('notes') as string)?.trim() || null
 
   if (!name || !phone || !reservationDate || !reservationTime || !area || !location) {
-    redirect('/reserve')
+    return redirect('/reserve')
   }
 
   // 顧客を作成または既存を検索
@@ -65,7 +65,7 @@ export async function createReservation(formData: FormData): Promise<void> {
       .select('id')
       .single()
     if (customerError || !newCustomer) {
-      redirect('/reserve')
+      return redirect('/reserve')
     }
     customerId = newCustomer.id
   }
@@ -83,10 +83,10 @@ export async function createReservation(formData: FormData): Promise<void> {
   })
 
   if (reservationError) {
-    redirect('/reserve')
+    return redirect('/reserve')
   }
 
-  redirect('/reserve/complete')
+  return redirect('/reserve/complete')
 }
 
 export async function getAreas() {
