@@ -1,6 +1,8 @@
 import { createReservation, getFlavors, getAreasWithUnits } from '@/actions/reservations'
 import ReserveFormClient from './form-client'
 
+export const dynamic = 'force-dynamic'
+
 export default async function ReservePage() {
   const [flavors, areas] = await Promise.all([getFlavors(), getAreasWithUnits()])
 

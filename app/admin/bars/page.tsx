@@ -1,6 +1,8 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { getBars, createBar, updateBar, deleteBar } from '@/actions/reservations'
+
+export const dynamic = 'force-dynamic'
 import Link from 'next/link'
 
 const AREAS = [
