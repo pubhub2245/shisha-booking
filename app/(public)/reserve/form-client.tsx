@@ -35,15 +35,13 @@ function timeToMinutes(t: string) {
 }
 
 export default function ReserveFormClient({
-  flavors,
-  areas,
   createReservation,
 }: {
-  flavors: Flavor[]
-  areas: Area[]
   createReservation: (formData: FormData) => Promise<void>
 }) {
   const today = toDateStr(new Date())
+  const [areas, setAreas] = useState<Area[]>([])
+  const [flavors, setFlavors] = useState<Flavor[]>([])
   const [area, setArea] = useState('')
   const [barQuery, setBarQuery] = useState('')
   const [bars, setBars] = useState<Bar[]>([])
@@ -56,8 +54,21 @@ export default function ReserveFormClient({
   const [blockedSlots, setBlockedSlots] = useState<Set<string>>(new Set())
   const [bookedSlots, setBookedSlots] = useState<Set<string>>(new Set())
   const [loadingSlots, setLoadingSlots] = useState(false)
+  const [dataLoaded, setDataLoaded] = useState(false)
   const suggestRef = useRef<HTMLDivElement>(null)
   const placesInputRef = useRef<HTMLInputElement>(null)
+
+  // Fetch areas and flavors on mount (client-side)
+  useEffect(() => {
+    Promise.all([
+      fetch('/api/areas').then(r => r.json()).catch(() => []),
+      fetch('/api/flavors').then(r => r.json()).catch(() => []),
+    ]).then(([a, f]) => {
+      setAreas(a)
+      setFlavors(f)
+      setDataLoaded(true)
+    })
+  }, [])
   const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null)
 
   const selectedArea = areas.find(a => a.label === area)
@@ -183,6 +194,14 @@ export default function ReserveFormClient({
       currentHour = h
     }
     hourGroups[hourGroups.length - 1].slots.push(slot)
+  }
+
+  if (!dataLoaded) {
+    return (
+      <div className="bg-white rounded-2xl shadow-sm p-8 text-center text-gray-500">
+        読み込み中...
+      </div>
+    )
   }
 
   return (

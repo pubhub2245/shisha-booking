@@ -12,7 +12,13 @@
       "Bash(npx tsc:*)",
       "Bash(npm install:*)",
       "Bash(node -e ':*)",
-      "Bash(node -e \"let d='';process.stdin.on\\('data',c=>d+=c\\);process.stdin.on\\('end',\\(\\)=>{console.log\\('宮崎:',d.includes\\('宮崎市内'\\),'都城:',d.includes\\('都城市内'\\),'鹿児島:',d.includes\\('鹿児島市内'\\)\\)}\\)\")"
+      "Bash(node -e \"let d='';process.stdin.on\\('data',c=>d+=c\\);process.stdin.on\\('end',\\(\\)=>{console.log\\('宮崎:',d.includes\\('宮崎市内'\\),'都城:',d.includes\\('都城市内'\\),'鹿児島:',d.includes\\('鹿児島市内'\\)\\)}\\)\")",
+      "Bash(node -e \"let d='';process.stdin.on\\('data',c=>d+=c\\);process.stdin.on\\('end',\\(\\)=>{console.log\\('宮崎:',d.includes\\('宮崎'\\),'都城:',d.includes\\('都城'\\),'鹿児島:',d.includes\\('鹿児島'\\)\\)}\\)\")",
+      "WebFetch(domain:shisha-booking.vercel.app)",
+      "Bash(node -e \"let d='';process.stdin.on\\('data',c=>d+=c\\);process.stdin.on\\('end',\\(\\)=>{console.log\\('areas_ok:',d.includes\\('宮崎'\\)&&d.includes\\('都城'\\)&&d.includes\\('鹿児島'\\)\\)}\\)\")",
+      "Bash(gh api:*)",
+      "Bash(node -e \"let d='';process.stdin.on\\('data',c=>d+=c\\);process.stdin.on\\('end',\\(\\)=>{const j=JSON.parse\\(d\\);console.log\\('areas_count:',j.length\\);j.forEach\\(a=>console.log\\(' -',a.label,'max_units:',a.max_units\\)\\)}\\)\")",
+      "Bash(node -e \"let d='';process.stdin.on\\('data',c=>d+=c\\);process.stdin.on\\('end',\\(\\)=>{console.log\\('has_loading:',d.includes\\('読み込み中'\\)\\)}\\)\")"
     ]
   }
 }
