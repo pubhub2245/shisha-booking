@@ -176,39 +176,63 @@ export async function getAreas() {
 }
 
 export async function getAreasWithUnits() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-  console.log('[getAreasWithUnits] env check — URL:', url ? `${url.substring(0, 30)}...` : 'MISSING', '| KEY:', key ? `${key.substring(0, 20)}...` : 'MISSING')
+  // cookiesに依存しないSupabase直接呼び出し（公開データのため認証不要）
+  const url = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL
+  const key = process.env.SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
-  const supabase = await createClient()
-  const { data, error } = await supabase
-    .from('areas')
-    .select('*')
-    .eq('is_active', true)
-    .order('created_at')
-
-  if (error) {
-    console.error('[getAreasWithUnits] error:', error.message, '| code:', error.code, '| details:', error.details)
+  if (!url || !key) {
+    console.error('[getAreasWithUnits] env vars missing — URL:', !!url, 'KEY:', !!key)
     return []
   }
 
-  console.log('[getAreasWithUnits] success, count:', data?.length ?? 0)
+  try {
+    const res = await fetch(
+      `${url}/rest/v1/areas?is_active=eq.true&order=created_at&select=*`,
+      {
+        headers: {
+          'apikey': key,
+          'Authorization': `Bearer ${key}`,
+        },
+        cache: 'no-store',
+      }
+    )
 
-  return (data || []).map((a: Record<string, unknown>) => ({
-    id: a.id as string,
-    label: a.label as string,
-    max_units: typeof a.max_units === 'number' ? a.max_units : 0,
-  }))
+    if (!res.ok) {
+      console.error('[getAreasWithUnits] fetch error:', res.status, await res.text())
+      return []
+    }
+
+    const data = await res.json()
+    return (data || []).map((a: Record<string, unknown>) => ({
+      id: a.id as string,
+      label: a.label as string,
+      max_units: typeof a.max_units === 'number' ? a.max_units : 0,
+    }))
+  } catch (e) {
+    console.error('[getAreasWithUnits] exception:', e)
+    return []
+  }
 }
 
 export async function getFlavors() {
-  const supabase = await createClient()
-  const { data } = await supabase
-    .from('flavors')
-    .select('id, name, stock')
-    .gt('stock', 0)
-    .order('name')
-  return data || []
+  const url = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL
+  const key = process.env.SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+  if (!url || !key) return []
+
+  try {
+    const res = await fetch(
+      `${url}/rest/v1/flavors?stock=gt.0&order=name&select=id,name,stock`,
+      {
+        headers: { 'apikey': key, 'Authorization': `Bearer ${key}` },
+        cache: 'no-store',
+      }
+    )
+    if (!res.ok) return []
+    return await res.json()
+  } catch {
+    return []
+  }
 }
 
 // --- Bars ---
