@@ -1,4 +1,4 @@
-﻿'use server'
+'use server'
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
@@ -40,7 +40,7 @@ export async function createReservation(formData: FormData): Promise<void> {
   const area = formData.get('area') as string
   const location = (formData.get('location') as string)?.trim()
   const quantity = Number(formData.get('quantity')) || 1
-  const flavorRequest = (formData.get('flavor_request') as string)?.trim() || null
+  const flavorId = (formData.get('flavor_id') as string) || null
   const notes = (formData.get('notes') as string)?.trim() || null
 
   if (!name || !phone || !reservationDate || !reservationTime || !area || !location) {
@@ -77,13 +77,18 @@ export async function createReservation(formData: FormData): Promise<void> {
     area,
     location,
     quantity,
-    flavor_request: flavorRequest,
+    flavor_id: flavorId,
     admin_note: notes,
     status: 'received',
   })
 
   if (reservationError) {
     return redirect('/reserve')
+  }
+
+  // フレーバーの在庫を1減らす
+  if (flavorId) {
+    await supabase.rpc('decrement_flavor_stock', { flavor_id: flavorId })
   }
 
   return redirect('/reserve/complete')
@@ -97,4 +102,96 @@ export async function getAreas() {
     .eq('is_active', true)
     .order('created_at')
   return data || []
+}
+
+export async function getFlavors() {
+  const supabase = await createClient()
+  const { data } = await supabase
+    .from('flavors')
+    .select('id, name, stock')
+    .gt('stock', 0)
+    .order('name')
+  return data || []
+}
+
+// --- Bars ---
+export async function getBars() {
+  const supabase = await createClient()
+  const { data } = await supabase
+    .from('bars')
+    .select('*')
+    .order('name')
+  return data || []
+}
+
+export async function createBar(formData: FormData): Promise<void> {
+  const supabase = await createClient()
+  const name = (formData.get('name') as string)?.trim()
+  const address = (formData.get('address') as string)?.trim()
+  const area = formData.get('area') as string
+  if (!name || !address || !area) return redirect('/admin/bars')
+  await supabase.from('bars').insert({ name, address, area })
+  revalidatePath('/admin/bars')
+  return redirect('/admin/bars')
+}
+
+export async function updateBar(formData: FormData): Promise<void> {
+  const supabase = await createClient()
+  const id = formData.get('id') as string
+  const name = (formData.get('name') as string)?.trim()
+  const address = (formData.get('address') as string)?.trim()
+  const area = formData.get('area') as string
+  if (!id || !name || !address || !area) return redirect('/admin/bars')
+  await supabase.from('bars').update({ name, address, area }).eq('id', id)
+  revalidatePath('/admin/bars')
+  return redirect('/admin/bars')
+}
+
+export async function deleteBar(formData: FormData): Promise<void> {
+  const supabase = await createClient()
+  const id = formData.get('id') as string
+  if (!id) return redirect('/admin/bars')
+  await supabase.from('bars').delete().eq('id', id)
+  revalidatePath('/admin/bars')
+  return redirect('/admin/bars')
+}
+
+// --- Flavors (admin) ---
+export async function getAllFlavors() {
+  const supabase = await createClient()
+  const { data } = await supabase
+    .from('flavors')
+    .select('*')
+    .order('name')
+  return data || []
+}
+
+export async function createFlavor(formData: FormData): Promise<void> {
+  const supabase = await createClient()
+  const name = (formData.get('name') as string)?.trim()
+  const stock = Number(formData.get('stock')) || 0
+  if (!name) return redirect('/admin/flavors')
+  await supabase.from('flavors').insert({ name, stock })
+  revalidatePath('/admin/flavors')
+  return redirect('/admin/flavors')
+}
+
+export async function updateFlavor(formData: FormData): Promise<void> {
+  const supabase = await createClient()
+  const id = formData.get('id') as string
+  const name = (formData.get('name') as string)?.trim()
+  const stock = Number(formData.get('stock'))
+  if (!id || !name || isNaN(stock)) return redirect('/admin/flavors')
+  await supabase.from('flavors').update({ name, stock }).eq('id', id)
+  revalidatePath('/admin/flavors')
+  return redirect('/admin/flavors')
+}
+
+export async function deleteFlavor(formData: FormData): Promise<void> {
+  const supabase = await createClient()
+  const id = formData.get('id') as string
+  if (!id) return redirect('/admin/flavors')
+  await supabase.from('flavors').delete().eq('id', id)
+  revalidatePath('/admin/flavors')
+  return redirect('/admin/flavors')
 }

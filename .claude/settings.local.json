@@ -2,7 +2,14 @@
   "permissions": {
     "allow": [
       "Bash(curl:*)",
-      "Bash(node -e \"let d='';process.stdin.on\\('data',c=>d+=c\\);process.stdin.on\\('end',\\(\\)=>{const h1=d.match\\(/<h1[^>]*>\\(.*?\\)<\\\\/h1>/\\);console.log\\('h1:',h1?h1[1]:'NOT FOUND'\\);console.log\\('has_link_to_top:',d.includes\\('href=\\\\\"/\\\\\"'\\)\\)}\\)\")"
+      "Bash(node -e \"let d='';process.stdin.on\\('data',c=>d+=c\\);process.stdin.on\\('end',\\(\\)=>{const h1=d.match\\(/<h1[^>]*>\\(.*?\\)<\\\\/h1>/\\);console.log\\('h1:',h1?h1[1]:'NOT FOUND'\\);console.log\\('has_link_to_top:',d.includes\\('href=\\\\\"/\\\\\"'\\)\\)}\\)\")",
+      "Bash(git config:*)",
+      "Read(//c/Users/junra/**)",
+      "Bash(where gh:*)",
+      "Bash(winget install:*)",
+      "Bash(export PATH=\"$PATH:/c/Program Files/GitHub CLI\")",
+      "Bash(gh auth:*)",
+      "Bash(npx tsc:*)"
     ]
   }
 }

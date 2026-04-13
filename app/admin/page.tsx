@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server"
 import { redirect } from "next/navigation"
+import Link from "next/link"
 
 export default async function AdminPage() {
   const supabase = await createClient()
@@ -25,9 +26,21 @@ export default async function AdminPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <header className="bg-white shadow-sm px-6 py-4 flex justify-between items-center">
-        <h1 className="text-xl font-bold text-gray-900">管理画面</h1>
-        <span className="text-sm text-gray-500">{user.email}</span>
+      <header className="bg-white shadow-sm px-6 py-4">
+        <div className="flex justify-between items-center mb-3">
+          <h1 className="text-xl font-bold text-gray-900">管理画面</h1>
+          <div className="flex items-center gap-4">
+            <span className="text-sm text-gray-500">{user.email}</span>
+            <form action="/api/signout" method="post">
+              <button className="text-sm text-red-500 hover:text-red-700">ログアウト</button>
+            </form>
+          </div>
+        </div>
+        <nav className="flex gap-4">
+          <Link href="/admin" className="text-sm font-medium text-amber-600 border-b-2 border-amber-500 pb-1">予約一覧</Link>
+          <Link href="/admin/bars" className="text-sm font-medium text-gray-500 hover:text-gray-900 pb-1">バー管理</Link>
+          <Link href="/admin/flavors" className="text-sm font-medium text-gray-500 hover:text-gray-900 pb-1">フレーバー管理</Link>
+        </nav>
       </header>
 
       <main className="p-6">
@@ -39,13 +52,13 @@ export default async function AdminPage() {
           <div className="bg-white rounded-xl shadow-sm p-4">
             <p className="text-sm text-gray-500">待機中</p>
             <p className="text-3xl font-bold text-yellow-500">
-              {reservations?.filter(r => r.status === "pending").length ?? 0}
+              {reservations?.filter((r: { status: string }) => r.status === "pending" || r.status === "received").length ?? 0}
             </p>
           </div>
           <div className="bg-white rounded-xl shadow-sm p-4">
             <p className="text-sm text-gray-500">確定済み</p>
             <p className="text-3xl font-bold text-green-500">
-              {reservations?.filter(r => r.status === "confirmed").length ?? 0}
+              {reservations?.filter((r: { status: string }) => r.status === "confirmed").length ?? 0}
             </p>
           </div>
         </div>
@@ -67,15 +80,15 @@ export default async function AdminPage() {
                 </tr>
               </thead>
               <tbody className="divide-y">
-                {reservations.map(r => (
+                {reservations.map((r: { id: string; reservation_date: string; reservation_time: string; customer: { name: string } | null; area: string; status: string }) => (
                   <tr key={r.id} className="hover:bg-gray-50">
-                    <td className="px-4 py-3">{r.reservation_date} {r.reservation_time}</td>
-                    <td className="px-4 py-3">{r.customer?.name}</td>
-                    <td className="px-4 py-3">{r.area}</td>
+                    <td className="px-4 py-3 text-gray-900">{r.reservation_date} {r.reservation_time}</td>
+                    <td className="px-4 py-3 text-gray-900">{r.customer?.name}</td>
+                    <td className="px-4 py-3 text-gray-900">{r.area}</td>
                     <td className="px-4 py-3">
                       <span className={`px-2 py-1 rounded-full text-xs font-medium ${
                         r.status === "confirmed" ? "bg-green-100 text-green-700" :
-                        r.status === "pending" ? "bg-yellow-100 text-yellow-700" :
+                        r.status === "pending" || r.status === "received" ? "bg-yellow-100 text-yellow-700" :
                         "bg-gray-100 text-gray-700"
                       }`}>{r.status}</span>
                     </td>
