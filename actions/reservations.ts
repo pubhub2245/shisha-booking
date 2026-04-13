@@ -30,6 +30,71 @@ export async function updateStatus(id: string, status: string) {
   revalidatePath('/admin')
 }
 
+// --- 予約可能かチェック ---
+function timeToMinutes(time: string): number {
+  const [h, m] = time.split(':').map(Number)
+  return h * 60 + m
+}
+
+async function checkAvailability(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  area: string,
+  date: string,
+  time: string
+): Promise<{ ok: boolean; reason?: string }> {
+  // Get max_units
+  const { data: areaData } = await supabase
+    .from('areas')
+    .select('max_units')
+    .eq('label', area)
+    .single()
+
+  const maxUnits = areaData?.max_units ?? 0
+  if (maxUnits === 0) {
+    return { ok: false, reason: 'このエリアは現在準備中です' }
+  }
+
+  // Get reservations for this area + date
+  const { data: reservations } = await supabase
+    .from('reservations')
+    .select('reservation_time')
+    .eq('area', area)
+    .eq('reservation_date', date)
+    .not('status', 'in', '("cancelled","closed")')
+
+  const times = (reservations || []).map((r: { reservation_time: string }) => r.reservation_time)
+
+  // Check: same time slot at capacity?
+  const countByTime: Record<string, number> = {}
+  for (const t of times) {
+    countByTime[t] = (countByTime[t] || 0) + 1
+  }
+
+  const requestedMins = timeToMinutes(time)
+
+  // Check fully booked slots and ±20min buffer
+  for (const [bookedTime, count] of Object.entries(countByTime)) {
+    if (count >= maxUnits) {
+      const bookedMins = timeToMinutes(bookedTime)
+      if (Math.abs(requestedMins - bookedMins) <= 20) {
+        return { ok: false, reason: 'この時間帯は予約が埋まっています' }
+      }
+    }
+  }
+
+  // Check daily limit + 6h cooldown
+  if (times.length >= maxUnits) {
+    const sortedTimes = [...times].sort()
+    const triggerTime = sortedTimes[maxUnits - 1]
+    const triggerMins = timeToMinutes(triggerTime)
+    if (requestedMins >= triggerMins && requestedMins <= triggerMins + 360) {
+      return { ok: false, reason: '1日の予約上限に達したため、しばらく予約できません' }
+    }
+  }
+
+  return { ok: true }
+}
+
 export async function createReservation(formData: FormData): Promise<void> {
   const supabase = await createClient()
 
@@ -44,6 +109,12 @@ export async function createReservation(formData: FormData): Promise<void> {
   const notes = (formData.get('notes') as string)?.trim() || null
 
   if (!name || !phone || !reservationDate || !reservationTime || !area || !location) {
+    return redirect('/reserve')
+  }
+
+  // サーバー側: 予約可能かチェック
+  const availability = await checkAvailability(supabase, area, reservationDate, reservationTime)
+  if (!availability.ok) {
     return redirect('/reserve')
   }
 
@@ -99,6 +170,16 @@ export async function getAreas() {
   const { data } = await supabase
     .from('areas')
     .select('id, label')
+    .eq('is_active', true)
+    .order('created_at')
+  return data || []
+}
+
+export async function getAreasWithUnits() {
+  const supabase = await createClient()
+  const { data } = await supabase
+    .from('areas')
+    .select('id, label, max_units')
     .eq('is_active', true)
     .order('created_at')
   return data || []

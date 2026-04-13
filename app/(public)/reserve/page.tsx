@@ -1,8 +1,8 @@
-import { createReservation, getFlavors } from '@/actions/reservations'
+import { createReservation, getFlavors, getAreasWithUnits } from '@/actions/reservations'
 import ReserveFormClient from './form-client'
 
 export default async function ReservePage() {
-  const flavors = await getFlavors()
+  const [flavors, areas] = await Promise.all([getFlavors(), getAreasWithUnits()])
 
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4">
@@ -15,6 +15,7 @@ export default async function ReservePage() {
         </div>
         <ReserveFormClient
           flavors={flavors}
+          areas={areas}
           createReservation={createReservation}
         />
       </div>

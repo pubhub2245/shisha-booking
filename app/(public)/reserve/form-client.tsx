@@ -3,29 +3,44 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 
 type Flavor = { id: string; name: string; stock: number }
+type Area = { id: string; label: string; max_units: number }
 type Bar = { id: string; name: string; address: string; area: string }
 
-const AREAS = [
-  '宮崎市内（西橘周辺）',
-  '都城市内（牟田町周辺）',
-  '鹿児島市内（天文館周辺）',
-] as const
+// 10:00 ~ 22:00 を10分刻みで生成
+function generateTimeSlots(): string[] {
+  const slots: string[] = []
+  for (let h = 10; h <= 22; h++) {
+    for (let m = 0; m < 60; m += 10) {
+      if (h === 22 && m > 0) break
+      slots.push(`${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`)
+    }
+  }
+  return slots
+}
 
-const TIME_SLOTS = ['10:00', '12:00', '14:00', '16:00', '18:00', '20:00', '22:00']
+const ALL_TIME_SLOTS = generateTimeSlots()
 
 function toDateStr(d: Date) {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
 }
 
-function isSameDay(a: string, b: string) {
-  return a === b
+function nowMinutes() {
+  const d = new Date()
+  return d.getHours() * 60 + d.getMinutes()
+}
+
+function timeToMinutes(t: string) {
+  const [h, m] = t.split(':').map(Number)
+  return h * 60 + m
 }
 
 export default function ReserveFormClient({
   flavors,
+  areas,
   createReservation,
 }: {
   flavors: Flavor[]
+  areas: Area[]
   createReservation: (formData: FormData) => Promise<void>
 }) {
   const today = toDateStr(new Date())
@@ -38,9 +53,42 @@ export default function ReserveFormClient({
   const [selectedDate, setSelectedDate] = useState('')
   const [selectedTime, setSelectedTime] = useState('')
   const [calMonth, setCalMonth] = useState(() => { const d = new Date(); return { year: d.getFullYear(), month: d.getMonth() } })
+  const [blockedSlots, setBlockedSlots] = useState<Set<string>>(new Set())
+  const [bookedSlots, setBookedSlots] = useState<Set<string>>(new Set())
+  const [loadingSlots, setLoadingSlots] = useState(false)
   const suggestRef = useRef<HTMLDivElement>(null)
   const placesInputRef = useRef<HTMLInputElement>(null)
   const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null)
+
+  const selectedArea = areas.find(a => a.label === area)
+  const isAreaUnavailable = selectedArea?.max_units === 0
+
+  // Fetch availability when area or date changes
+  useEffect(() => {
+    if (!area || !selectedDate || isAreaUnavailable) {
+      setBlockedSlots(new Set())
+      setBookedSlots(new Set())
+      return
+    }
+    let cancelled = false
+    setLoadingSlots(true)
+    fetch(`/api/availability?area=${encodeURIComponent(area)}&date=${selectedDate}`)
+      .then(r => r.json())
+      .then((data: { blocked: string[]; booked: string[] }) => {
+        if (cancelled) return
+        setBlockedSlots(new Set(data.blocked))
+        setBookedSlots(new Set(data.booked))
+      })
+      .finally(() => { if (!cancelled) setLoadingSlots(false) })
+    return () => { cancelled = true }
+  }, [area, selectedDate, isAreaUnavailable])
+
+  // Clear time if it becomes blocked
+  useEffect(() => {
+    if (selectedTime && (blockedSlots.has(selectedTime) || isSlotPast(selectedTime))) {
+      setSelectedTime('')
+    }
+  }, [blockedSlots, selectedDate])
 
   // Google Places Autocomplete
   const hasPlacesKey = typeof window !== 'undefined' && !!process.env.NEXT_PUBLIC_GOOGLE_PLACES_API_KEY
@@ -71,9 +119,9 @@ export default function ReserveFormClient({
     autocompleteRef.current = ac
   }, [])
 
-  // DB bar suggestions (fallback when no Places API)
+  // DB bar suggestions (fallback)
   useEffect(() => {
-    if (hasPlacesKey) return // use Google Places instead
+    if (hasPlacesKey) return
     if (!barQuery || barQuery.length < 1) { setBars([]); return }
     const timer = setTimeout(async () => {
       const params = new URLSearchParams({ q: barQuery })
@@ -103,31 +151,39 @@ export default function ReserveFormClient({
     setShowSuggestions(false)
   }
 
-  // Time slot disabled logic
-  const nowHour = new Date().getHours()
-  function isTimeDisabled(time: string) {
-    if (!selectedDate || !isSameDay(selectedDate, today)) return false
-    const hour = parseInt(time.split(':')[0], 10)
-    return hour <= nowHour
+  function isSlotPast(time: string) {
+    if (!selectedDate || selectedDate !== today) return false
+    return timeToMinutes(time) <= nowMinutes()
+  }
+
+  function getSlotStatus(time: string): 'available' | 'past' | 'booked' | 'blocked' {
+    if (isSlotPast(time)) return 'past'
+    if (bookedSlots.has(time)) return 'booked'
+    if (blockedSlots.has(time)) return 'blocked'
+    return 'available'
   }
 
   // Calendar
   const calDays = buildCalendar(calMonth.year, calMonth.month)
-
   function prevMonth() {
-    setCalMonth(prev => {
-      const d = new Date(prev.year, prev.month - 1, 1)
-      return { year: d.getFullYear(), month: d.getMonth() }
-    })
+    setCalMonth(prev => { const d = new Date(prev.year, prev.month - 1, 1); return { year: d.getFullYear(), month: d.getMonth() } })
   }
   function nextMonth() {
-    setCalMonth(prev => {
-      const d = new Date(prev.year, prev.month + 1, 1)
-      return { year: d.getFullYear(), month: d.getMonth() }
-    })
+    setCalMonth(prev => { const d = new Date(prev.year, prev.month + 1, 1); return { year: d.getFullYear(), month: d.getMonth() } })
   }
-
   const monthLabel = `${calMonth.year}年${calMonth.month + 1}月`
+
+  // Group time slots by hour for display
+  const hourGroups: { hour: number; slots: string[] }[] = []
+  let currentHour = -1
+  for (const slot of ALL_TIME_SLOTS) {
+    const h = parseInt(slot.split(':')[0], 10)
+    if (h !== currentHour) {
+      hourGroups.push({ hour: h, slots: [] })
+      currentHour = h
+    }
+    hourGroups[hourGroups.length - 1].slots.push(slot)
+  }
 
   return (
     <form action={createReservation} className="bg-white rounded-2xl shadow-sm p-8 space-y-5">
@@ -139,6 +195,36 @@ export default function ReserveFormClient({
       {/* 電話番号 */}
       <Field label="電話番号" required>
         <input type="tel" name="customer_phone" required placeholder="090-1234-5678" className={inputClass} />
+      </Field>
+
+      {/* エリア選択（日付・時間の前に配置して、空き状況を先に取得可能に） */}
+      <Field label="エリア" required>
+        <input type="hidden" name="area" value={area} />
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+          {areas.map(a => (
+            <button
+              key={a.id}
+              type="button"
+              onClick={() => { setArea(a.label); setSelectedTime('') }}
+              className={`py-2.5 px-3 rounded-lg border text-sm font-medium transition-colors ${
+                area === a.label
+                  ? a.max_units === 0
+                    ? 'bg-gray-400 text-white border-gray-400'
+                    : 'bg-amber-500 text-white border-amber-500'
+                  : 'bg-white text-gray-900 border-gray-300 hover:border-amber-400'
+              }`}
+            >
+              {a.label}
+              {a.max_units === 0 && <span className="block text-xs mt-0.5 opacity-80">準備中</span>}
+              {a.max_units > 0 && <span className="block text-xs mt-0.5 opacity-70">{a.max_units}台</span>}
+            </button>
+          ))}
+        </div>
+        {isAreaUnavailable && (
+          <div className="mt-2 bg-yellow-50 border border-yellow-200 rounded-lg px-4 py-3 text-sm text-yellow-800">
+            現在このエリアは準備中です。他のエリアをお選びください。
+          </div>
+        )}
       </Field>
 
       {/* 予約日（カスタムカレンダー） */}
@@ -160,20 +246,14 @@ export default function ReserveFormClient({
               if (!day) return <div key={`empty-${i}`} />
               const dateStr = `${calMonth.year}-${String(calMonth.month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`
               const isPast = dateStr < today
-              const isToday = isSameDay(dateStr, today)
-              const isSelected = isSameDay(dateStr, selectedDate)
+              const isToday = dateStr === today
+              const isSelected = dateStr === selectedDate
               return (
                 <button
                   key={dateStr}
                   type="button"
                   disabled={isPast}
-                  onClick={() => {
-                    setSelectedDate(dateStr)
-                    // 日付変更時に無効な時間をクリア
-                    if (isSameDay(dateStr, today) && selectedTime && isTimeDisabled(selectedTime)) {
-                      setSelectedTime('')
-                    }
-                  }}
+                  onClick={() => { setSelectedDate(dateStr); setSelectedTime('') }}
                   className={`py-1.5 rounded-md transition-colors ${
                     isPast
                       ? 'text-gray-300 cursor-not-allowed'
@@ -197,53 +277,55 @@ export default function ReserveFormClient({
         )}
       </Field>
 
-      {/* 予約時間（2時間ごと） */}
+      {/* 予約時間（10分刻み） */}
       <Field label="予約時間" required>
         <input type="hidden" name="reservation_time" value={selectedTime} />
-        <div className="grid grid-cols-4 sm:grid-cols-7 gap-2">
-          {TIME_SLOTS.map(t => {
-            const disabled = isTimeDisabled(t)
-            const selected = selectedTime === t
-            return (
-              <button
-                key={t}
-                type="button"
-                disabled={disabled}
-                onClick={() => setSelectedTime(selected ? '' : t)}
-                className={`py-2.5 rounded-lg border text-sm font-medium transition-colors ${
-                  disabled
-                    ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed'
-                    : selected
-                      ? 'bg-amber-500 text-white border-amber-500'
-                      : 'bg-white text-gray-900 border-gray-300 hover:border-amber-400'
-                }`}
-              >
-                {t}〜
-              </button>
-            )
-          })}
-        </div>
-      </Field>
-
-      {/* エリア選択 */}
-      <Field label="エリア" required>
-        <input type="hidden" name="area" value={area} />
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-          {AREAS.map(a => (
-            <button
-              key={a}
-              type="button"
-              onClick={() => setArea(a)}
-              className={`py-2.5 px-3 rounded-lg border text-sm font-medium transition-colors ${
-                area === a
-                  ? 'bg-amber-500 text-white border-amber-500'
-                  : 'bg-white text-gray-900 border-gray-300 hover:border-amber-400'
-              }`}
-            >
-              {a}
-            </button>
-          ))}
-        </div>
+        {!selectedDate || !area ? (
+          <p className="text-sm text-gray-500">エリアと日付を先に選択してください</p>
+        ) : isAreaUnavailable ? (
+          <p className="text-sm text-yellow-700">このエリアは現在準備中です</p>
+        ) : loadingSlots ? (
+          <p className="text-sm text-gray-500">空き状況を確認中...</p>
+        ) : (
+          <div className="space-y-2 max-h-72 overflow-y-auto border border-gray-200 rounded-lg p-3">
+            {hourGroups.map(({ hour, slots }) => (
+              <div key={hour}>
+                <div className="text-xs font-semibold text-gray-500 mb-1">{hour}:00</div>
+                <div className="grid grid-cols-6 gap-1">
+                  {slots.map(t => {
+                    const status = getSlotStatus(t)
+                    const selected = selectedTime === t
+                    const disabled = status !== 'available'
+                    return (
+                      <button
+                        key={t}
+                        type="button"
+                        disabled={disabled}
+                        onClick={() => setSelectedTime(selected ? '' : t)}
+                        title={status === 'booked' ? '予約済み' : status === 'blocked' ? '予約不可' : status === 'past' ? '過去の時間' : ''}
+                        className={`py-1.5 rounded text-xs font-medium transition-colors ${
+                          selected
+                            ? 'bg-amber-500 text-white'
+                            : status === 'booked'
+                              ? 'bg-red-100 text-red-400 cursor-not-allowed'
+                              : disabled
+                                ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                                : 'bg-white text-gray-900 border border-gray-300 hover:border-amber-400'
+                        }`}
+                      >
+                        {t.substring(3)}
+                        {status === 'booked' && <span className="block text-[10px] leading-none">済</span>}
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+        {selectedTime && (
+          <p className="text-sm text-amber-600 font-medium mt-1">選択中: {selectedTime}〜</p>
+        )}
       </Field>
 
       {/* バー名 */}
@@ -258,7 +340,6 @@ export default function ReserveFormClient({
             placeholder="バー名を入力して検索"
             className={inputClass}
           />
-          {/* DB fallback suggestions (only when no Google Places API) */}
           {!hasPlacesKey && showSuggestions && bars.length > 0 && (
             <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-48 overflow-y-auto">
               {bars.map(bar => (
@@ -334,7 +415,8 @@ export default function ReserveFormClient({
 
       <button
         type="submit"
-        className="w-full bg-amber-500 hover:bg-amber-600 text-white font-bold py-3 rounded-xl transition-colors"
+        disabled={isAreaUnavailable || !selectedDate || !selectedTime || !area}
+        className="w-full bg-amber-500 hover:bg-amber-600 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-bold py-3 rounded-xl transition-colors"
       >
         予約を申し込む
       </button>
@@ -364,9 +446,6 @@ function buildCalendar(year: number, month: number): (number | null)[] {
   return cells
 }
 
-// Google Maps types
 declare global {
-  interface Window {
-    google: typeof google
-  }
+  interface Window { google: typeof google }
 }
