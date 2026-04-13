@@ -177,11 +177,23 @@ export async function getAreas() {
 
 export async function getAreasWithUnits() {
   const supabase = await createClient()
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from('areas')
     .select('id, label, max_units')
     .eq('is_active', true)
     .order('created_at')
+
+  if (error) {
+    console.error('[getAreasWithUnits] error:', error.message)
+    // max_units カラムが未追加の場合、label のみで取得してデフォルト値をつける
+    const { data: fallback } = await supabase
+      .from('areas')
+      .select('id, label')
+      .eq('is_active', true)
+      .order('created_at')
+    return (fallback || []).map((a: { id: string; label: string }) => ({ ...a, max_units: 0 }))
+  }
+
   return data || []
 }
 

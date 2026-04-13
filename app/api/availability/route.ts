@@ -20,12 +20,15 @@ export async function GET(request: Request) {
   const supabase = await createClient()
 
   // Get max_units for this area
-  const { data: areaData } = await supabase
+  const { data: areaData, error: areaError } = await supabase
     .from('areas')
     .select('max_units')
     .eq('label', area)
     .single()
 
+  if (areaError) {
+    console.error('[availability] area query error:', areaError.message)
+  }
   const maxUnits = areaData?.max_units ?? 0
 
   if (maxUnits === 0) {
