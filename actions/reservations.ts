@@ -176,6 +176,10 @@ export async function getAreas() {
 }
 
 export async function getAreasWithUnits() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  console.log('[getAreasWithUnits] env check — URL:', url ? `${url.substring(0, 30)}...` : 'MISSING', '| KEY:', key ? `${key.substring(0, 20)}...` : 'MISSING')
+
   const supabase = await createClient()
   const { data, error } = await supabase
     .from('areas')
@@ -184,9 +188,11 @@ export async function getAreasWithUnits() {
     .order('created_at')
 
   if (error) {
-    console.error('[getAreasWithUnits] error:', error.message)
+    console.error('[getAreasWithUnits] error:', error.message, '| code:', error.code, '| details:', error.details)
     return []
   }
+
+  console.log('[getAreasWithUnits] success, count:', data?.length ?? 0)
 
   return (data || []).map((a: Record<string, unknown>) => ({
     id: a.id as string,

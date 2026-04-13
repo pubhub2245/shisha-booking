@@ -4,7 +4,9 @@ import ReserveFormClient from './form-client'
 export const dynamic = 'force-dynamic'
 
 export default async function ReservePage() {
-  const [flavors, areas] = await Promise.all([getFlavors(), getAreasWithUnits()])
+  // 直列で呼び出し（cookies()の並列アクセスを回避）
+  const areas = await getAreasWithUnits()
+  const flavors = await getFlavors()
 
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4">
