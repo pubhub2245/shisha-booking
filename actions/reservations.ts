@@ -28,6 +28,149 @@ export async function updateStatus(id: string, status: string) {
   const supabase = await createClient()
   await supabase.from('reservations').update({ status }).eq('id', id)
   revalidatePath('/admin')
+  revalidatePath(`/admin/reservations/${id}`)
+}
+
+export async function updateReservationStatus(formData: FormData): Promise<void> {
+  const id = formData.get('id') as string
+  const status = formData.get('status') as string
+  if (!id || !status) return
+  const supabase = await createClient()
+  await supabase.from('reservations').update({ status }).eq('id', id)
+  revalidatePath('/admin')
+  revalidatePath(`/admin/reservations/${id}`)
+}
+
+export async function assignStaff(formData: FormData): Promise<void> {
+  const id = formData.get('id') as string
+  const staffId = (formData.get('staff_id') as string) || null
+  if (!id) return
+  const supabase = await createClient()
+  await supabase.from('reservations').update({ assigned_staff_id: staffId }).eq('id', id)
+  revalidatePath(`/admin/reservations/${id}`)
+}
+
+export async function updateAdminNote(formData: FormData): Promise<void> {
+  const id = formData.get('id') as string
+  const adminNote = (formData.get('admin_note') as string) || null
+  if (!id) return
+  const supabase = await createClient()
+  await supabase.from('reservations').update({ admin_note: adminNote }).eq('id', id)
+  revalidatePath(`/admin/reservations/${id}`)
+}
+
+export async function getReservationById(id: string) {
+  const supabase = await createClient()
+  const { data } = await supabase
+    .from('reservations')
+    .select('*, customer:customers(id, name, phone, contact_sns), assigned_staff:profiles(id, name), flavor:flavors(id, name)')
+    .eq('id', id)
+    .single()
+  return data
+}
+
+export async function getStaffs() {
+  const supabase = await createClient()
+  const { data } = await supabase
+    .from('profiles')
+    .select('*')
+    .order('created_at', { ascending: false })
+  return data || []
+}
+
+export async function getActiveStaffs() {
+  const supabase = await createClient()
+  const { data } = await supabase
+    .from('profiles')
+    .select('id, name, role, is_active')
+    .eq('is_active', true)
+    .order('name')
+  return data || []
+}
+
+export async function updateStaff(formData: FormData): Promise<void> {
+  const supabase = await createClient()
+  const id = formData.get('id') as string
+  const name = (formData.get('name') as string)?.trim()
+  const phone = (formData.get('phone') as string)?.trim() || null
+  const role = formData.get('role') as string
+  const availableAreas = formData.getAll('available_areas') as string[]
+  const isActive = formData.get('is_active') === 'on'
+  if (!id || !name || !role) return redirect('/admin/staff')
+  await supabase
+    .from('profiles')
+    .update({
+      name,
+      phone,
+      role,
+      available_area: availableAreas.join(','),
+      is_active: isActive,
+    })
+    .eq('id', id)
+  revalidatePath('/admin/staff')
+  return redirect('/admin/staff')
+}
+
+export async function deleteStaff(formData: FormData): Promise<void> {
+  const supabase = await createClient()
+  const id = formData.get('id') as string
+  if (!id) return redirect('/admin/staff')
+  await supabase.from('profiles').delete().eq('id', id)
+  revalidatePath('/admin/staff')
+  return redirect('/admin/staff')
+}
+
+export async function getCustomers(search?: string) {
+  const supabase = await createClient()
+  let query = supabase
+    .from('customers')
+    .select('*, reservations:reservations(id)')
+    .order('created_at', { ascending: false })
+  if (search && search.trim()) {
+    query = query.ilike('name', `%${search.trim()}%`)
+  }
+  const { data } = await query
+  return (data || []).map((c: Record<string, unknown>) => ({
+    ...c,
+    reservation_count: Array.isArray(c.reservations) ? (c.reservations as unknown[]).length : 0,
+  }))
+}
+
+export async function getCustomerById(id: string) {
+  const supabase = await createClient()
+  const { data } = await supabase.from('customers').select('*').eq('id', id).single()
+  return data
+}
+
+export async function getReservationsByCustomer(customerId: string) {
+  const supabase = await createClient()
+  const { data } = await supabase
+    .from('reservations')
+    .select('*')
+    .eq('customer_id', customerId)
+    .order('reservation_date', { ascending: false })
+  return data || []
+}
+
+type ReservationFilters = {
+  from?: string
+  to?: string
+  area?: string
+  status?: string
+}
+
+export async function getFilteredReservations(filters: ReservationFilters = {}) {
+  const supabase = await createClient()
+  let query = supabase
+    .from('reservations')
+    .select('*, customer:customers(id, name, phone), assigned_staff:profiles(id, name)')
+    .order('created_at', { ascending: false })
+  if (filters.from) query = query.gte('reservation_date', filters.from)
+  if (filters.to) query = query.lte('reservation_date', filters.to)
+  if (filters.area) query = query.eq('area', filters.area)
+  if (filters.status) query = query.eq('status', filters.status)
+  const { data } = await query
+  return data || []
 }
 
 // --- 予約可能かチェック ---
@@ -109,11 +252,7 @@ export async function createReservation(formData: FormData): Promise<void> {
   const instagram = (formData.get('instagram') as string)?.trim() || ''
   const paymentMethod = (formData.get('payment_method') as string)?.trim() || ''
   const rawNotes = (formData.get('notes') as string)?.trim() || ''
-  const metaLines = [
-    instagram ? `Instagram: ${instagram}` : '',
-    paymentMethod ? `支払い方法: ${paymentMethod}` : '',
-  ].filter(Boolean)
-  const notes = [metaLines.join('\n'), rawNotes].filter(Boolean).join('\n') || null
+  const notes = rawNotes || null
 
   if (!name || !phone || !reservationDate || !reservationTime || !area || !location) {
     return redirect('/reserve')
@@ -135,11 +274,13 @@ export async function createReservation(formData: FormData): Promise<void> {
 
   if (existing) {
     customerId = existing.id
-    await supabase.from('customers').update({ name, notes }).eq('id', customerId)
+    const updatePayload: Record<string, unknown> = { name }
+    if (instagram) updatePayload.contact_sns = instagram
+    await supabase.from('customers').update(updatePayload).eq('id', customerId)
   } else {
     const { data: newCustomer, error: customerError } = await supabase
       .from('customers')
-      .insert({ name, phone, area })
+      .insert({ name, phone, area, contact_sns: instagram || null })
       .select('id')
       .single()
     if (customerError || !newCustomer) {
@@ -156,6 +297,7 @@ export async function createReservation(formData: FormData): Promise<void> {
     location,
     quantity,
     flavor_id: flavorId,
+    payment_method: paymentMethod || null,
     admin_note: notes,
     status: 'received',
   })

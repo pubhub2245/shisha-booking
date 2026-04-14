@@ -1,9 +1,9 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { getBars, createBar, updateBar, deleteBar } from '@/actions/reservations'
+import AdminShell from '../_components/admin-shell'
 
 export const dynamic = 'force-dynamic'
-import Link from 'next/link'
 
 const AREAS = [
   '宮崎市内（西橘周辺）',
@@ -19,15 +19,9 @@ export default async function BarsPage() {
   const bars = await getBars()
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white shadow-sm px-6 py-4 flex justify-between items-center">
-        <div className="flex items-center gap-4">
-          <Link href="/admin" className="text-gray-500 hover:text-gray-900 text-sm">&larr; 管理画面</Link>
-          <h1 className="text-xl font-bold text-gray-900">バー管理</h1>
-        </div>
-      </header>
-
-      <main className="p-6 max-w-4xl mx-auto space-y-6">
+    <AdminShell active="bars" userEmail={user.email}>
+      <h2 className="text-2xl font-bold text-gray-900 mb-6">バー管理</h2>
+      <div className="space-y-6">
         {/* 新規登録フォーム */}
         <div className="bg-white rounded-xl shadow-sm p-6">
           <h2 className="font-bold text-gray-900 mb-4">バーを追加</h2>
@@ -101,7 +95,7 @@ export default async function BarsPage() {
             </div>
           )}
         </div>
-      </main>
-    </div>
+      </div>
+    </AdminShell>
   )
 }
