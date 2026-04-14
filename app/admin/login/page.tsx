@@ -17,7 +17,7 @@ export default function LoginPage() {
     const supabase = createClient()
     const { data, error: authError } = await supabase.auth.signInWithPassword({ email, password })
     if (authError || !data.user) {
-      setError('Login failed. Please check your credentials.')
+      setError('ログインに失敗しました。メールアドレスとパスワードをご確認ください。')
       setIsLoading(false)
       return
     }
@@ -29,12 +29,12 @@ export default function LoginPage() {
     <div className="min-h-screen bg-gray-100 flex items-center justify-center px-4">
       <div className="bg-white rounded-2xl shadow-sm p-8 w-full max-w-sm">
         <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold text-gray-900">Admin Login</h1>
-          <p className="text-gray-500 text-sm mt-1">Shisha Booking System</p>
+          <h1 className="text-2xl font-bold text-gray-900">管理者ログイン</h1>
+          <p className="text-gray-500 text-sm mt-1">出張シーシャ予約システム</p>
         </div>
         <form onSubmit={handleLogin} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">メールアドレス</label>
             <input
               type="email"
               value={email}
@@ -45,7 +45,7 @@ export default function LoginPage() {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">パスワード</label>
             <input
               type="password"
               value={password}
@@ -65,7 +65,7 @@ export default function LoginPage() {
             disabled={isLoading}
             className="w-full bg-amber-500 hover:bg-amber-600 disabled:bg-amber-300 text-white font-bold py-3 rounded-xl transition-colors"
           >
-            {isLoading ? 'Logging in...' : 'Login'}
+            {isLoading ? 'ログイン中...' : 'ログイン'}
           </button>
         </form>
       </div>

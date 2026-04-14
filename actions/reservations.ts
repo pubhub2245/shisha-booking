@@ -106,7 +106,14 @@ export async function createReservation(formData: FormData): Promise<void> {
   const location = (formData.get('location') as string)?.trim()
   const quantity = Number(formData.get('quantity')) || 1
   const flavorId = (formData.get('flavor_id') as string) || null
-  const notes = (formData.get('notes') as string)?.trim() || null
+  const instagram = (formData.get('instagram') as string)?.trim() || ''
+  const paymentMethod = (formData.get('payment_method') as string)?.trim() || ''
+  const rawNotes = (formData.get('notes') as string)?.trim() || ''
+  const metaLines = [
+    instagram ? `Instagram: ${instagram}` : '',
+    paymentMethod ? `支払い方法: ${paymentMethod}` : '',
+  ].filter(Boolean)
+  const notes = [metaLines.join('\n'), rawNotes].filter(Boolean).join('\n') || null
 
   if (!name || !phone || !reservationDate || !reservationTime || !area || !location) {
     return redirect('/reserve')

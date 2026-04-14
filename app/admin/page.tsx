@@ -92,7 +92,7 @@ export default async function AdminPage() {
                         r.status === "confirmed" ? "bg-green-100 text-green-700" :
                         r.status === "pending" || r.status === "received" ? "bg-yellow-100 text-yellow-700" :
                         "bg-gray-100 text-gray-700"
-                      }`}>{r.status}</span>
+                      }`}>{statusLabel(r.status)}</span>
                     </td>
                   </tr>
                 ))}
@@ -103,4 +103,15 @@ export default async function AdminPage() {
       </main>
     </div>
   )
+}
+
+function statusLabel(s: string): string {
+  switch (s) {
+    case 'received': return '受付済み'
+    case 'pending': return '保留中'
+    case 'confirmed': return '確定'
+    case 'cancelled': return 'キャンセル'
+    case 'closed': return '完了'
+    default: return s
+  }
 }

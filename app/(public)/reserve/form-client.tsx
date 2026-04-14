@@ -390,8 +390,8 @@ export default function ReserveFormClient({
         />
       </Field>
 
-      {/* 人数 */}
-      <Field label="人数">
+      {/* 台数 */}
+      <Field label="台数">
         <select name="quantity" defaultValue="1" className={inputClass}>
           {[1,2,3,4,5,6,7,8,9,10].map(n => (
             <option key={n} value={n}>{n}台</option>
@@ -399,11 +399,24 @@ export default function ReserveFormClient({
         </select>
       </Field>
 
+      {/* Instagram */}
+      <Field label="Instagram（任意）">
+        <input type="text" name="instagram" placeholder="@your_account" className={inputClass} />
+      </Field>
+
+      {/* 支払い方法 */}
+      <Field label="支払い方法" required>
+        <select name="payment_method" defaultValue="現金" required className={inputClass}>
+          <option value="現金">現金</option>
+          <option value="その他">その他（備考に記入）</option>
+        </select>
+      </Field>
+
       {/* フレーバー選択 */}
       <Field label="フレーバー（任意）">
         <input type="hidden" name="flavor_id" value={selectedFlavorId} />
         {flavors.length === 0 ? (
-          <p className="text-gray-600 text-sm">現在選択可能なフレーバーはありません</p>
+          <p className="text-gray-600 text-sm">フレーバーは当日ご相談ください</p>
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
             {flavors.map(f => (
