@@ -33,14 +33,10 @@ export default function Home() {
         {/* 料金 */}
         <section className="mt-24 w-full max-w-4xl">
           <h2 className="text-2xl font-bold text-center mb-8">料金</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="bg-white/5 backdrop-blur rounded-xl p-8 border border-white/10 text-center">
+          <div className="flex justify-center">
+            <div className="bg-white/5 backdrop-blur rounded-xl p-8 border border-white/10 text-center w-full max-w-sm">
               <h3 className="text-lg font-bold mb-2">電子シーシャ</h3>
-              <p className="text-3xl font-bold text-amber-400">4,000<span className="text-base font-normal text-gray-400">円（税込）</span></p>
-            </div>
-            <div className="bg-white/5 backdrop-blur rounded-xl p-8 border border-white/10 text-center">
-              <h3 className="text-lg font-bold mb-2">炭火シーシャ</h3>
-              <p className="text-3xl font-bold text-amber-400">6,000<span className="text-base font-normal text-gray-400">円（税込）</span></p>
+              <p className="text-3xl font-bold text-amber-400">5,000<span className="text-base font-normal text-gray-400">円（税込）</span></p>
             </div>
           </div>
         </section>
