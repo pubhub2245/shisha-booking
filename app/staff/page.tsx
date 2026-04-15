@@ -1,14 +1,16 @@
 import { createClient } from "@/lib/supabase/server"
+import { redirect } from "next/navigation"
 
 export const dynamic = 'force-dynamic'
 
 export default async function StaffPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
+  if (!user) redirect('/admin/login')
   const { data: reservations } = await supabase
     .from("reservations")
     .select("*, customer:customers(name, phone)")
-    .eq("assigned_staff_id", user?.id)
+    .eq("assigned_staff_id", user.id)
     .order("reservation_date", { ascending: true })
 
   return (
@@ -21,7 +23,7 @@ export default async function StaffPage() {
           {reservations.map(r => (
             <div key={r.id} className="bg-white rounded-xl shadow-sm p-4">
               <p className="font-bold">{r.reservation_date} {r.reservation_time}</p>
-              <p className="text-gray-600">{r.customer?.name} / {r.area}</p>
+              <p className="text-gray-600">{(r.customer as { name?: string } | null)?.name} / {r.area}</p>
               <p className="text-gray-500 text-sm">{r.location}</p>
               <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full">{r.status}</span>
             </div>

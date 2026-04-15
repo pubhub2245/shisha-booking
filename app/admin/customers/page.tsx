@@ -3,20 +3,22 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import AdminShell from '../_components/admin-shell'
 import { getCustomers } from '@/actions/reservations'
+import Pagination from '../_components/pagination'
 
 export const dynamic = 'force-dynamic'
 
 export default async function CustomersPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string }>
+  searchParams: Promise<{ q?: string; page?: string }>
 }) {
   const sp = await searchParams
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/admin/login')
 
-  const customers = await getCustomers(sp.q)
+  const page = Math.max(1, Number(sp.page) || 1)
+  const { rows: customers, total, pageSize } = await getCustomers(sp.q, { page })
 
   type Row = {
     id: string
@@ -54,7 +56,7 @@ export default async function CustomersPage({
 
       <div className="bg-white rounded-xl shadow-sm overflow-hidden">
         <div className="px-6 py-4 border-b">
-          <h3 className="font-bold text-gray-900">登録顧客 ({customers.length})</h3>
+          <h3 className="font-bold text-gray-900">登録顧客 ({total})</h3>
         </div>
         {customers.length === 0 ? (
           <div className="text-center py-16 text-gray-500">顧客が見つかりません</div>
@@ -92,6 +94,12 @@ export default async function CustomersPage({
             </table>
           </div>
         )}
+        <Pagination
+          page={page}
+          pageSize={pageSize}
+          total={total}
+          baseHref={`/admin/customers${sp.q ? `?q=${encodeURIComponent(sp.q)}` : ''}`}
+        />
       </div>
     </AdminShell>
   )

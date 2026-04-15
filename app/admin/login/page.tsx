@@ -14,6 +14,23 @@ export default function LoginPage() {
     e.preventDefault()
     setIsLoading(true)
     setError(null)
+    // レート制限チェック
+    try {
+      const rl = await fetch('/api/login-rate-check', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      }).then((r) => r.json())
+      if (rl?.allowed === false) {
+        setError(
+          `試行回数が多すぎます。${rl.retry_after_seconds ?? 60}秒ほど待ってから再度お試しください。`
+        )
+        setIsLoading(false)
+        return
+      }
+    } catch {
+      // フェイルオープン
+    }
     const supabase = createClient()
     const { data, error: authError } = await supabase.auth.signInWithPassword({ email, password })
     if (authError || !data.user) {

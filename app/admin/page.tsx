@@ -2,12 +2,13 @@ import { createClient } from "@/lib/supabase/server"
 import { redirect } from "next/navigation"
 import Link from "next/link"
 import AdminShell from './_components/admin-shell'
+import Pagination from './_components/pagination'
 import { getFilteredReservations, getAreas } from '@/actions/reservations'
 import { STATUS_OPTIONS, getStatusClasses, getStatusLabel } from '@/lib/utils/status'
 
 export const dynamic = 'force-dynamic'
 
-type SP = Promise<{ range?: string; from?: string; to?: string; area?: string; status?: string }>
+type SP = Promise<{ range?: string; from?: string; to?: string; area?: string; status?: string; page?: string }>
 
 function toDateStr(d: Date) {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
@@ -57,7 +58,8 @@ export default async function AdminPage({ searchParams }: { searchParams: SP }) 
     status: status || undefined,
   }
 
-  const reservations = await getFilteredReservations(filters)
+  const page = Math.max(1, Number(sp.page) || 1)
+  const { rows: reservations, total, pageSize } = await getFilteredReservations(filters, { page })
 
   type Row = {
     id: string
@@ -72,10 +74,10 @@ export default async function AdminPage({ searchParams }: { searchParams: SP }) 
   return (
     <AdminShell active="reservations" userEmail={user.email}>
       <div className="mb-6 grid grid-cols-2 md:grid-cols-4 gap-4">
-        <Stat label="総予約数" value={reservations.length} color="text-gray-900" />
-        <Stat label="受付" value={(reservations as Row[]).filter(r => r.status === 'received').length} color="text-blue-500" />
-        <Stat label="確認中" value={(reservations as Row[]).filter(r => r.status === 'checking').length} color="text-yellow-500" />
-        <Stat label="確定" value={(reservations as Row[]).filter(r => r.status === 'confirmed').length} color="text-green-500" />
+        <Stat label="総予約数" value={total} color="text-gray-900" />
+        <Stat label="受付" value={(reservations as unknown as Row[]).filter(r => r.status === 'received').length} color="text-blue-500" />
+        <Stat label="確認中" value={(reservations as unknown as Row[]).filter(r => r.status === 'checking').length} color="text-yellow-500" />
+        <Stat label="確定" value={(reservations as unknown as Row[]).filter(r => r.status === 'confirmed').length} color="text-green-500" />
       </div>
 
       <form method="get" className="bg-white rounded-xl shadow-sm p-4 mb-6 grid grid-cols-1 md:grid-cols-5 gap-3">
@@ -120,7 +122,7 @@ export default async function AdminPage({ searchParams }: { searchParams: SP }) 
 
       <div className="bg-white rounded-xl shadow-sm overflow-hidden">
         <div className="px-6 py-4 border-b">
-          <h2 className="font-bold text-gray-900">予約一覧 ({reservations.length})</h2>
+          <h2 className="font-bold text-gray-900">予約一覧 ({total})</h2>
         </div>
         {reservations.length === 0 ? (
           <div className="text-center py-16 text-gray-500">予約はありません</div>
@@ -138,7 +140,7 @@ export default async function AdminPage({ searchParams }: { searchParams: SP }) 
                 </tr>
               </thead>
               <tbody className="divide-y">
-                {(reservations as Row[]).map(r => (
+                {(reservations as unknown as Row[]).map(r => (
                   <tr key={r.id} className="hover:bg-gray-50">
                     <td className="px-4 py-3 text-gray-900 whitespace-nowrap">{r.reservation_date} {r.reservation_time}</td>
                     <td className="px-4 py-3 text-gray-900">{r.customer?.name || '-'}</td>
@@ -160,6 +162,16 @@ export default async function AdminPage({ searchParams }: { searchParams: SP }) 
             </table>
           </div>
         )}
+        <Pagination
+          page={page}
+          pageSize={pageSize}
+          total={total}
+          baseHref={`/admin?${new URLSearchParams(
+            Object.entries({ range, from: customFrom, to: customTo, area, status }).filter(
+              ([, v]) => v
+            ) as [string, string][]
+          ).toString()}`}
+        />
       </div>
     </AdminShell>
   )

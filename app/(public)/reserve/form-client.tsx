@@ -1,8 +1,9 @@
 'use client'
 
-import { useState, useEffect, useRef, useCallback, useActionState } from 'react'
+import { useState, useEffect, useRef, useActionState } from 'react'
 import type { ReservationFormState } from '@/actions/reservations'
 import { jstTodayStr, jstNowMinutes } from '@/lib/utils/datetime'
+import { createClient as createSupabaseBrowser } from '@/lib/supabase/client'
 
 type Flavor = { id: string; name: string; stock: number }
 type Area = { id: string; label: string; max_units: number }
@@ -44,7 +45,6 @@ export default function ReserveFormClient({
   const [flavors, setFlavors] = useState<Flavor[]>([])
   const [area, setArea] = useState('')
   const [barQuery, setBarQuery] = useState('')
-  const [bars, setBars] = useState<Bar[]>([])
   const [showSuggestions, setShowSuggestions] = useState(false)
   const [address, setAddress] = useState('')
   const [selectedFlavorId, setSelectedFlavorId] = useState('')
@@ -76,12 +76,11 @@ export default function ReserveFormClient({
       setDataLoaded(true)
     })
   }, [])
-  const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null)
 
   const selectedArea = areas.find(a => a.label === area)
   const isAreaUnavailable = selectedArea?.max_units === 0
 
-  // Fetch availability when area or date changes
+  // Fetch availability when area or date changes, and live-update via Supabase Realtime
   useEffect(() => {
     if (!area || !selectedDate || isAreaUnavailable) {
       setBlockedSlots(new Set())
@@ -89,16 +88,42 @@ export default function ReserveFormClient({
       return
     }
     let cancelled = false
-    setLoadingSlots(true)
-    fetch(`/api/availability?area=${encodeURIComponent(area)}&date=${selectedDate}`)
-      .then(r => r.json())
-      .then((data: { blocked: string[]; booked: string[] }) => {
-        if (cancelled) return
-        setBlockedSlots(new Set(data.blocked))
-        setBookedSlots(new Set(data.booked))
-      })
-      .finally(() => { if (!cancelled) setLoadingSlots(false) })
-    return () => { cancelled = true }
+    const refetch = () => {
+      setLoadingSlots(true)
+      fetch(`/api/availability?area=${encodeURIComponent(area)}&date=${selectedDate}`)
+        .then(r => r.json())
+        .then((data: { blocked: string[]; booked: string[] }) => {
+          if (cancelled) return
+          setBlockedSlots(new Set(data.blocked))
+          setBookedSlots(new Set(data.booked))
+        })
+        .finally(() => { if (!cancelled) setLoadingSlots(false) })
+    }
+    refetch()
+
+    // Realtime: 同じエリア・日付の予約変更が来たら再取得
+    const supabase = createSupabaseBrowser()
+    const channel = supabase
+      .channel(`avail:${area}:${selectedDate}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'reservations',
+          filter: `reservation_date=eq.${selectedDate}`,
+        },
+        (payload) => {
+          const row = (payload.new ?? payload.old) as { area?: string } | null
+          if (!row || row.area === area) refetch()
+        }
+      )
+      .subscribe()
+
+    return () => {
+      cancelled = true
+      supabase.removeChannel(channel)
+    }
   }, [area, selectedDate, isAreaUnavailable])
 
   // Clear time if it becomes blocked
@@ -108,49 +133,47 @@ export default function ReserveFormClient({
     }
   }, [blockedSlots, selectedDate])
 
-  // Google Places Autocomplete
-  const hasPlacesKey = typeof window !== 'undefined' && !!process.env.NEXT_PUBLIC_GOOGLE_PLACES_API_KEY
+  // Places (server proxy) + DB suggestions
+  type Suggestion =
+    | { kind: 'place'; place_id: string; description: string }
+    | { kind: 'bar'; bar: Bar }
+  const [suggestions, setSuggestions] = useState<Suggestion[]>([])
 
   useEffect(() => {
-    if (!hasPlacesKey) return
-    const key = process.env.NEXT_PUBLIC_GOOGLE_PLACES_API_KEY!
-    if (document.querySelector(`script[src*="maps.googleapis.com"]`)) return
-    const script = document.createElement('script')
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${key}&libraries=places&language=ja`
-    script.async = true
-    script.onload = () => initAutocomplete()
-    document.head.appendChild(script)
-  }, [hasPlacesKey])
-
-  const initAutocomplete = useCallback(() => {
-    if (!placesInputRef.current || !window.google?.maps?.places) return
-    const ac = new window.google.maps.places.Autocomplete(placesInputRef.current, {
-      types: ['establishment'],
-      componentRestrictions: { country: 'jp' },
-      fields: ['name', 'formatted_address'],
-    })
-    ac.addListener('place_changed', () => {
-      const place = ac.getPlace()
-      if (place.name) setBarQuery(place.name)
-      if (place.formatted_address) setAddress(place.formatted_address)
-    })
-    autocompleteRef.current = ac
-  }, [])
-
-  // DB bar suggestions (fallback)
-  useEffect(() => {
-    if (hasPlacesKey) return
-    if (!barQuery || barQuery.length < 1) { setBars([]); return }
+    if (!barQuery || barQuery.length < 1) { setSuggestions([]); return }
+    let cancelled = false
     const timer = setTimeout(async () => {
-      const params = new URLSearchParams({ q: barQuery })
-      if (area) params.set('area', area)
-      const res = await fetch(`/api/bars?${params}`)
-      const data = await res.json()
-      setBars(data)
+      const [placesRes, barsRes] = await Promise.all([
+        fetch(`/api/places/autocomplete?q=${encodeURIComponent(barQuery)}`).then((r) => r.json()).catch(() => ({ predictions: [] })),
+        (() => {
+          const params = new URLSearchParams({ q: barQuery })
+          if (area) params.set('area', area)
+          return fetch(`/api/bars?${params}`).then((r) => r.json()).catch(() => [])
+        })(),
+      ])
+      if (cancelled) return
+      const merged: Suggestion[] = [
+        ...((placesRes.predictions ?? []) as Array<{ place_id: string; description: string }>).map(
+          (p) => ({ kind: 'place' as const, place_id: p.place_id, description: p.description })
+        ),
+        ...((barsRes ?? []) as Bar[]).map((b) => ({ kind: 'bar' as const, bar: b })),
+      ]
+      setSuggestions(merged)
       setShowSuggestions(true)
-    }, 200)
-    return () => clearTimeout(timer)
-  }, [barQuery, area, hasPlacesKey])
+    }, 250)
+    return () => { cancelled = true; clearTimeout(timer) }
+  }, [barQuery, area])
+
+  async function selectPlace(placeId: string, description: string) {
+    setBarQuery(description)
+    setShowSuggestions(false)
+    try {
+      const res = await fetch(`/api/places/details?place_id=${encodeURIComponent(placeId)}`)
+      const data = (await res.json()) as { name?: string; address?: string }
+      if (data.name) setBarQuery(data.name)
+      if (data.address) setAddress(data.address)
+    } catch {}
+  }
 
   useEffect(() => {
     function handleClick(e: MouseEvent) {
@@ -345,20 +368,20 @@ export default function ReserveFormClient({
       {/* 予約日（カスタムカレンダー） */}
       <Field label="予約日" required error={errors.reservation_date}>
         <input type="hidden" name="reservation_date" value={selectedDate} />
-        <div className={`border rounded-lg p-3 ${errors.reservation_date ? 'border-red-400 ring-2 ring-red-200' : 'border-gray-300'}`}>
+        <div role="application" aria-label="予約日カレンダー" className={`border rounded-lg p-3 ${errors.reservation_date ? 'border-red-400 ring-2 ring-red-200' : 'border-gray-300'}`}>
           <div className="flex items-center justify-between mb-2">
-            <button type="button" onClick={prevMonth} className="px-2 py-1 text-gray-600 hover:text-gray-900 font-bold">&lsaquo;</button>
-            <span className="text-sm font-bold text-gray-900">{monthLabel}</span>
-            <button type="button" onClick={nextMonth} className="px-2 py-1 text-gray-600 hover:text-gray-900 font-bold">&rsaquo;</button>
+            <button type="button" onClick={prevMonth} aria-label="前の月" className="px-2 py-1 text-gray-600 hover:text-gray-900 font-bold">&lsaquo;</button>
+            <span className="text-sm font-bold text-gray-900" aria-live="polite">{monthLabel}</span>
+            <button type="button" onClick={nextMonth} aria-label="次の月" className="px-2 py-1 text-gray-600 hover:text-gray-900 font-bold">&rsaquo;</button>
           </div>
-          <div className="grid grid-cols-7 gap-0.5 text-center text-xs mb-1">
+          <div className="grid grid-cols-7 gap-0.5 text-center text-xs mb-1" aria-hidden="true">
             {['日','月','火','水','木','金','土'].map(d => (
               <div key={d} className="py-1 font-semibold text-gray-500">{d}</div>
             ))}
           </div>
-          <div className="grid grid-cols-7 gap-0.5 text-center text-sm">
+          <div className="grid grid-cols-7 gap-0.5 text-center text-sm" role="grid">
             {calDays.map((day, i) => {
-              if (!day) return <div key={`empty-${i}`} />
+              if (!day) return <div key={`empty-${i}`} role="gridcell" />
               const dateStr = `${calMonth.year}-${String(calMonth.month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`
               const isPast = dateStr < today
               const isToday = dateStr === today
@@ -367,7 +390,11 @@ export default function ReserveFormClient({
                 <button
                   key={dateStr}
                   type="button"
+                  role="gridcell"
                   disabled={isPast}
+                  aria-label={`${calMonth.year}年${calMonth.month + 1}月${day}日${isToday ? '（今日）' : ''}`}
+                  aria-pressed={isSelected}
+                  aria-disabled={isPast}
                   onClick={() => { setSelectedDate(dateStr); setSelectedTime('') }}
                   className={`py-1.5 rounded-md transition-colors ${
                     isPast
@@ -416,6 +443,8 @@ export default function ReserveFormClient({
                         key={t}
                         type="button"
                         disabled={disabled}
+                        aria-label={`${t}${status === 'booked' ? ' 予約済み' : status === 'blocked' ? ' 予約不可' : status === 'past' ? ' 過去の時間' : ''}`}
+                        aria-pressed={selected}
                         onClick={() => setSelectedTime(selected ? '' : t)}
                         title={status === 'booked' ? '予約済み' : status === 'blocked' ? '予約不可' : status === 'past' ? '過去の時間' : ''}
                         className={`py-1.5 rounded text-xs font-medium transition-colors ${
@@ -450,25 +479,40 @@ export default function ReserveFormClient({
             ref={placesInputRef}
             type="text"
             value={barQuery}
-            onChange={e => { setBarQuery(e.target.value); if (!hasPlacesKey) setShowSuggestions(true) }}
-            onFocus={() => { if (!hasPlacesKey && bars.length > 0) setShowSuggestions(true); if (hasPlacesKey && !autocompleteRef.current) initAutocomplete() }}
+            onChange={e => { setBarQuery(e.target.value); setShowSuggestions(true) }}
+            onFocus={() => { if (suggestions.length > 0) setShowSuggestions(true) }}
             placeholder="バー名を入力して検索"
+            aria-autocomplete="list"
             className={inputClass}
           />
-          {!hasPlacesKey && showSuggestions && bars.length > 0 && (
-            <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-48 overflow-y-auto">
-              {bars.map(bar => (
-                <button
-                  key={bar.id}
-                  type="button"
-                  onClick={() => selectBar(bar)}
-                  className="w-full text-left px-4 py-2.5 hover:bg-amber-50 text-gray-900 text-sm border-b border-gray-100 last:border-0"
-                >
-                  <span className="font-medium">{bar.name}</span>
-                  <span className="text-gray-600 ml-2 text-xs">{bar.address}</span>
-                </button>
-              ))}
-            </div>
+          {showSuggestions && suggestions.length > 0 && (
+            <ul role="listbox" className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+              {suggestions.map((s, i) =>
+                s.kind === 'bar' ? (
+                  <li key={`bar-${s.bar.id}`} role="option" aria-selected="false">
+                    <button
+                      type="button"
+                      onClick={() => selectBar(s.bar)}
+                      className="w-full text-left px-4 py-2.5 hover:bg-amber-50 text-gray-900 text-sm border-b border-gray-100 last:border-0"
+                    >
+                      <span className="font-medium">{s.bar.name}</span>
+                      <span className="text-gray-600 ml-2 text-xs">{s.bar.address}</span>
+                    </button>
+                  </li>
+                ) : (
+                  <li key={`place-${s.place_id}-${i}`} role="option" aria-selected="false">
+                    <button
+                      type="button"
+                      onClick={() => selectPlace(s.place_id, s.description)}
+                      className="w-full text-left px-4 py-2.5 hover:bg-amber-50 text-gray-900 text-sm border-b border-gray-100 last:border-0"
+                    >
+                      <span className="text-gray-500 mr-1 text-xs">[Places]</span>
+                      <span>{s.description}</span>
+                    </button>
+                  </li>
+                )
+              )}
+            </ul>
           )}
         </div>
       </Field>
@@ -589,6 +633,3 @@ function buildCalendar(year: number, month: number): (number | null)[] {
   return cells
 }
 
-declare global {
-  interface Window { google: typeof google }
-}

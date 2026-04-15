@@ -3,7 +3,15 @@ import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { reservationSchema, cancelSchema, normalizePhone } from '@/lib/validation/reservation'
+import type { ReservationStatus } from '@/lib/types/database'
 import { createPublicClient } from '@/lib/supabase/public'
+import { audit } from '@/lib/audit'
+import { reportError } from '@/lib/error-report'
+import {
+  notifyAdmin,
+  reservationCreatedMessage,
+  reservationCancelledMessage,
+} from '@/lib/notifications'
 
 export async function getReservations() {
   const supabase = await createClient()
@@ -29,6 +37,7 @@ export async function getMyReservations() {
 export async function updateStatus(id: string, status: string) {
   const supabase = await createClient()
   await supabase.from('reservations').update({ status }).eq('id', id)
+  await audit('reservation.update_status', { type: 'reservation', id }, { status })
   revalidatePath('/admin')
   revalidatePath(`/admin/reservations/${id}`)
 }
@@ -39,6 +48,7 @@ export async function updateReservationStatus(formData: FormData): Promise<void>
   if (!id || !status) return
   const supabase = await createClient()
   await supabase.from('reservations').update({ status }).eq('id', id)
+  await audit('reservation.update_status', { type: 'reservation', id }, { status })
   revalidatePath('/admin')
   revalidatePath(`/admin/reservations/${id}`)
 }
@@ -49,6 +59,7 @@ export async function assignStaff(formData: FormData): Promise<void> {
   if (!id) return
   const supabase = await createClient()
   await supabase.from('reservations').update({ assigned_staff_id: staffId }).eq('id', id)
+  await audit('reservation.assign_staff', { type: 'reservation', id }, { staff_id: staffId })
   revalidatePath(`/admin/reservations/${id}`)
 }
 
@@ -58,6 +69,7 @@ export async function updateAdminNote(formData: FormData): Promise<void> {
   if (!id) return
   const supabase = await createClient()
   await supabase.from('reservations').update({ admin_note: adminNote }).eq('id', id)
+  await audit('reservation.update_admin_note', { type: 'reservation', id })
   revalidatePath(`/admin/reservations/${id}`)
 }
 
@@ -109,6 +121,7 @@ export async function updateStaff(formData: FormData): Promise<void> {
       is_active: isActive,
     })
     .eq('id', id)
+  await audit('staff.update', { type: 'profile', id }, { role, is_active: isActive })
   revalidatePath('/admin/staff')
   return redirect('/admin/staff')
 }
@@ -118,24 +131,35 @@ export async function deleteStaff(formData: FormData): Promise<void> {
   const id = formData.get('id') as string
   if (!id) return redirect('/admin/staff')
   await supabase.from('profiles').delete().eq('id', id)
+  await audit('staff.delete', { type: 'profile', id })
   revalidatePath('/admin/staff')
   return redirect('/admin/staff')
 }
 
-export async function getCustomers(search?: string) {
+export async function getCustomers(
+  search?: string,
+  pagination: { page?: number; pageSize?: number } = {}
+) {
   const supabase = await createClient()
+  const page = Math.max(1, pagination.page ?? 1)
+  const pageSize = Math.min(200, Math.max(1, pagination.pageSize ?? 50))
+  const from = (page - 1) * pageSize
+  const to = from + pageSize - 1
+
   let query = supabase
     .from('customers')
-    .select('*, reservations:reservations(id)')
+    .select('*, reservations:reservations(id)', { count: 'exact' })
     .order('created_at', { ascending: false })
+    .range(from, to)
   if (search && search.trim()) {
     query = query.ilike('name', `%${search.trim()}%`)
   }
-  const { data } = await query
-  return (data || []).map((c: Record<string, unknown>) => ({
+  const { data, count } = await query
+  const rows = (data || []).map((c: Record<string, unknown>) => ({
     ...c,
     reservation_count: Array.isArray(c.reservations) ? (c.reservations as unknown[]).length : 0,
   }))
+  return { rows, total: count ?? 0, page, pageSize }
 }
 
 export async function getCustomerById(id: string) {
@@ -161,18 +185,29 @@ type ReservationFilters = {
   status?: string
 }
 
-export async function getFilteredReservations(filters: ReservationFilters = {}) {
+export async function getFilteredReservations(
+  filters: ReservationFilters = {},
+  pagination: { page?: number; pageSize?: number } = {}
+) {
   const supabase = await createClient()
+  const page = Math.max(1, pagination.page ?? 1)
+  const pageSize = Math.min(200, Math.max(1, pagination.pageSize ?? 50))
+  const from = (page - 1) * pageSize
+  const to = from + pageSize - 1
+
   let query = supabase
     .from('reservations')
-    .select('*, customer:customers(id, name, phone), assigned_staff:profiles(id, name)')
+    .select('*, customer:customers(id, name, phone), assigned_staff:profiles(id, name)', {
+      count: 'exact',
+    })
     .order('created_at', { ascending: false })
+    .range(from, to)
   if (filters.from) query = query.gte('reservation_date', filters.from)
   if (filters.to) query = query.lte('reservation_date', filters.to)
   if (filters.area) query = query.eq('area', filters.area)
-  if (filters.status) query = query.eq('status', filters.status)
-  const { data } = await query
-  return data || []
+  if (filters.status) query = query.eq('status', filters.status as ReservationStatus)
+  const { data, count } = await query
+  return { rows: data || [], total: count ?? 0, page, pageSize }
 }
 
 export type ReservationFormState =
@@ -228,7 +263,7 @@ export async function createReservation(
   })
 
   if (error) {
-    console.error('[createReservation] RPC error:', error)
+    reportError(error, { where: 'createReservation', payload: v })
     return { ok: false, error: `予約登録に失敗しました: ${error.message}` }
   }
 
@@ -236,6 +271,19 @@ export async function createReservation(
   if (!result?.ok) {
     return { ok: false, error: result?.error || '予約登録に失敗しました' }
   }
+
+  // 管理者通知 (best-effort)
+  await notifyAdmin(
+    reservationCreatedMessage({
+      name: v.customer_name,
+      phone: v.customer_phone,
+      area: v.area,
+      date: v.reservation_date,
+      time: v.reservation_time,
+      location: v.location,
+      quantity: v.quantity,
+    })
+  )
 
   revalidatePath('/admin')
   redirect('/reserve/complete')
@@ -262,6 +310,12 @@ export async function cancelReservationByPhone(
     return { ok: false, error: parsed.error.issues[0]?.message || '情報が不足しています' }
   }
   const supabase = await createClient()
+  // キャンセル前に通知用情報を取得
+  const { data: snapshot } = await supabase
+    .from('reservations')
+    .select('reservation_date, reservation_time, area')
+    .eq('id', parsed.data.id)
+    .maybeSingle()
   const { data, error } = await supabase.rpc('cancel_reservation_by_phone', {
     p_reservation_id: parsed.data.id,
     p_phone: parsed.data.phone,
@@ -271,6 +325,15 @@ export async function cancelReservationByPhone(
     return { ok: false, error: 'キャンセルに失敗しました' }
   }
   const result = data as { ok: boolean; error?: string } | null
+  if (result?.ok && snapshot) {
+    await notifyAdmin(
+      reservationCancelledMessage({
+        date: snapshot.reservation_date,
+        time: snapshot.reservation_time,
+        area: snapshot.area,
+      })
+    )
+  }
   return result || { ok: false, error: 'キャンセルに失敗しました' }
 }
 
@@ -330,6 +393,7 @@ export async function createBar(formData: FormData): Promise<void> {
   const area = formData.get('area') as string
   if (!name || !address || !area) return redirect('/admin/bars')
   await supabase.from('bars').insert({ name, address, area })
+  await audit('bar.create', { type: 'bar' }, { name, area })
   revalidatePath('/admin/bars')
   return redirect('/admin/bars')
 }
@@ -342,6 +406,7 @@ export async function updateBar(formData: FormData): Promise<void> {
   const area = formData.get('area') as string
   if (!id || !name || !address || !area) return redirect('/admin/bars')
   await supabase.from('bars').update({ name, address, area }).eq('id', id)
+  await audit('bar.update', { type: 'bar', id }, { name, area })
   revalidatePath('/admin/bars')
   return redirect('/admin/bars')
 }
@@ -351,6 +416,7 @@ export async function deleteBar(formData: FormData): Promise<void> {
   const id = formData.get('id') as string
   if (!id) return redirect('/admin/bars')
   await supabase.from('bars').delete().eq('id', id)
+  await audit('bar.delete', { type: 'bar', id })
   revalidatePath('/admin/bars')
   return redirect('/admin/bars')
 }
@@ -371,6 +437,7 @@ export async function createFlavor(formData: FormData): Promise<void> {
   const stock = Number(formData.get('stock')) || 0
   if (!name) return redirect('/admin/flavors')
   await supabase.from('flavors').insert({ name, stock })
+  await audit('flavor.create', { type: 'flavor' }, { name, stock })
   revalidatePath('/admin/flavors')
   return redirect('/admin/flavors')
 }
@@ -382,6 +449,7 @@ export async function updateFlavor(formData: FormData): Promise<void> {
   const stock = Number(formData.get('stock'))
   if (!id || !name || isNaN(stock)) return redirect('/admin/flavors')
   await supabase.from('flavors').update({ name, stock }).eq('id', id)
+  await audit('flavor.update', { type: 'flavor', id }, { name, stock })
   revalidatePath('/admin/flavors')
   return redirect('/admin/flavors')
 }
@@ -391,6 +459,7 @@ export async function deleteFlavor(formData: FormData): Promise<void> {
   const id = formData.get('id') as string
   if (!id) return redirect('/admin/flavors')
   await supabase.from('flavors').delete().eq('id', id)
+  await audit('flavor.delete', { type: 'flavor', id })
   revalidatePath('/admin/flavors')
   return redirect('/admin/flavors')
 }
