@@ -3,8 +3,6 @@ import CancelClient from './cancel-client'
 import { findReservationsByPhone, cancelReservationByPhone } from '@/actions/reservations'
 import SiteHeader from '@/app/_components/site-header'
 
-export const dynamic = 'force-dynamic'
-
 export default function CancelPage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-900 to-gray-800 text-white">

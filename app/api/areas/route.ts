@@ -1,32 +1,26 @@
 import { NextResponse } from 'next/server'
+import { createPublicClient } from '@/lib/supabase/public'
 
-const SUPABASE_URL = 'https://zjdxhvggsqxscblmfutw.supabase.co'
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpqZHhodmdnc3F4c2NibG1mdXR3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYwODYwOTMsImV4cCI6MjA5MTY2MjA5M30.ymHM3oo1F1h23e4tgSojcDZHE17cpf-Opx3-9ElrHHk'
+export const revalidate = 60
 
 export async function GET() {
-  try {
-    const res = await fetch(
-      `${SUPABASE_URL}/rest/v1/areas?is_active=eq.true&order=created_at&select=id,label,max_units`,
-      {
-        headers: {
-          'apikey': SUPABASE_KEY,
-          'Authorization': `Bearer ${SUPABASE_KEY}`,
-        },
-        cache: 'no-store',
-      }
-    )
+  const supabase = createPublicClient()
+  const { data, error } = await supabase
+    .from('areas')
+    .select('id, label, max_units')
+    .eq('is_active', true)
+    .order('created_at')
 
-    if (!res.ok) return NextResponse.json([])
-
-    const data = await res.json()
-    return NextResponse.json(
-      (data || []).map((a: Record<string, unknown>) => ({
-        id: a.id,
-        label: a.label,
-        max_units: typeof a.max_units === 'number' ? a.max_units : 0,
-      }))
-    )
-  } catch {
+  if (error) {
+    console.error('[api/areas]', error)
     return NextResponse.json([])
   }
+
+  return NextResponse.json(
+    (data || []).map((a) => ({
+      id: a.id,
+      label: a.label,
+      max_units: typeof a.max_units === 'number' ? a.max_units : 0,
+    }))
+  )
 }

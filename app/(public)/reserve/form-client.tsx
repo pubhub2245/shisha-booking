@@ -1,6 +1,8 @@
 'use client'
 
-import { useState, useEffect, useRef, useCallback, useTransition } from 'react'
+import { useState, useEffect, useRef, useCallback, useActionState } from 'react'
+import type { ReservationFormState } from '@/actions/reservations'
+import { jstTodayStr, jstNowMinutes } from '@/lib/utils/datetime'
 
 type Flavor = { id: string; name: string; stock: number }
 type Area = { id: string; label: string; max_units: number }
@@ -20,15 +22,6 @@ function generateTimeSlots(): string[] {
 
 const ALL_TIME_SLOTS = generateTimeSlots()
 
-function toDateStr(d: Date) {
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
-}
-
-function nowMinutes() {
-  const d = new Date()
-  return d.getHours() * 60 + d.getMinutes()
-}
-
 function timeToMinutes(t: string) {
   const [h, m] = t.split(':').map(Number)
   return h * 60 + m
@@ -37,9 +30,16 @@ function timeToMinutes(t: string) {
 export default function ReserveFormClient({
   createReservation,
 }: {
-  createReservation: (formData: FormData) => Promise<void>
+  createReservation: (
+    prev: ReservationFormState | null,
+    formData: FormData
+  ) => Promise<ReservationFormState>
 }) {
-  const today = toDateStr(new Date())
+  const today = jstTodayStr()
+  const [state, formAction, isPending] = useActionState<ReservationFormState | null, FormData>(
+    createReservation,
+    null
+  )
   const [areas, setAreas] = useState<Area[]>([])
   const [flavors, setFlavors] = useState<Flavor[]>([])
   const [area, setArea] = useState('')
@@ -54,7 +54,6 @@ export default function ReserveFormClient({
   const [phoneVal, setPhoneVal] = useState('')
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [submitAttempted, setSubmitAttempted] = useState(false)
-  const [isPending, startTransition] = useTransition()
   const UNIT_PRICE = 5000
   const [selectedDate, setSelectedDate] = useState('')
   const [selectedTime, setSelectedTime] = useState('')
@@ -172,7 +171,7 @@ export default function ReserveFormClient({
 
   function isSlotPast(time: string) {
     if (!selectedDate || selectedDate !== today) return false
-    return timeToMinutes(time) <= nowMinutes()
+    return timeToMinutes(time) <= jstNowMinutes()
   }
 
   function getSlotStatus(time: string): 'available' | 'past' | 'booked' | 'blocked' {
@@ -184,12 +183,15 @@ export default function ReserveFormClient({
 
   function validate(): Record<string, string> {
     const e: Record<string, string> = {}
-    if (!name.trim()) e.name = 'この項目は必須です'
-    if (!phoneVal.trim()) e.phone = 'この項目は必須です'
-    if (!area) e.area = 'この項目は必須です'
-    if (!selectedDate) e.date = 'この項目は必須です'
-    if (!selectedTime) e.time = 'この項目は必須です'
-    if (!address.trim()) e.address = 'この項目は必須です'
+    if (!name.trim()) e.customer_name = 'お名前を入力してください'
+    const normPhone = phoneVal.replace(/[\s\-‐ー－()（）]/g, '')
+    if (!normPhone) e.customer_phone = '電話番号を入力してください'
+    else if (!/^0\d{9,10}$/.test(normPhone))
+      e.customer_phone = '電話番号は 0 から始まる 10〜11 桁で入力してください'
+    if (!area) e.area = 'エリアを選択してください'
+    if (!selectedDate) e.reservation_date = '日付を選択してください'
+    if (!selectedTime) e.reservation_time = '時間を選択してください'
+    if (!address.trim()) e.location = '住所・場所を入力してください'
     return e
   }
 
@@ -200,21 +202,25 @@ export default function ReserveFormClient({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [name, phoneVal, area, selectedDate, selectedTime, address, submitAttempted])
 
-  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault()
+  // サーバーから返ってきた fieldErrors をマージ
+  useEffect(() => {
+    if (state && !state.ok && state.fieldErrors) {
+      setErrors((prev) => ({ ...prev, ...state.fieldErrors }))
+      setSubmitAttempted(true)
+      const top = document.getElementById('reserve-form-top')
+      if (top) top.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }
+  }, [state])
+
+  function handleClientValidate(e: React.FormEvent<HTMLFormElement>) {
     setSubmitAttempted(true)
     const v = validate()
     setErrors(v)
-    if (Object.keys(v).length > 0) {
+    if (Object.keys(v).length > 0 || isAreaUnavailable) {
+      e.preventDefault()
       const top = document.getElementById('reserve-form-top')
       if (top) top.scrollIntoView({ behavior: 'smooth', block: 'start' })
-      return
     }
-    if (isAreaUnavailable) return
-    const fd = new FormData(e.currentTarget)
-    startTransition(async () => {
-      await createReservation(fd)
-    })
   }
 
   // Calendar
@@ -248,22 +254,27 @@ export default function ReserveFormClient({
   }
 
   return (
-    <form onSubmit={handleSubmit} noValidate className="bg-white rounded-2xl shadow-sm p-8 space-y-5">
+    <form action={formAction} onSubmit={handleClientValidate} noValidate className="bg-white rounded-2xl shadow-sm p-8 space-y-5">
       <div id="reserve-form-top" />
-      {submitAttempted && Object.keys(errors).length > 0 && (
+      {state && !state.ok && (
+        <div className="bg-red-50 border border-red-300 text-red-700 rounded-lg px-4 py-3 text-sm font-medium">
+          {state.error}
+        </div>
+      )}
+      {(!state || state.ok !== false) && submitAttempted && Object.keys(errors).length > 0 && (
         <div className="bg-red-50 border border-red-300 text-red-700 rounded-lg px-4 py-3 text-sm font-medium">
           入力内容をご確認ください
         </div>
       )}
 
       {/* お名前 */}
-      <Field label="お名前" required error={errors.name}>
+      <Field label="お名前" required error={errors.customer_name}>
         <input
           type="text"
           name="customer_name"
           value={name}
           onChange={e => setName(e.target.value)}
-          className={inputCls(!!errors.name)}
+          className={inputCls(!!errors.customer_name)}
         />
       </Field>
 
@@ -280,14 +291,16 @@ export default function ReserveFormClient({
       </Field>
 
       {/* 電話番号 */}
-      <Field label="電話番号" required error={errors.phone}>
+      <Field label="電話番号" required error={errors.customer_phone}>
         <input
           type="tel"
           name="customer_phone"
           value={phoneVal}
           onChange={e => setPhoneVal(e.target.value)}
           placeholder="090-1234-5678"
-          className={inputCls(!!errors.phone)}
+          inputMode="tel"
+          autoComplete="tel"
+          className={inputCls(!!errors.customer_phone)}
         />
         <p className="mt-1 text-xs text-red-400">
           ※ キャンセル時に電話番号が必要です。お間違いのないようご注意ください。
@@ -330,9 +343,9 @@ export default function ReserveFormClient({
       </Field>
 
       {/* 予約日（カスタムカレンダー） */}
-      <Field label="予約日" required error={errors.date}>
+      <Field label="予約日" required error={errors.reservation_date}>
         <input type="hidden" name="reservation_date" value={selectedDate} />
-        <div className={`border rounded-lg p-3 ${errors.date ? 'border-red-400 ring-2 ring-red-200' : 'border-gray-300'}`}>
+        <div className={`border rounded-lg p-3 ${errors.reservation_date ? 'border-red-400 ring-2 ring-red-200' : 'border-gray-300'}`}>
           <div className="flex items-center justify-between mb-2">
             <button type="button" onClick={prevMonth} className="px-2 py-1 text-gray-600 hover:text-gray-900 font-bold">&lsaquo;</button>
             <span className="text-sm font-bold text-gray-900">{monthLabel}</span>
@@ -380,7 +393,7 @@ export default function ReserveFormClient({
       </Field>
 
       {/* 予約時間（10分刻み） */}
-      <Field label="予約時間" required error={errors.time}>
+      <Field label="予約時間" required error={errors.reservation_time}>
         <input type="hidden" name="reservation_time" value={selectedTime} />
         {!selectedDate || !area ? (
           <p className="text-sm text-gray-500">エリアと日付を先に選択してください</p>
@@ -461,14 +474,14 @@ export default function ReserveFormClient({
       </Field>
 
       {/* 住所 */}
-      <Field label="住所・場所" required error={errors.address}>
+      <Field label="住所・場所" required error={errors.location}>
         <input
           type="text"
           name="location"
           value={address}
           onChange={e => setAddress(e.target.value)}
           placeholder="住所または施設名"
-          className={inputCls(!!errors.address)}
+          className={inputCls(!!errors.location)}
         />
       </Field>
 

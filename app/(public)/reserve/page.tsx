@@ -3,8 +3,6 @@ import { createReservation } from '@/actions/reservations'
 import ReserveFormClient from './form-client'
 import SiteHeader from '@/app/_components/site-header'
 
-export const dynamic = 'force-dynamic'
-
 export default function ReservePage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-900 to-gray-800 text-white">

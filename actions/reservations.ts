@@ -2,6 +2,8 @@
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
+import { reservationSchema, cancelSchema, normalizePhone } from '@/lib/validation/reservation'
+import { createPublicClient } from '@/lib/supabase/public'
 
 export async function getReservations() {
   const supabase = await createClient()
@@ -173,207 +175,103 @@ export async function getFilteredReservations(filters: ReservationFilters = {}) 
   return data || []
 }
 
-// --- 予約可能かチェック ---
-function timeToMinutes(time: string): number {
-  const [h, m] = time.split(':').map(Number)
-  return h * 60 + m
-}
+export type ReservationFormState =
+  | { ok: true }
+  | { ok: false; error: string; fieldErrors?: Record<string, string> }
 
-async function checkAvailability(
-  supabase: Awaited<ReturnType<typeof createClient>>,
-  area: string,
-  date: string,
-  time: string
-): Promise<{ ok: boolean; reason?: string }> {
-  // Get max_units
-  const { data: areaData } = await supabase
-    .from('areas')
-    .select('*')
-    .eq('label', area)
-    .single()
-
-  const maxUnits = typeof areaData?.max_units === 'number' ? areaData.max_units : 0
-  if (maxUnits === 0) {
-    return { ok: false, reason: 'このエリアは現在準備中です' }
-  }
-
-  // Get reservations for this area + date
-  const { data: reservations } = await supabase
-    .from('reservations')
-    .select('reservation_time')
-    .eq('area', area)
-    .eq('reservation_date', date)
-    .not('status', 'in', '("cancelled","closed")')
-
-  const times = (reservations || []).map((r: { reservation_time: string }) => r.reservation_time)
-
-  // Check: same time slot at capacity?
-  const countByTime: Record<string, number> = {}
-  for (const t of times) {
-    countByTime[t] = (countByTime[t] || 0) + 1
-  }
-
-  const requestedMins = timeToMinutes(time)
-
-  // Check fully booked slots and ±20min buffer
-  for (const [bookedTime, count] of Object.entries(countByTime)) {
-    if (count >= maxUnits) {
-      const bookedMins = timeToMinutes(bookedTime)
-      if (Math.abs(requestedMins - bookedMins) <= 20) {
-        return { ok: false, reason: 'この時間帯は予約が埋まっています' }
-      }
-    }
-  }
-
-  // Check daily limit + 6h cooldown
-  if (times.length >= maxUnits) {
-    const sortedTimes = [...times].sort()
-    const triggerTime = sortedTimes[maxUnits - 1]
-    const triggerMins = timeToMinutes(triggerTime)
-    if (requestedMins >= triggerMins && requestedMins <= triggerMins + 360) {
-      return { ok: false, reason: '1日の予約上限に達したため、しばらく予約できません' }
-    }
-  }
-
-  return { ok: true }
-}
-
-export async function createReservation(formData: FormData): Promise<void> {
-  const supabase = await createClient()
-
-  const name = (formData.get('customer_name') as string)?.trim()
-  const nameKana = (formData.get('customer_name_kana') as string)?.trim() || null
-  const phone = (formData.get('customer_phone') as string)?.trim()
-  const reservationDate = formData.get('reservation_date') as string
-  const reservationTime = formData.get('reservation_time') as string
-  const area = formData.get('area') as string
-  const location = (formData.get('location') as string)?.trim()
-  const quantity = Number(formData.get('quantity')) || 1
-  const flavorId = (formData.get('flavor_id') as string) || null
-  const instagram = (formData.get('instagram') as string)?.trim() || ''
-  const paymentMethod = (formData.get('payment_method') as string)?.trim() || ''
-  const rawNotes = (formData.get('notes') as string)?.trim() || ''
-  const notes = rawNotes || null
-
-  if (!name || !phone || !reservationDate || !reservationTime || !area || !location) {
-    return redirect('/reserve')
-  }
-
-  // サーバー側: 予約可能かチェック
-  const availability = await checkAvailability(supabase, area, reservationDate, reservationTime)
-  if (!availability.ok) {
-    return redirect('/reserve')
-  }
-
-  // 顧客を作成または既存を検索
-  let customerId: string
-  const { data: existing } = await supabase
-    .from('customers')
-    .select('id')
-    .eq('phone', phone)
-    .single()
-
-  if (existing) {
-    customerId = existing.id
-    const updatePayload: Record<string, unknown> = { name }
-    if (nameKana) updatePayload.name_kana = nameKana
-    if (instagram) updatePayload.contact_sns = instagram
-    let { error: updErr } = await supabase.from('customers').update(updatePayload).eq('id', customerId)
-    if (updErr && /name_kana/i.test(updErr.message)) {
-      delete updatePayload.name_kana
-      ;({ error: updErr } = await supabase.from('customers').update(updatePayload).eq('id', customerId))
-    }
-  } else {
-    const insertPayload: Record<string, unknown> = { name, phone, area, contact_sns: instagram || null }
-    if (nameKana) insertPayload.name_kana = nameKana
-    let { data: newCustomer, error: customerError } = await supabase
-      .from('customers')
-      .insert(insertPayload)
-      .select('id')
-      .single()
-    if (customerError && /name_kana/i.test(customerError.message)) {
-      delete insertPayload.name_kana
-      ;({ data: newCustomer, error: customerError } = await supabase
-        .from('customers')
-        .insert(insertPayload)
-        .select('id')
-        .single())
-    }
-    if (customerError || !newCustomer) {
-      return redirect('/reserve')
-    }
-    customerId = newCustomer.id
-  }
-
-  const { error: reservationError } = await supabase.from('reservations').insert({
-    customer_id: customerId,
-    reservation_date: reservationDate,
-    reservation_time: reservationTime,
-    area,
-    location,
-    quantity,
-    flavor_id: flavorId,
-    payment_method: paymentMethod || null,
-    admin_note: notes,
-    status: 'received',
+export async function createReservation(
+  _prev: ReservationFormState | null,
+  formData: FormData
+): Promise<ReservationFormState> {
+  // 1. Zod でバリデーション
+  const parsed = reservationSchema.safeParse({
+    customer_name: formData.get('customer_name'),
+    customer_name_kana: formData.get('customer_name_kana'),
+    customer_phone: formData.get('customer_phone'),
+    reservation_date: formData.get('reservation_date'),
+    reservation_time: formData.get('reservation_time'),
+    area: formData.get('area'),
+    location: formData.get('location'),
+    quantity: formData.get('quantity'),
+    flavor_id: formData.get('flavor_id'),
+    instagram: formData.get('instagram'),
+    payment_method: formData.get('payment_method'),
+    notes: formData.get('notes'),
   })
 
-  if (reservationError) {
-    return redirect('/reserve')
+  if (!parsed.success) {
+    const fieldErrors: Record<string, string> = {}
+    for (const issue of parsed.error.issues) {
+      const key = String(issue.path[0] ?? '')
+      if (key && !fieldErrors[key]) fieldErrors[key] = issue.message
+    }
+    return { ok: false, error: '入力内容をご確認ください', fieldErrors }
   }
 
-  // フレーバーの在庫を1減らす
-  if (flavorId) {
-    await supabase.rpc('decrement_flavor_stock', { flavor_id: flavorId })
+  const v = parsed.data
+  const supabase = await createClient()
+
+  // 2. アトミック RPC に委譲 (二重予約 / 在庫競合をDB側で防止)
+  const { data, error } = await supabase.rpc('create_reservation_atomic', {
+    p_name: v.customer_name,
+    p_name_kana: v.customer_name_kana ?? null,
+    p_phone: v.customer_phone,
+    p_area: v.area,
+    p_reservation_date: v.reservation_date,
+    p_reservation_time: v.reservation_time,
+    p_location: v.location,
+    p_quantity: v.quantity,
+    p_flavor_id: v.flavor_id ?? null,
+    p_instagram: v.instagram ?? null,
+    p_payment_method: v.payment_method ?? null,
+    p_notes: v.notes ?? null,
+  })
+
+  if (error) {
+    console.error('[createReservation] RPC error:', error)
+    return { ok: false, error: `予約登録に失敗しました: ${error.message}` }
   }
 
-  return redirect('/reserve/complete')
+  const result = data as { ok: boolean; error?: string } | null
+  if (!result?.ok) {
+    return { ok: false, error: result?.error || '予約登録に失敗しました' }
+  }
+
+  revalidatePath('/admin')
+  redirect('/reserve/complete')
 }
 
 export async function findReservationsByPhone(phone: string) {
-  const trimmed = phone.trim()
-  if (!trimmed) return []
+  const normalized = normalizePhone(phone)
+  if (!normalized) return []
   const supabase = await createClient()
-  const { data: customer } = await supabase
-    .from('customers')
-    .select('id, name')
-    .eq('phone', trimmed)
-    .maybeSingle()
-  if (!customer) return []
-  const { data } = await supabase
-    .from('reservations')
-    .select('id, reservation_date, reservation_time, area, location, quantity, status')
-    .eq('customer_id', customer.id)
-    .not('status', 'in', '("cancelled","closed","completed")')
-    .order('reservation_date', { ascending: true })
-  return (data || []).map((r) => ({ ...r, customer_name: customer.name }))
+  const { data, error } = await supabase.rpc('find_reservations_by_phone', { p_phone: normalized })
+  if (error) {
+    console.error('[findReservationsByPhone] RPC error:', error)
+    return []
+  }
+  return data || []
 }
 
 export async function cancelReservationByPhone(
   id: string,
   phone: string
 ): Promise<{ ok: boolean; error?: string }> {
-  const trimmed = phone.trim()
-  if (!id || !trimmed) return { ok: false, error: '情報が不足しています' }
-  const supabase = await createClient()
-  const { data: reservation } = await supabase
-    .from('reservations')
-    .select('id, reservation_date, reservation_time, status, customer:customers(phone)')
-    .eq('id', id)
-    .single()
-  if (!reservation) return { ok: false, error: '予約が見つかりません' }
-  const customer = reservation.customer as { phone?: string } | { phone?: string }[] | null
-  const customerPhone = Array.isArray(customer) ? customer[0]?.phone : customer?.phone
-  if (customerPhone !== trimmed) return { ok: false, error: '電話番号が一致しません' }
-  if (reservation.status === 'cancelled') return { ok: false, error: '既にキャンセル済みです' }
-  const reservationAt = new Date(`${reservation.reservation_date}T${reservation.reservation_time}`)
-  const diffMs = reservationAt.getTime() - Date.now()
-  if (diffMs < 2 * 60 * 60 * 1000) {
-    return { ok: false, error: 'キャンセル期限を過ぎています' }
+  const parsed = cancelSchema.safeParse({ id, phone })
+  if (!parsed.success) {
+    return { ok: false, error: parsed.error.issues[0]?.message || '情報が不足しています' }
   }
-  const { error } = await supabase.from('reservations').update({ status: 'cancelled' }).eq('id', id)
-  if (error) return { ok: false, error: 'キャンセルに失敗しました' }
-  return { ok: true }
+  const supabase = await createClient()
+  const { data, error } = await supabase.rpc('cancel_reservation_by_phone', {
+    p_reservation_id: parsed.data.id,
+    p_phone: parsed.data.phone,
+  })
+  if (error) {
+    console.error('[cancelReservationByPhone] RPC error:', error)
+    return { ok: false, error: 'キャンセルに失敗しました' }
+  }
+  const result = data as { ok: boolean; error?: string } | null
+  return result || { ok: false, error: 'キャンセルに失敗しました' }
 }
 
 export async function getAreas() {
@@ -387,63 +285,32 @@ export async function getAreas() {
 }
 
 export async function getAreasWithUnits() {
-  // cookiesに依存しないSupabase直接呼び出し（公開データのため認証不要）
-  const url = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL
-  const key = process.env.SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-
-  if (!url || !key) {
-    console.error('[getAreasWithUnits] env vars missing — URL:', !!url, 'KEY:', !!key)
+  const supabase = createPublicClient()
+  const { data, error } = await supabase
+    .from('areas')
+    .select('id, label, max_units')
+    .eq('is_active', true)
+    .order('created_at')
+  if (error) {
+    console.error('[getAreasWithUnits]', error)
     return []
   }
-
-  try {
-    const res = await fetch(
-      `${url}/rest/v1/areas?is_active=eq.true&order=created_at&select=*`,
-      {
-        headers: {
-          'apikey': key,
-          'Authorization': `Bearer ${key}`,
-        },
-        cache: 'no-store',
-      }
-    )
-
-    if (!res.ok) {
-      console.error('[getAreasWithUnits] fetch error:', res.status, await res.text())
-      return []
-    }
-
-    const data = await res.json()
-    return (data || []).map((a: Record<string, unknown>) => ({
-      id: a.id as string,
-      label: a.label as string,
-      max_units: typeof a.max_units === 'number' ? a.max_units : 0,
-    }))
-  } catch (e) {
-    console.error('[getAreasWithUnits] exception:', e)
-    return []
-  }
+  return (data || []).map((a) => ({
+    id: a.id as string,
+    label: a.label as string,
+    max_units: typeof a.max_units === 'number' ? a.max_units : 0,
+  }))
 }
 
 export async function getFlavors() {
-  const url = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL
-  const key = process.env.SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-
-  if (!url || !key) return []
-
-  try {
-    const res = await fetch(
-      `${url}/rest/v1/flavors?stock=gt.0&order=name&select=id,name,stock`,
-      {
-        headers: { 'apikey': key, 'Authorization': `Bearer ${key}` },
-        cache: 'no-store',
-      }
-    )
-    if (!res.ok) return []
-    return await res.json()
-  } catch {
-    return []
-  }
+  const supabase = createPublicClient()
+  const { data, error } = await supabase
+    .from('flavors')
+    .select('id, name, stock')
+    .gt('stock', 0)
+    .order('name')
+  if (error) return []
+  return data || []
 }
 
 // --- Bars ---
