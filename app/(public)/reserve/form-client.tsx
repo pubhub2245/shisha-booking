@@ -48,6 +48,8 @@ export default function ReserveFormClient({
   const [showSuggestions, setShowSuggestions] = useState(false)
   const [address, setAddress] = useState('')
   const [selectedFlavorId, setSelectedFlavorId] = useState('')
+  const [quantity, setQuantity] = useState(1)
+  const UNIT_PRICE = 5000
   const [selectedDate, setSelectedDate] = useState('')
   const [selectedTime, setSelectedTime] = useState('')
   const [calMonth, setCalMonth] = useState(() => { const d = new Date(); return { year: d.getFullYear(), month: d.getMonth() } })
@@ -220,24 +222,29 @@ export default function ReserveFormClient({
       <Field label="エリア" required>
         <input type="hidden" name="area" value={area} />
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-          {areas.map(a => (
-            <button
-              key={a.id}
-              type="button"
-              onClick={() => { setArea(a.label); setSelectedTime('') }}
-              className={`py-2.5 px-3 rounded-lg border text-sm font-medium transition-colors ${
-                area === a.label
-                  ? a.max_units === 0
-                    ? 'bg-gray-400 text-white border-gray-400'
-                    : 'bg-amber-500 text-white border-amber-500'
-                  : 'bg-white text-gray-900 border-gray-300 hover:border-amber-400'
-              }`}
-            >
-              {a.label}
-              {a.max_units === 0 && <span className="block text-xs mt-0.5 opacity-80">準備中</span>}
-              {a.max_units > 0 && <span className="block text-xs mt-0.5 opacity-70">{a.max_units}台</span>}
-            </button>
-          ))}
+          {areas.map(a => {
+            const unavailable = a.max_units === 0
+            return (
+              <button
+                key={a.id}
+                type="button"
+                disabled={unavailable}
+                aria-disabled={unavailable}
+                onClick={() => { if (unavailable) return; setArea(a.label); setSelectedTime('') }}
+                className={`py-2.5 px-3 rounded-lg border text-sm font-medium transition-colors ${
+                  unavailable
+                    ? 'bg-gray-200 text-gray-400 border-gray-300 cursor-not-allowed pointer-events-none'
+                    : area === a.label
+                      ? 'bg-amber-500 text-white border-amber-500'
+                      : 'bg-white text-gray-900 border-gray-300 hover:border-amber-400'
+                }`}
+              >
+                {a.label}
+                {unavailable && <span className="block text-base font-bold mt-0.5 text-red-500">準備中</span>}
+                {!unavailable && <span className="block text-xs mt-0.5 opacity-70">{a.max_units}台</span>}
+              </button>
+            )
+          })}
         </div>
         {isAreaUnavailable && (
           <div className="mt-2 bg-yellow-50 border border-yellow-200 rounded-lg px-4 py-3 text-sm text-yellow-800">
@@ -392,11 +399,19 @@ export default function ReserveFormClient({
 
       {/* 台数 */}
       <Field label="台数">
-        <select name="quantity" defaultValue="1" className={inputClass}>
+        <select
+          name="quantity"
+          value={quantity}
+          onChange={e => setQuantity(Number(e.target.value))}
+          className={inputClass}
+        >
           {[1,2,3,4,5,6,7,8,9,10].map(n => (
-            <option key={n} value={n}>{n}台</option>
+            <option key={n} value={n}>{n}台（{(n * UNIT_PRICE).toLocaleString()}円）</option>
           ))}
         </select>
+        <p className="text-sm text-gray-700 mt-2">
+          合計金額の目安：<span className="font-bold text-amber-600 text-base">{(quantity * UNIT_PRICE).toLocaleString()}円</span>
+        </p>
       </Field>
 
       {/* Instagram */}
@@ -445,13 +460,15 @@ export default function ReserveFormClient({
         <textarea name="notes" rows={3} placeholder="ご要望があればご記入ください" className={inputClass} />
       </Field>
 
-      <button
-        type="submit"
-        disabled={isAreaUnavailable || !selectedDate || !selectedTime || !area}
-        className="w-full bg-amber-500 hover:bg-amber-600 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-bold py-3 rounded-xl transition-colors"
-      >
-        予約を申し込む
-      </button>
+      <div className="pt-4">
+        <button
+          type="submit"
+          disabled={isAreaUnavailable || !selectedDate || !selectedTime || !area}
+          className="w-full bg-amber-500 hover:bg-amber-600 active:bg-amber-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-bold text-lg py-5 rounded-xl shadow-lg shadow-amber-500/30 transition-colors"
+        >
+          予約を申し込む
+        </button>
+      </div>
     </form>
   )
 }

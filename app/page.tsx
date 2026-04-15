@@ -1,18 +1,11 @@
 import Link from 'next/link'
 import FAQ from './_components/faq'
+import SiteHeader from './_components/site-header'
 
 export default function Home() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-900 to-gray-800 text-white">
-      <header className="px-6 py-4 flex justify-between items-center max-w-5xl mx-auto">
-        <span className="text-lg font-bold tracking-tight">出張シーシャ</span>
-        <Link
-          href="/admin/login"
-          className="text-xs text-gray-500 hover:text-gray-300 transition-colors"
-        >
-          管理者ログイン
-        </Link>
-      </header>
+      <SiteHeader />
 
       <main className="flex flex-col items-center px-4 pt-20 pb-16">
         <section className="flex flex-col items-center w-full">
@@ -60,11 +53,11 @@ export default function Home() {
         {/* 利用の流れ */}
         <section className="mt-24 w-full max-w-4xl">
           <h2 className="text-2xl font-bold text-center mb-8">ご利用の流れ</h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <StepCard n={1} title="Webで予約" />
-            <StepCard n={2} title="確認のご連絡" />
-            <StepCard n={3} title="当日出張" />
-            <StepCard n={4} title="シーシャ提供" />
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+            <StepCard n={1} title="Webで予約" desc="このサイトから日時・場所を入力" />
+            <StepCard n={2} title="確認のご連絡" desc="スタッフから確認のご連絡をいたします" />
+            <StepCard n={3} title="当日出張" desc="ご指定の場所にシーシャ機材を持って伺います" />
+            <StepCard n={4} title="シーシャ提供" desc="セッティング後、シーシャをお楽しみください" />
           </div>
         </section>
 
@@ -75,16 +68,23 @@ export default function Home() {
         </section>
       </main>
 
-      <footer className="border-t border-white/10 py-8 text-center text-gray-500 text-sm">
-        <a
-          href="https://www.instagram.com/"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-block mb-3 text-gray-400 hover:text-white transition-colors"
-        >
-          Instagram
-        </a>
-        <div>&copy; 2026 株式会社Alpha. All rights reserved.</div>
+      <footer className="border-t border-white/10 py-10 px-4 text-center text-gray-400 text-sm">
+        <div className="max-w-3xl mx-auto space-y-3">
+          <div>お問い合わせ：Instagram DMにてご連絡ください</div>
+          <div>
+            <a
+              href="https://www.instagram.com/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 text-gray-200 hover:text-amber-400 transition-colors font-medium"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="w-5 h-5" fill="currentColor"><path d="M12 2.2c3.2 0 3.6 0 4.8.07 1.2.05 1.8.24 2.2.4.6.22 1 .5 1.5 1 .5.5.8.9 1 1.5.16.4.35 1 .4 2.2.07 1.2.07 1.6.07 4.8s0 3.6-.07 4.8c-.05 1.2-.24 1.8-.4 2.2-.22.6-.5 1-1 1.5-.5.5-.9.8-1.5 1-.4.16-1 .35-2.2.4-1.2.07-1.6.07-4.8.07s-3.6 0-4.8-.07c-1.2-.05-1.8-.24-2.2-.4-.6-.22-1-.5-1.5-1-.5-.5-.8-.9-1-1.5-.16-.4-.35-1-.4-2.2C2.2 15.6 2.2 15.2 2.2 12s0-3.6.07-4.8c.05-1.2.24-1.8.4-2.2.22-.6.5-1 1-1.5.5-.5.9-.8 1.5-1 .4-.16 1-.35 2.2-.4C8.4 2.2 8.8 2.2 12 2.2zm0 1.8c-3.15 0-3.5 0-4.7.06-1 .05-1.6.22-1.9.36-.5.2-.85.43-1.2.78-.35.35-.58.7-.78 1.2-.14.3-.31.9-.36 1.9C3 8.5 3 8.85 3 12s0 3.5.06 4.7c.05 1 .22 1.6.36 1.9.2.5.43.85.78 1.2.35.35.7.58 1.2.78.3.14.9.31 1.9.36 1.2.06 1.55.06 4.7.06s3.5 0 4.7-.06c1-.05 1.6-.22 1.9-.36.5-.2.85-.43 1.2-.78.35-.35.58-.7.78-1.2.14-.3.31-.9.36-1.9.06-1.2.06-1.55.06-4.7s0-3.5-.06-4.7c-.05-1-.22-1.6-.36-1.9-.2-.5-.43-.85-.78-1.2-.35-.35-.7-.58-1.2-.78-.3-.14-.9-.31-1.9-.36C15.5 4 15.15 4 12 4zm0 3.05a4.95 4.95 0 110 9.9 4.95 4.95 0 010-9.9zm0 1.8a3.15 3.15 0 100 6.3 3.15 3.15 0 000-6.3zm5.15-2.07a1.16 1.16 0 110 2.32 1.16 1.16 0 010-2.32z"/></svg>
+              Instagram
+            </a>
+          </div>
+          <div>営業時間：10:00〜22:00</div>
+          <div className="pt-2 text-gray-500">&copy; 2026 株式会社Alpha All rights reserved.</div>
+        </div>
       </footer>
     </div>
   )
@@ -99,11 +99,12 @@ function AreaCard({ label, sub, muted }: { label: string; sub: string; muted?: b
   )
 }
 
-function StepCard({ n, title }: { n: number; title: string }) {
+function StepCard({ n, title, desc }: { n: number; title: string; desc: string }) {
   return (
     <div className="bg-white/5 backdrop-blur rounded-xl p-5 border border-white/10 text-center">
       <div className="w-9 h-9 mx-auto rounded-full bg-amber-500 text-white font-bold flex items-center justify-center mb-3">{n}</div>
-      <div className="font-medium text-sm">{title}</div>
+      <div className="font-medium text-sm mb-2">{title}</div>
+      <div className="text-xs text-gray-400 leading-relaxed">{desc}</div>
     </div>
   )
 }
