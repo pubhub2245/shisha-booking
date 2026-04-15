@@ -242,6 +242,7 @@ export async function createReservation(formData: FormData): Promise<void> {
   const supabase = await createClient()
 
   const name = (formData.get('customer_name') as string)?.trim()
+  const nameKana = (formData.get('customer_name_kana') as string)?.trim() || null
   const phone = (formData.get('customer_phone') as string)?.trim()
   const reservationDate = formData.get('reservation_date') as string
   const reservationTime = formData.get('reservation_time') as string
@@ -275,14 +276,29 @@ export async function createReservation(formData: FormData): Promise<void> {
   if (existing) {
     customerId = existing.id
     const updatePayload: Record<string, unknown> = { name }
+    if (nameKana) updatePayload.name_kana = nameKana
     if (instagram) updatePayload.contact_sns = instagram
-    await supabase.from('customers').update(updatePayload).eq('id', customerId)
+    let { error: updErr } = await supabase.from('customers').update(updatePayload).eq('id', customerId)
+    if (updErr && /name_kana/i.test(updErr.message)) {
+      delete updatePayload.name_kana
+      ;({ error: updErr } = await supabase.from('customers').update(updatePayload).eq('id', customerId))
+    }
   } else {
-    const { data: newCustomer, error: customerError } = await supabase
+    const insertPayload: Record<string, unknown> = { name, phone, area, contact_sns: instagram || null }
+    if (nameKana) insertPayload.name_kana = nameKana
+    let { data: newCustomer, error: customerError } = await supabase
       .from('customers')
-      .insert({ name, phone, area, contact_sns: instagram || null })
+      .insert(insertPayload)
       .select('id')
       .single()
+    if (customerError && /name_kana/i.test(customerError.message)) {
+      delete insertPayload.name_kana
+      ;({ data: newCustomer, error: customerError } = await supabase
+        .from('customers')
+        .insert(insertPayload)
+        .select('id')
+        .single())
+    }
     if (customerError || !newCustomer) {
       return redirect('/reserve')
     }

@@ -23,7 +23,7 @@ export default function Home() {
           </Link>
           <Link
             href="/cancel"
-            className="mt-4 text-sm text-gray-400 hover:text-gray-200 underline underline-offset-4 transition-colors"
+            className="mt-5 text-base text-white/90 hover:text-white underline underline-offset-4 decoration-white/40 hover:decoration-white transition-colors"
           >
             キャンセルはこちら
           </Link>
@@ -72,6 +72,7 @@ export default function Home() {
         <div className="max-w-3xl mx-auto space-y-3">
           <div>お問い合わせ：Instagram DMにてご連絡ください</div>
           <div>
+            {/* TODO: ここに実際のアカウントURLを入れる（例: https://www.instagram.com/your_account/） */}
             <a
               href="https://www.instagram.com/"
               target="_blank"
@@ -91,11 +92,23 @@ export default function Home() {
 }
 
 function AreaCard({ label, sub, muted }: { label: string; sub: string; muted?: boolean }) {
+  if (muted) {
+    return (
+      <div className="rounded-xl p-6 border text-center bg-white/5 border-white/10 text-gray-400 cursor-not-allowed">
+        <div className="font-bold text-lg">{label}</div>
+        <div className="text-sm mt-1 opacity-80">{sub}</div>
+      </div>
+    )
+  }
   return (
-    <div className={`rounded-xl p-6 border text-center ${muted ? 'bg-white/5 border-white/10 text-gray-400' : 'bg-white/10 border-white/20'}`}>
+    <Link
+      href="/reserve"
+      className="rounded-xl p-6 border text-center bg-white/10 border-white/20 hover:bg-white/15 hover:border-amber-400/60 transition-colors block"
+    >
       <div className="font-bold text-lg">{label}</div>
       <div className="text-sm mt-1 opacity-80">{sub}</div>
-    </div>
+      <div className="text-xs mt-2 text-amber-400">予約する →</div>
+    </Link>
   )
 }
 

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef, useCallback, useTransition } from 'react'
 
 type Flavor = { id: string; name: string; stock: number }
 type Area = { id: string; label: string; max_units: number }
@@ -49,6 +49,12 @@ export default function ReserveFormClient({
   const [address, setAddress] = useState('')
   const [selectedFlavorId, setSelectedFlavorId] = useState('')
   const [quantity, setQuantity] = useState(1)
+  const [name, setName] = useState('')
+  const [nameKana, setNameKana] = useState('')
+  const [phoneVal, setPhoneVal] = useState('')
+  const [errors, setErrors] = useState<Record<string, string>>({})
+  const [submitAttempted, setSubmitAttempted] = useState(false)
+  const [isPending, startTransition] = useTransition()
   const UNIT_PRICE = 5000
   const [selectedDate, setSelectedDate] = useState('')
   const [selectedTime, setSelectedTime] = useState('')
@@ -176,6 +182,41 @@ export default function ReserveFormClient({
     return 'available'
   }
 
+  function validate(): Record<string, string> {
+    const e: Record<string, string> = {}
+    if (!name.trim()) e.name = 'この項目は必須です'
+    if (!phoneVal.trim()) e.phone = 'この項目は必須です'
+    if (!area) e.area = 'この項目は必須です'
+    if (!selectedDate) e.date = 'この項目は必須です'
+    if (!selectedTime) e.time = 'この項目は必須です'
+    if (!address.trim()) e.address = 'この項目は必須です'
+    return e
+  }
+
+  // Re-validate on field change after first submit attempt
+  useEffect(() => {
+    if (!submitAttempted) return
+    setErrors(validate())
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [name, phoneVal, area, selectedDate, selectedTime, address, submitAttempted])
+
+  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault()
+    setSubmitAttempted(true)
+    const v = validate()
+    setErrors(v)
+    if (Object.keys(v).length > 0) {
+      const top = document.getElementById('reserve-form-top')
+      if (top) top.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      return
+    }
+    if (isAreaUnavailable) return
+    const fd = new FormData(e.currentTarget)
+    startTransition(async () => {
+      await createReservation(fd)
+    })
+  }
+
   // Calendar
   const calDays = buildCalendar(calMonth.year, calMonth.month)
   function prevMonth() {
@@ -207,21 +248,56 @@ export default function ReserveFormClient({
   }
 
   return (
-    <form action={createReservation} className="bg-white rounded-2xl shadow-sm p-8 space-y-5">
+    <form onSubmit={handleSubmit} noValidate className="bg-white rounded-2xl shadow-sm p-8 space-y-5">
+      <div id="reserve-form-top" />
+      {submitAttempted && Object.keys(errors).length > 0 && (
+        <div className="bg-red-50 border border-red-300 text-red-700 rounded-lg px-4 py-3 text-sm font-medium">
+          入力内容をご確認ください
+        </div>
+      )}
+
       {/* お名前 */}
-      <Field label="お名前" required>
-        <input type="text" name="customer_name" required className={inputClass} />
+      <Field label="お名前" required error={errors.name}>
+        <input
+          type="text"
+          name="customer_name"
+          value={name}
+          onChange={e => setName(e.target.value)}
+          className={inputCls(!!errors.name)}
+        />
+      </Field>
+
+      {/* ふりがな */}
+      <Field label="ふりがな（任意）">
+        <input
+          type="text"
+          name="customer_name_kana"
+          value={nameKana}
+          onChange={e => setNameKana(e.target.value)}
+          placeholder="やまだ たろう"
+          className={inputClass}
+        />
       </Field>
 
       {/* 電話番号 */}
-      <Field label="電話番号" required>
-        <input type="tel" name="customer_phone" required placeholder="090-1234-5678" className={inputClass} />
+      <Field label="電話番号" required error={errors.phone}>
+        <input
+          type="tel"
+          name="customer_phone"
+          value={phoneVal}
+          onChange={e => setPhoneVal(e.target.value)}
+          placeholder="090-1234-5678"
+          className={inputCls(!!errors.phone)}
+        />
+        <p className="mt-1 text-xs text-red-400">
+          ※ キャンセル時に電話番号が必要です。お間違いのないようご注意ください。
+        </p>
       </Field>
 
       {/* エリア選択（日付・時間の前に配置して、空き状況を先に取得可能に） */}
-      <Field label="エリア" required>
+      <Field label="エリア" required error={errors.area}>
         <input type="hidden" name="area" value={area} />
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+        <div className={`grid grid-cols-1 sm:grid-cols-3 gap-2 ${errors.area ? 'ring-2 ring-red-400 rounded-lg p-1' : ''}`}>
           {areas.map(a => {
             const unavailable = a.max_units === 0
             return (
@@ -254,9 +330,9 @@ export default function ReserveFormClient({
       </Field>
 
       {/* 予約日（カスタムカレンダー） */}
-      <Field label="予約日" required>
+      <Field label="予約日" required error={errors.date}>
         <input type="hidden" name="reservation_date" value={selectedDate} />
-        <div className="border border-gray-300 rounded-lg p-3">
+        <div className={`border rounded-lg p-3 ${errors.date ? 'border-red-400 ring-2 ring-red-200' : 'border-gray-300'}`}>
           <div className="flex items-center justify-between mb-2">
             <button type="button" onClick={prevMonth} className="px-2 py-1 text-gray-600 hover:text-gray-900 font-bold">&lsaquo;</button>
             <span className="text-sm font-bold text-gray-900">{monthLabel}</span>
@@ -282,7 +358,7 @@ export default function ReserveFormClient({
                   onClick={() => { setSelectedDate(dateStr); setSelectedTime('') }}
                   className={`py-1.5 rounded-md transition-colors ${
                     isPast
-                      ? 'text-gray-300 cursor-not-allowed'
+                      ? 'text-gray-400 opacity-30 cursor-not-allowed pointer-events-none'
                       : isSelected
                         ? 'bg-amber-500 text-white font-bold'
                         : isToday
@@ -304,7 +380,7 @@ export default function ReserveFormClient({
       </Field>
 
       {/* 予約時間（10分刻み） */}
-      <Field label="予約時間" required>
+      <Field label="予約時間" required error={errors.time}>
         <input type="hidden" name="reservation_time" value={selectedTime} />
         {!selectedDate || !area ? (
           <p className="text-sm text-gray-500">エリアと日付を先に選択してください</p>
@@ -385,15 +461,14 @@ export default function ReserveFormClient({
       </Field>
 
       {/* 住所 */}
-      <Field label="住所・場所" required>
+      <Field label="住所・場所" required error={errors.address}>
         <input
           type="text"
           name="location"
-          required
           value={address}
           onChange={e => setAddress(e.target.value)}
           placeholder="住所または施設名"
-          className={inputClass}
+          className={inputCls(!!errors.address)}
         />
       </Field>
 
@@ -463,10 +538,10 @@ export default function ReserveFormClient({
       <div className="pt-4">
         <button
           type="submit"
-          disabled={isAreaUnavailable || !selectedDate || !selectedTime || !area}
+          disabled={isAreaUnavailable || isPending}
           className="w-full bg-amber-500 hover:bg-amber-600 active:bg-amber-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-bold text-lg py-5 rounded-xl shadow-lg shadow-amber-500/30 transition-colors"
         >
-          予約を申し込む
+          {isPending ? '送信中...' : '予約を申し込む'}
         </button>
       </div>
     </form>
@@ -474,14 +549,20 @@ export default function ReserveFormClient({
 }
 
 const inputClass = 'w-full border border-gray-300 rounded-lg px-4 py-2.5 text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-amber-500'
+const inputClassError = 'w-full border border-red-400 rounded-lg px-4 py-2.5 text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-red-400 bg-red-50'
 
-function Field({ label, required, children }: { label: string; required?: boolean; children: React.ReactNode }) {
+function inputCls(hasError: boolean) {
+  return hasError ? inputClassError : inputClass
+}
+
+function Field({ label, required, error, children }: { label: string; required?: boolean; error?: string; children: React.ReactNode }) {
   return (
     <div>
       <label className="block text-sm font-semibold text-gray-900 mb-1">
         {label}{required && ' *'}
       </label>
       {children}
+      {error && <p className="mt-1 text-xs text-red-600 font-medium">{error}</p>}
     </div>
   )
 }
