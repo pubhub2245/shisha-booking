@@ -314,6 +314,52 @@ export async function createReservation(formData: FormData): Promise<void> {
   return redirect('/reserve/complete')
 }
 
+export async function findReservationsByPhone(phone: string) {
+  const trimmed = phone.trim()
+  if (!trimmed) return []
+  const supabase = await createClient()
+  const { data: customer } = await supabase
+    .from('customers')
+    .select('id, name')
+    .eq('phone', trimmed)
+    .maybeSingle()
+  if (!customer) return []
+  const { data } = await supabase
+    .from('reservations')
+    .select('id, reservation_date, reservation_time, area, location, quantity, status')
+    .eq('customer_id', customer.id)
+    .not('status', 'in', '("cancelled","closed","completed")')
+    .order('reservation_date', { ascending: true })
+  return (data || []).map((r) => ({ ...r, customer_name: customer.name }))
+}
+
+export async function cancelReservationByPhone(
+  id: string,
+  phone: string
+): Promise<{ ok: boolean; error?: string }> {
+  const trimmed = phone.trim()
+  if (!id || !trimmed) return { ok: false, error: '情報が不足しています' }
+  const supabase = await createClient()
+  const { data: reservation } = await supabase
+    .from('reservations')
+    .select('id, reservation_date, reservation_time, status, customer:customers(phone)')
+    .eq('id', id)
+    .single()
+  if (!reservation) return { ok: false, error: '予約が見つかりません' }
+  const customer = reservation.customer as { phone?: string } | { phone?: string }[] | null
+  const customerPhone = Array.isArray(customer) ? customer[0]?.phone : customer?.phone
+  if (customerPhone !== trimmed) return { ok: false, error: '電話番号が一致しません' }
+  if (reservation.status === 'cancelled') return { ok: false, error: '既にキャンセル済みです' }
+  const reservationAt = new Date(`${reservation.reservation_date}T${reservation.reservation_time}`)
+  const diffMs = reservationAt.getTime() - Date.now()
+  if (diffMs < 2 * 60 * 60 * 1000) {
+    return { ok: false, error: 'キャンセル期限を過ぎています' }
+  }
+  const { error } = await supabase.from('reservations').update({ status: 'cancelled' }).eq('id', id)
+  if (error) return { ok: false, error: 'キャンセルに失敗しました' }
+  return { ok: true }
+}
+
 export async function getAreas() {
   const supabase = await createClient()
   const { data } = await supabase

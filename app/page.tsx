@@ -28,6 +28,12 @@ export default function Home() {
           >
             予約する
           </Link>
+          <Link
+            href="/cancel"
+            className="mt-4 text-sm text-gray-400 hover:text-gray-200 underline underline-offset-4 transition-colors"
+          >
+            キャンセルはこちら
+          </Link>
         </section>
 
         {/* 料金 */}
@@ -35,7 +41,7 @@ export default function Home() {
           <h2 className="text-2xl font-bold text-center mb-8">料金</h2>
           <div className="flex justify-center">
             <div className="bg-white/5 backdrop-blur rounded-xl p-8 border border-white/10 text-center w-full max-w-sm">
-              <h3 className="text-lg font-bold mb-2">電子シーシャ</h3>
+              <h3 className="text-lg font-bold mb-2">電熱式シーシャ</h3>
               <p className="text-3xl font-bold text-amber-400">5,000<span className="text-base font-normal text-gray-400">円（税込）</span></p>
             </div>
           </div>
