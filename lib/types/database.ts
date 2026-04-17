@@ -89,6 +89,16 @@ export type NotificationRecipient = {
   created_at: string
 }
 
+export type LineWebhookUser = {
+  id: string
+  line_user_id: string
+  display_name: string | null
+  message: string | null
+  registered: boolean
+  created_at: string
+  updated_at: string
+}
+
 export type AuditLog = {
   id: string
   actor_id: string | null
@@ -144,6 +154,7 @@ export type Database = {
       flavors: Tbl<Flavor>
       audit_logs: Tbl<AuditLog>
       notification_recipients: Tbl<NotificationRecipient>
+      line_webhook_users: Tbl<LineWebhookUser>
       login_attempts: Tbl<{ id: string; ip: string; email: string | null; created_at: string }>
     }
     Views: Record<string, never>

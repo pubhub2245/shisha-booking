@@ -13,6 +13,7 @@ type AuditAction =
   | 'flavor.update'
   | 'flavor.delete'
   | 'recipient.create'
+  | 'recipient.create_from_line'
   | 'recipient.update'
   | 'recipient.delete'
 

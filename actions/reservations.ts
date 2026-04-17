@@ -529,3 +529,58 @@ export async function deleteNotificationRecipient(formData: FormData): Promise<v
   revalidatePath('/admin/recipients')
   return redirect('/admin/recipients')
 }
+
+// --- LINE Webhook Users (未登録 LINE ユーザー) ---
+
+export async function getLineWebhookUsers() {
+  const supabase = await createClient()
+  const { data } = await supabase
+    .from('line_webhook_users')
+    .select('*')
+    .eq('registered', false)
+    .order('updated_at', { ascending: false })
+  return data || []
+}
+
+export async function registerLineUser(formData: FormData): Promise<void> {
+  const supabase = await createClient()
+  const webhookUserId = formData.get('webhook_user_id') as string
+  const lineUserId = formData.get('line_user_id') as string
+  const displayName = (formData.get('display_name') as string) || ''
+  const name = (formData.get('name') as string)?.trim() || displayName || 'LINE ユーザー'
+  const areaLabels = formData.getAll('area_labels') as string[]
+
+  if (!lineUserId || areaLabels.length === 0) return redirect('/admin/recipients')
+
+  // notification_recipients に登録
+  await supabase.from('notification_recipients').insert({
+    name,
+    line_user_id: lineUserId,
+    email: null,
+    area_labels: areaLabels,
+  })
+
+  // line_webhook_users を登録済みに更新
+  if (webhookUserId) {
+    await supabase
+      .from('line_webhook_users')
+      .update({ registered: true })
+      .eq('id', webhookUserId)
+  }
+
+  await audit('recipient.create_from_line', { type: 'notification_recipient' }, { name, line_user_id: lineUserId })
+  revalidatePath('/admin/recipients')
+  return redirect('/admin/recipients')
+}
+
+export async function dismissLineUser(formData: FormData): Promise<void> {
+  const supabase = await createClient()
+  const id = formData.get('webhook_user_id') as string
+  if (!id) return redirect('/admin/recipients')
+  await supabase
+    .from('line_webhook_users')
+    .update({ registered: true })
+    .eq('id', id)
+  revalidatePath('/admin/recipients')
+  return redirect('/admin/recipients')
+}
