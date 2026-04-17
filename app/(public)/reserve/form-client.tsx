@@ -484,7 +484,7 @@ export default function ReserveFormClient({
             value={barQuery}
             onChange={e => { setBarQuery(e.target.value); setShowSuggestions(true) }}
             onFocus={() => { if (suggestions.length > 0) setShowSuggestions(true) }}
-            placeholder="バー名を入力して検索"
+            placeholder="バー名（お決まりの店舗があれば）"
             aria-autocomplete="list"
             className={inputClass}
           />
