@@ -264,7 +264,8 @@ export async function createReservation(
 
   if (error) {
     reportError(error, { where: 'createReservation', payload: v })
-    return { ok: false, error: `予約登録に失敗しました: ${error.message}` }
+    console.error('[createReservation] RPC error:', error.message)
+    return { ok: false, error: '予約の送信に失敗しました。時間をおいて再度お試しください。' }
   }
 
   const result = data as { ok: boolean; error?: string } | null
