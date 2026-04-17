@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { ReactNode } from 'react'
 
-type NavKey = 'reservations' | 'customers' | 'staff' | 'bars' | 'flavors'
+type NavKey = 'reservations' | 'customers' | 'staff' | 'bars' | 'flavors' | 'recipients'
 
 export default function AdminShell({
   active,
@@ -18,6 +18,7 @@ export default function AdminShell({
     { key: 'staff', label: 'スタッフ管理', href: '/admin/staff' },
     { key: 'bars', label: 'バー管理', href: '/admin/bars' },
     { key: 'flavors', label: 'フレーバー管理', href: '/admin/flavors' },
+    { key: 'recipients', label: '通知先管理', href: '/admin/recipients' },
   ]
 
   return (

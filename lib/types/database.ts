@@ -79,6 +79,16 @@ export type Flavor = {
   created_at: string
 }
 
+export type NotificationRecipient = {
+  id: string
+  name: string
+  line_user_id: string | null
+  email: string | null
+  area_labels: string[]
+  is_active: boolean
+  created_at: string
+}
+
 export type AuditLog = {
   id: string
   actor_id: string | null
@@ -133,6 +143,7 @@ export type Database = {
       bars: Tbl<Bar>
       flavors: Tbl<Flavor>
       audit_logs: Tbl<AuditLog>
+      notification_recipients: Tbl<NotificationRecipient>
       login_attempts: Tbl<{ id: string; ip: string; email: string | null; created_at: string }>
     }
     Views: Record<string, never>

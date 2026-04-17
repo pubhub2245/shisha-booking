@@ -9,6 +9,7 @@ import { audit } from '@/lib/audit'
 import { reportError } from '@/lib/error-report'
 import {
   notifyAdmin,
+  notifyAreaStaff,
   reservationCreatedMessage,
   reservationCancelledMessage,
 } from '@/lib/notifications'
@@ -273,18 +274,20 @@ export async function createReservation(
     return { ok: false, error: result?.error || '予約登録に失敗しました' }
   }
 
-  // 管理者通知 (best-effort)
-  await notifyAdmin(
-    reservationCreatedMessage({
-      name: v.customer_name,
-      phone: v.customer_phone,
-      area: v.area,
-      date: v.reservation_date,
-      time: v.reservation_time,
-      location: v.location,
-      quantity: v.quantity,
-    })
-  )
+  // 通知 (best-effort — 失敗しても予約は成功)
+  const msg = reservationCreatedMessage({
+    name: v.customer_name,
+    phone: v.customer_phone,
+    area: v.area,
+    date: v.reservation_date,
+    time: v.reservation_time,
+    location: v.location,
+    quantity: v.quantity,
+  })
+  await Promise.allSettled([
+    notifyAdmin(msg),
+    notifyAreaStaff(v.area, msg),
+  ])
 
   revalidatePath('/admin')
   redirect('/reserve/complete')
@@ -463,4 +466,66 @@ export async function deleteFlavor(formData: FormData): Promise<void> {
   await audit('flavor.delete', { type: 'flavor', id })
   revalidatePath('/admin/flavors')
   return redirect('/admin/flavors')
+}
+
+// --- Notification Recipients ---
+export async function getNotificationRecipients() {
+  const supabase = await createClient()
+  const { data } = await supabase
+    .from('notification_recipients')
+    .select('*')
+    .order('created_at', { ascending: false })
+  return data || []
+}
+
+export async function createNotificationRecipient(formData: FormData): Promise<void> {
+  const supabase = await createClient()
+  const name = (formData.get('name') as string)?.trim()
+  const lineUserId = (formData.get('line_user_id') as string)?.trim() || null
+  const email = (formData.get('email') as string)?.trim() || null
+  const areaLabels = formData.getAll('area_labels') as string[]
+  if (!name || areaLabels.length === 0) return redirect('/admin/recipients')
+  await supabase.from('notification_recipients').insert({
+    name,
+    line_user_id: lineUserId,
+    email,
+    area_labels: areaLabels,
+  })
+  await audit('recipient.create', { type: 'notification_recipient' }, { name, area_labels: areaLabels })
+  revalidatePath('/admin/recipients')
+  return redirect('/admin/recipients')
+}
+
+export async function updateNotificationRecipient(formData: FormData): Promise<void> {
+  const supabase = await createClient()
+  const id = formData.get('id') as string
+  const name = (formData.get('name') as string)?.trim()
+  const lineUserId = (formData.get('line_user_id') as string)?.trim() || null
+  const email = (formData.get('email') as string)?.trim() || null
+  const areaLabels = formData.getAll('area_labels') as string[]
+  const isActive = formData.get('is_active') === 'on'
+  if (!id || !name) return redirect('/admin/recipients')
+  await supabase
+    .from('notification_recipients')
+    .update({
+      name,
+      line_user_id: lineUserId,
+      email,
+      area_labels: areaLabels,
+      is_active: isActive,
+    })
+    .eq('id', id)
+  await audit('recipient.update', { type: 'notification_recipient', id }, { name, is_active: isActive })
+  revalidatePath('/admin/recipients')
+  return redirect('/admin/recipients')
+}
+
+export async function deleteNotificationRecipient(formData: FormData): Promise<void> {
+  const supabase = await createClient()
+  const id = formData.get('id') as string
+  if (!id) return redirect('/admin/recipients')
+  await supabase.from('notification_recipients').delete().eq('id', id)
+  await audit('recipient.delete', { type: 'notification_recipient', id })
+  revalidatePath('/admin/recipients')
+  return redirect('/admin/recipients')
 }

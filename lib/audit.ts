@@ -12,6 +12,9 @@ type AuditAction =
   | 'flavor.create'
   | 'flavor.update'
   | 'flavor.delete'
+  | 'recipient.create'
+  | 'recipient.update'
+  | 'recipient.delete'
 
 export async function audit(
   action: AuditAction,
