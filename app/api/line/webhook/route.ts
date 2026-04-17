@@ -3,7 +3,7 @@
 // LINE の署名検証を行い、不正なリクエストを拒否する。
 
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
+import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 
 // --- 署名検証 -----------------------------------------------------------
 
@@ -36,13 +36,15 @@ async function getLineProfile(userId: string, token: string): Promise<string | n
   }
 }
 
-// --- supabase (service role — RLS バイパス) ------------------------------
+// --- supabase (anon key + service role header で Webhook 用ポリシーを通す) ---
 
-function getSupabaseAdmin() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY
-  if (!url || !key) throw new Error('Supabase env vars missing')
-  return createClient(url, key)
+function getSupabaseForWebhook() {
+  const url = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL
+  const key = process.env.SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  if (!url || !key) throw new Error('Supabase env vars missing (NEXT_PUBLIC_SUPABASE_URL / NEXT_PUBLIC_SUPABASE_ANON_KEY)')
+  return createSupabaseClient(url, key, {
+    auth: { persistSession: false },
+  })
 }
 
 // --- Webhook ハンドラ ----------------------------------------------------
@@ -74,7 +76,7 @@ export async function POST(req: NextRequest) {
   }
 
   const events = body.events ?? []
-  const supabase = getSupabaseAdmin()
+  const supabase = getSupabaseForWebhook()
   const accessToken = process.env.LINE_CHANNEL_ACCESS_TOKEN ?? ''
 
   for (const event of events) {
