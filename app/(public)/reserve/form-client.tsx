@@ -52,6 +52,9 @@ export default function ReserveFormClient({
   const [name, setName] = useState('')
   const [nameKana, setNameKana] = useState('')
   const [phoneVal, setPhoneVal] = useState('')
+  const [instagram, setInstagram] = useState('')
+  const [paymentMethod, setPaymentMethod] = useState('現金')
+  const [notes, setNotes] = useState('')
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [submitAttempted, setSubmitAttempted] = useState(false)
   const UNIT_PRICE = 5000
@@ -548,12 +551,12 @@ export default function ReserveFormClient({
 
       {/* Instagram */}
       <Field label="Instagram（任意）">
-        <input type="text" name="instagram" placeholder="@your_account" className={inputClass} />
+        <input type="text" name="instagram" value={instagram} onChange={e => setInstagram(e.target.value)} placeholder="@your_account" className={inputClass} />
       </Field>
 
       {/* 支払い方法 */}
       <Field label="支払い方法" required>
-        <select name="payment_method" defaultValue="現金" required className={inputClass}>
+        <select name="payment_method" value={paymentMethod} onChange={e => setPaymentMethod(e.target.value)} required className={inputClass}>
           <option value="現金">現金</option>
           <option value="その他">その他（備考に記入）</option>
         </select>
@@ -589,7 +592,7 @@ export default function ReserveFormClient({
 
       {/* 備考 */}
       <Field label="備考（任意）">
-        <textarea name="notes" rows={3} placeholder="ご要望があればご記入ください" className={inputClass} />
+        <textarea name="notes" value={notes} onChange={e => setNotes(e.target.value)} rows={3} placeholder="ご要望があればご記入ください" className={inputClass} />
       </Field>
 
       <div className="pt-4">
