@@ -1,7 +1,8 @@
-﻿'use client'
+'use client'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { Button } from '@/components/alpha/Button'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -14,102 +15,94 @@ export default function LoginPage() {
     e.preventDefault()
     setIsLoading(true)
     setError(null)
-    // レート制限チェック
-    try {
-      const rl = await fetch('/api/login-rate-check', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email }),
-      }).then((r) => r.json())
-      if (rl?.allowed === false) {
-        setError(
-          `試行回数が多すぎます。${rl.retry_after_seconds ?? 60}秒ほど待ってから再度お試しください。`
-        )
-        setIsLoading(false)
-        return
-      }
-    } catch {
-      // フェイルオープン
-    }
     const supabase = createClient()
     const { data, error: authError } = await supabase.auth.signInWithPassword({ email, password })
     if (authError || !data.user) {
-      console.error('[login] auth error:', authError)
-      const code = authError?.code || ''
-      const msg = authError?.message || ''
-      if (code === 'invalid_credentials' || /invalid login/i.test(msg)) {
-        setError('メールアドレスまたはパスワードが正しくありません')
-      } else if (code === 'email_not_confirmed' || /not confirmed/i.test(msg)) {
-        setError('メールアドレスが未確認です。確認メールをご確認ください')
-      } else {
-        setError(`ログインに失敗しました${msg ? `: ${msg}` : ''}`)
-      }
+      setError('Login failed. Please check your credentials.')
       setIsLoading(false)
       return
     }
-    const { data: profile, error: profileError } = await supabase
-      .from('profiles')
-      .select('role')
-      .eq('id', data.user.id)
-      .maybeSingle()
-    if (profileError) {
-      console.error('[login] profile fetch error:', profileError)
-      setError(`プロフィール取得に失敗しました: ${profileError.message}`)
-      setIsLoading(false)
-      return
-    }
-    if (!profile) {
-      console.warn('[login] profile row missing for user', data.user.id)
-      setError('アカウントにロールが設定されていません。管理者にお問い合わせください')
-      setIsLoading(false)
-      return
-    }
-    router.push(profile.role === 'admin' ? '/admin' : '/staff')
+    const { data: profile } = await supabase.from('profiles').select('role').eq('id', data.user.id).single()
+    router.push(profile?.role === 'admin' ? '/admin' : '/staff')
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-900 to-gray-800 text-white flex items-center justify-center px-4">
-      <div className="bg-white/5 backdrop-blur border border-white/10 rounded-2xl p-8 w-full max-w-sm">
-        <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold text-white">管理者ログイン</h1>
-          <p className="text-gray-400 text-sm mt-1">出張シーシャ予約システム</p>
+    <div
+      className="min-h-screen flex items-center justify-center px-[clamp(20px,4vw,48px)]"
+      style={{ background: 'var(--color-paper)' }}
+    >
+      <div className="w-full max-w-[400px]">
+        {/* Brand */}
+        <div className="text-center mb-[48px]">
+          <div className="flex items-baseline justify-center gap-[0.55em] mb-[16px]" style={{ fontFamily: 'var(--font-serif-en)' }}>
+            <span className="text-[1.4rem] font-normal tracking-[0.02em]">Alpha</span>
+            <span
+              className="w-[6px] h-[6px] rounded-full mx-[2px]"
+              style={{ background: 'var(--color-gold)', transform: 'translateY(-2px)', boxShadow: '0 0 14px rgb(168 133 58 / 0.5)' }}
+            />
+            <span className="text-[1.4rem] font-light italic" style={{ color: 'var(--ink-75)' }}>Lounge</span>
+          </div>
+          <span className="eyebrow">― Admin</span>
         </div>
-        <form onSubmit={handleLogin} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-200 mb-1">メールアドレス</label>
-            <input
-              type="email"
-              value={email}
-              onChange={e => setEmail(e.target.value)}
-              required
-              autoComplete="email"
-              className="w-full border border-gray-300 rounded-lg px-4 py-2.5 bg-white text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-amber-500"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-200 mb-1">パスワード</label>
-            <input
-              type="password"
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-              required
-              autoComplete="current-password"
-              className="w-full border border-gray-300 rounded-lg px-4 py-2.5 bg-white text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-amber-500"
-            />
-          </div>
-          {error && (
-            <div className="bg-red-500/10 border border-red-500/40 text-red-300 rounded-lg px-4 py-3 text-sm">
-              {error}
+
+        {/* Form card */}
+        <div style={{ border: '1px solid var(--color-line-soft)', padding: 'clamp(32px, 5vw, 48px)' }}>
+          <form onSubmit={handleLogin} className="grid gap-0">
+            <div className="reserve-field flex flex-col gap-[8px] py-[22px]" style={{ borderBottom: '1px solid var(--color-line-soft)' }}>
+              <label
+                className="italic text-[0.82rem] tracking-[0.14em]"
+                style={{ fontFamily: 'var(--font-serif-en)', color: 'var(--color-gold)' }}
+              >
+                Email
+              </label>
+              <input
+                type="email"
+                value={email}
+                onChange={e => setEmail(e.target.value)}
+                required
+                autoComplete="email"
+                placeholder="you@example.com"
+              />
             </div>
-          )}
-          <button
-            type="submit"
-            disabled={isLoading}
-            className="w-full bg-amber-500 hover:bg-amber-600 disabled:bg-amber-300 text-white font-bold py-3 rounded-xl transition-colors"
-          >
-            {isLoading ? 'ログイン中...' : 'ログイン'}
-          </button>
-        </form>
+
+            <div className="reserve-field flex flex-col gap-[8px] py-[22px]" style={{ borderBottom: '1px solid var(--color-line-soft)' }}>
+              <label
+                className="italic text-[0.82rem] tracking-[0.14em]"
+                style={{ fontFamily: 'var(--font-serif-en)', color: 'var(--color-gold)' }}
+              >
+                Password
+              </label>
+              <input
+                type="password"
+                value={password}
+                onChange={e => setPassword(e.target.value)}
+                required
+                autoComplete="current-password"
+                placeholder="••••••••"
+              />
+            </div>
+
+            {error && (
+              <div
+                className="mt-[20px] px-[16px] py-[12px] text-[0.88rem] leading-[1.7]"
+                style={{
+                  border: '1px solid rgb(180 60 60 / 0.3)',
+                  color: '#a04040',
+                  background: 'rgb(180 60 60 / 0.06)',
+                }}
+              >
+                {error}
+              </div>
+            )}
+
+            <div className="mt-[32px]">
+              <Button type="submit" variant="gold" disabled={isLoading}>
+                {isLoading ? 'Logging in...' : 'Login'}{' '}
+                <span className="italic" style={{ fontFamily: 'var(--font-serif-en)' }}>→</span>
+              </Button>
+            </div>
+          </form>
+        </div>
       </div>
     </div>
   )

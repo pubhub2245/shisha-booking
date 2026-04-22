@@ -1,20 +1,27 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Cormorant_Garamond, Noto_Serif_JP } from "next/font/google";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const cormorant = Cormorant_Garamond({
+  weight: ["300", "400", "500"],
+  style: ["normal", "italic"],
   subsets: ["latin"],
+  display: "swap",
+  variable: "--font-cormorant",
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const notoSerifJp = Noto_Serif_JP({
+  weight: ["200", "300", "400", "500"],
   subsets: ["latin"],
+  display: "swap",
+  preload: false,
+  variable: "--font-noto-serif-jp",
 });
 
 export const metadata: Metadata = {
-  title: "出張シーシャ予約 | 株式会社Alpha",
-  description: "出張シーシャ予約 | 株式会社Alpha",
+  title: "Alpha Lounge \u2015 経営者の場を、静かに格上げする。",
+  description:
+    "経営者のための、厳選された提携会場でのみ届けられる、限られたラウンジ体験。宮崎・都城にてβ会員募集中(10社限定)。",
 };
 
 export default function RootLayout({
@@ -25,7 +32,7 @@ export default function RootLayout({
   return (
     <html
       lang="ja"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${cormorant.variable} ${notoSerifJp.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">{children}</body>
     </html>
