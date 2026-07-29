@@ -60,7 +60,7 @@ export function LikeButton({
       style={{
         borderColor: liked ? 'var(--color-ember)' : 'var(--line-strong)',
         color: liked ? 'var(--color-ember-hot)' : 'var(--color-ash)',
-        background: liked ? 'rgb(255 122 69 / 0.10)' : 'transparent',
+        background: liked ? 'var(--accent-tint)' : 'transparent',
         fontSize: big ? '0.95rem' : '0.82rem',
       }}
     >

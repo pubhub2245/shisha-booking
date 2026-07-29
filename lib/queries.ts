@@ -1,8 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
-import type { MixWithRelations } from '@/lib/types/database'
-
-const MIX_SELECT =
-  '*, author:profiles(id, username, display_name, is_shop, shop_name), mix_flavors(*)'
+import type { MixWithRelations, Mix, MixFlavor, MixAuthor } from '@/lib/types/database'
 
 export type FeedOptions = {
   sort?: 'new' | 'popular'
@@ -10,11 +7,47 @@ export type FeedOptions = {
   q?: string
 }
 
+/**
+ * mixes 行に mix_flavors / author を手動で結合する。
+ * PostgREST の埋め込み（author:profiles(...) 等）はスキーマキャッシュに依存して
+ * 不安定なため、単純な select を複数回投げて結合する堅牢な実装にしている。
+ */
+async function attachRelations(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  mixes: Mix[]
+): Promise<MixWithRelations[]> {
+  if (mixes.length === 0) return []
+  const mixIds = mixes.map((m) => m.id)
+  const authorIds = [...new Set(mixes.map((m) => m.author_id).filter((v): v is string => !!v))]
+
+  const [{ data: flavors }, authorsRes] = await Promise.all([
+    supabase.from('mix_flavors').select('*').in('mix_id', mixIds),
+    authorIds.length
+      ? supabase.from('profiles').select('id, username, display_name, is_shop, shop_name').in('id', authorIds)
+      : Promise.resolve({ data: [] as MixAuthor[] }),
+  ])
+
+  const flavorsByMix = new Map<string, MixFlavor[]>()
+  for (const f of (flavors ?? []) as MixFlavor[]) {
+    const arr = flavorsByMix.get(f.mix_id) ?? []
+    arr.push(f)
+    flavorsByMix.set(f.mix_id, arr)
+  }
+  const authorById = new Map<string, MixAuthor>()
+  for (const a of (authorsRes.data ?? []) as MixAuthor[]) authorById.set(a.id, a)
+
+  return mixes.map((m) => ({
+    ...m,
+    author: m.author_id ? authorById.get(m.author_id) ?? null : null,
+    mix_flavors: (flavorsByMix.get(m.id) ?? []).sort((a, b) => a.position - b.position),
+  }))
+}
+
 /** 図鑑フィード。DB 未接続・エラー時は空配列で穏当に返す。 */
 export async function getMixes(opts: FeedOptions = {}): Promise<MixWithRelations[]> {
   try {
     const supabase = await createClient()
-    let query = supabase.from('mixes').select(MIX_SELECT)
+    let query = supabase.from('mixes').select('*')
 
     if (opts.tag) query = query.contains('taste_tags', [opts.tag])
     if (opts.q && opts.q.trim()) {
@@ -32,7 +65,7 @@ export async function getMixes(opts: FeedOptions = {}): Promise<MixWithRelations
       console.error('[getMixes]', error.message)
       return []
     }
-    return sortFlavors((data ?? []) as MixWithRelations[])
+    return attachRelations(supabase, (data ?? []) as Mix[])
   } catch (e) {
     console.error('[getMixes] fatal', e)
     return []
@@ -42,9 +75,10 @@ export async function getMixes(opts: FeedOptions = {}): Promise<MixWithRelations
 export async function getMixById(id: string): Promise<MixWithRelations | null> {
   try {
     const supabase = await createClient()
-    const { data, error } = await supabase.from('mixes').select(MIX_SELECT).eq('id', id).maybeSingle()
+    const { data, error } = await supabase.from('mixes').select('*').eq('id', id).maybeSingle()
     if (error || !data) return null
-    return sortFlavors([data as MixWithRelations])[0] ?? null
+    const [withRel] = await attachRelations(supabase, [data as Mix])
+    return withRel ?? null
   } catch {
     return null
   }
@@ -56,11 +90,11 @@ export async function getMixesByAuthor(authorId: string): Promise<MixWithRelatio
     const supabase = await createClient()
     const { data, error } = await supabase
       .from('mixes')
-      .select(MIX_SELECT)
+      .select('*')
       .eq('author_id', authorId)
       .order('created_at', { ascending: false })
     if (error) return []
-    return sortFlavors((data ?? []) as MixWithRelations[])
+    return attachRelations(supabase, (data ?? []) as Mix[])
   } catch {
     return []
   }
@@ -96,13 +130,4 @@ export async function getTasteTags(): Promise<string[]> {
   } catch {
     return []
   }
-}
-
-function sortFlavors(mixes: MixWithRelations[]): MixWithRelations[] {
-  for (const m of mixes) {
-    if (Array.isArray(m.mix_flavors)) {
-      m.mix_flavors.sort((a, b) => a.position - b.position)
-    }
-  }
-  return mixes
 }

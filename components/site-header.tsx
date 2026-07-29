@@ -11,7 +11,7 @@ export async function SiteHeader() {
       className="sticky top-0 z-50 border-b"
       style={{
         borderColor: 'var(--line)',
-        background: 'rgb(12 11 16 / 0.72)',
+        background: 'rgb(247 244 238 / 0.82)',
         backdropFilter: 'blur(12px)',
       }}
     >
@@ -19,10 +19,10 @@ export async function SiteHeader() {
         <Link href="/" className="flex items-center gap-2.5">
           <span
             aria-hidden
-            className="flex h-8 w-8 items-center justify-center rounded-xl text-lg"
-            style={{ background: 'linear-gradient(135deg, var(--color-ember), var(--color-ember-hot))' }}
+            className="brand-mark flex h-8 w-8 items-center justify-center rounded-xl text-lg text-white"
+            style={{ background: 'var(--color-ember)' }}
           >
-            🔥
+            M
           </span>
           <span className="brand-mark text-xl">
             Mix<span className="ember-text">Hub</span>

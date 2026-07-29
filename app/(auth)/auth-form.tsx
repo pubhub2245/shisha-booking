@@ -25,7 +25,7 @@ export function AuthForm({ mode, next }: { mode: 'login' | 'signup'; next?: stri
       {notice && (
         <div
           className="rounded-xl border px-4 py-3 text-sm"
-          style={{ borderColor: 'var(--color-ember)', background: 'rgb(255 122 69 / 0.08)', color: 'var(--color-coal)' }}
+          style={{ borderColor: 'var(--color-ember)', background: 'var(--accent-tint)', color: 'var(--color-ember-hot)' }}
         >
           ✉️ {notice}
         </div>

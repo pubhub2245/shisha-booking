@@ -13,7 +13,7 @@ export function ProfileForm({ profile }: { profile: Profile | null }) {
       {state?.ok && (
         <div
           className="rounded-xl border px-4 py-3 text-sm"
-          style={{ borderColor: 'var(--color-ember)', background: 'rgb(255 122 69 / 0.08)', color: 'var(--color-ember-hot)' }}
+          style={{ borderColor: 'var(--color-ember)', background: 'var(--accent-tint)', color: 'var(--color-ember-hot)' }}
         >
           保存しました。
         </div>
