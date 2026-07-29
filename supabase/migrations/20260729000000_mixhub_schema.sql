@@ -151,6 +151,10 @@ create policy "likes_select_all"  on public.likes for select using (true);
 create policy "likes_insert_self" on public.likes for insert with check (auth.uid() = user_id);
 create policy "likes_delete_self" on public.likes for delete using (auth.uid() = user_id);
 
+-- トリガ用の SECURITY DEFINER 関数は RPC 経由で呼ばせない（Supabase advisor 対応）
+revoke execute on function public.handle_new_user() from anon, authenticated, public;
+revoke execute on function public.sync_like_count() from anon, authenticated, public;
+
 -- ============================================================
 -- Seed — 図鑑を初回から充実させるためのショーケース
 --   author_id = null（MixHub 編集部）で投入
