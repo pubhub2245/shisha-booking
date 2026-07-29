@@ -1,40 +1,40 @@
 import type { Metadata } from "next";
-import { Cormorant_Garamond, Noto_Serif_JP } from "next/font/google";
+import { Outfit, Noto_Sans_JP } from "next/font/google";
 import "./globals.css";
+import { SiteHeader } from "@/components/site-header";
+import { SiteFooter } from "@/components/site-footer";
 
-const cormorant = Cormorant_Garamond({
-  weight: ["300", "400", "500"],
-  style: ["normal", "italic"],
+const outfit = Outfit({
+  weight: ["400", "500", "600", "700", "800"],
   subsets: ["latin"],
   display: "swap",
-  variable: "--font-cormorant",
+  variable: "--font-outfit",
 });
 
-const notoSerifJp = Noto_Serif_JP({
-  weight: ["200", "300", "400", "500"],
+const notoSansJp = Noto_Sans_JP({
+  weight: ["400", "500", "700"],
   subsets: ["latin"],
   display: "swap",
   preload: false,
-  variable: "--font-noto-serif-jp",
+  variable: "--font-noto-sans-jp",
 });
 
 export const metadata: Metadata = {
-  title: "Alpha Lounge \u2015 経営者の場を、静かに格上げする。",
+  title: "MixHub — シーシャのミックス図鑑",
   description:
-    "経営者のための、厳選された提携会場でのみ届けられる、限られたラウンジ体験。宮崎・都城にてβ会員募集中(10社限定)。",
+    "シーシャ屋で迷わない。日本中の「美味しい」ミックスと作り方が集まる、シーシャのミックス図鑑 & コミュニティ。人気のミックスを探して、あなたのレシピも投稿しよう。",
 };
 
 export default function RootLayout({
   children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+}: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html
-      lang="ja"
-      className={`${cormorant.variable} ${notoSerifJp.variable} h-full antialiased`}
-    >
-      <body className="min-h-full flex flex-col">{children}</body>
+    <html lang="ja" className={`${outfit.variable} ${notoSansJp.variable}`}>
+      <body className="flex min-h-dvh flex-col">
+        <SiteHeader />
+        <main className="flex-1">{children}</main>
+        <SiteFooter />
+      </body>
     </html>
   );
 }

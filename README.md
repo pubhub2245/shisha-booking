@@ -1,36 +1,44 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# MixHub — シーシャ ミックス図鑑
 
-## Getting Started
+シーシャ屋で「どのフレーバーにするか」に迷わないための、**ミックス図鑑 × SNS × フレーバー購入アフィリエイト**アプリ。
+日本中の「美味しい」ミックスと、その作り方（熱帯・炭の管理、フレーバーの置き方）が集まり、
+誰でも投稿でき、いいねで人気が可視化される。店舗登録でお店の集客にもつながる。
 
-First, run the development server:
+> 事業の全体像は [`docs/事業計画.md`](docs/事業計画.md) を参照。
+
+## 機能（MVP）
+
+- **図鑑フィード** (`/`) — 新着・人気順、味わいタグ・キーワード検索
+- **ミックス詳細** (`/mix/[id]`) — 使用フレーバー＋購入（アフィリエイト）リンク、作り方ノート
+- **投稿** (`/post`) — 複数フレーバー・味わいタグ・作り方ノートを登録
+- **いいね** — 楽観的 UI、`like_count` は DB トリガで同期
+- **認証** (`/login`, `/signup`) — Supabase Auth（メール＋パスワード）
+- **マイページ** (`/mypage`) — プロフィール編集・店舗登録・自分の投稿
+- **店舗の方へ** (`/for-shops`)
+
+## 技術スタック
+
+- Next.js 16（App Router / Server Actions） + React 19
+- Supabase（Postgres / Auth / RLS）
+- Tailwind CSS v4
+
+## セットアップ
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+npm run dev   # http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Supabase 接続情報は `next.config.ts` に定義（anon key は公開前提）。
+スキーマは `supabase/migrations/` に含まれる。新しい Supabase プロジェクトに適用するには
+Supabase CLI で `supabase db push`、または SQL を直接実行する。
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## ディレクトリ
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```
+app/            画面（feed / mix / post / auth / mypage / for-shops）
+components/     UI（site-header, mix-card, like-button, strength-meter …）
+actions/        Server Actions（auth, mixes, profile）
+lib/            supabase クライアント, queries, auth ヘルパ, 型
+supabase/       マイグレーション（スキーマ・RLS・シード）
+```
