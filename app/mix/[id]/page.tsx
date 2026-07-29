@@ -5,6 +5,7 @@ import { getMixById, getLikedMixIds } from '@/lib/queries'
 import { getCurrentUser } from '@/lib/auth'
 import { LikeButton } from '@/components/like-button'
 import { StrengthMeter } from '@/components/strength-meter'
+import { withAffiliateTag } from '@/lib/affiliate'
 import type { MixWithRelations } from '@/lib/types/database'
 
 export const dynamic = 'force-dynamic'
@@ -113,9 +114,9 @@ export default async function MixDetail({ params }: { params: Promise<{ id: stri
                   </div>
                 )}
               </div>
-              {f.affiliate_url && (
+              {withAffiliateTag(f.affiliate_url) && (
                 <a
-                  href={f.affiliate_url}
+                  href={withAffiliateTag(f.affiliate_url)!}
                   target="_blank"
                   rel="noopener noreferrer sponsored"
                   className="btn btn-ghost text-sm"

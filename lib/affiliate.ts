@@ -1,0 +1,25 @@
+// アフィリエイトタグの一元管理。
+// 実際の Amazon アソシエイト ID は環境変数 AMAZON_ASSOC_TAG で設定する。
+// 未設定時はプレースホルダ 'mixhub-22'（本番では必ず差し替えること）。
+export const AFFILIATE_TAG = process.env.AMAZON_ASSOC_TAG || 'mixhub-22'
+
+const AMAZON_HOST = /(^|\.)amazon\.(co\.jp|com|co\.uk|de|fr|it|es|ca)$/i
+
+/**
+ * 保存済み URL に対して、表示時にアソシエイト ID を付与/上書きする。
+ * Amazon 系ドメインのみ `tag` を差し替え、それ以外の購入リンクはそのまま返す。
+ * ユーザー投稿の URL も含めて常に自社タグに正規化される。
+ */
+export function withAffiliateTag(url: string | null | undefined): string | null {
+  if (!url) return null
+  try {
+    const u = new URL(url)
+    if (AMAZON_HOST.test(u.hostname)) {
+      u.searchParams.set('tag', AFFILIATE_TAG)
+      return u.toString()
+    }
+    return url
+  } catch {
+    return url
+  }
+}
