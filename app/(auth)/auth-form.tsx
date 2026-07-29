@@ -8,15 +8,26 @@ export function AuthForm({ mode, next }: { mode: 'login' | 'signup'; next?: stri
   const fn = mode === 'login' ? signIn : signUp
   const [state, action, pending] = useActionState<AuthState, FormData>(fn, null)
 
+  const error = state && 'error' in state ? state.error : null
+  const notice = state && 'notice' in state ? state.notice : null
+
   return (
     <form action={action} className="mt-8 flex flex-col gap-5">
       {next && <input type="hidden" name="next" value={next} />}
-      {state?.error && (
+      {error && (
         <div
           className="rounded-xl border px-4 py-3 text-sm"
           style={{ borderColor: 'var(--color-ember-deep)', background: 'rgb(224 85 42 / 0.10)', color: 'var(--color-ember-hot)' }}
         >
-          {state.error}
+          {error}
+        </div>
+      )}
+      {notice && (
+        <div
+          className="rounded-xl border px-4 py-3 text-sm"
+          style={{ borderColor: 'var(--color-ember)', background: 'rgb(255 122 69 / 0.08)', color: 'var(--color-coal)' }}
+        >
+          ✉️ {notice}
         </div>
       )}
 
