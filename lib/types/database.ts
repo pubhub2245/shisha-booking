@@ -132,6 +132,7 @@ export type ComboSummary = {
   flavorNames: string[]
   methodCount: number
   totalLikes: number
+  totalViews: number
   tags: string[]
   top: MixWithRelations
   latest: string

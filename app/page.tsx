@@ -70,6 +70,9 @@ export default async function Home({
           気分をタップするだけ。日本中の「美味しい」組み合わせと作り方が集まる図鑑から、
           いま吸いたい一台が見つかる。
         </p>
+        <p className="mt-3 text-xs" style={{ color: 'var(--color-ash-dim)' }}>
+          {combos.length} 通りの組み合わせ ・ {flavors.length} 種のフレーバー
+        </p>
       </section>
 
       {/* ---------- 気分で探す ---------- */}

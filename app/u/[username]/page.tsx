@@ -12,6 +12,7 @@ import { getCurrentUser } from '@/lib/auth'
 import { MixCard } from '@/components/mix-card'
 import { FollowButton } from '@/components/follow-button'
 import { VerifiedBadge } from '@/components/verified-badge'
+import { Avatar } from '@/components/avatar'
 
 export const dynamic = 'force-dynamic'
 
@@ -47,7 +48,9 @@ export default async function ProfilePage({ params }: { params: Promise<{ userna
       {/* ---------- PROFILE HEADER ---------- */}
       <div className="card p-6 fade-up">
         <div className="flex items-start justify-between gap-4">
-          <div className="min-w-0">
+          <div className="flex min-w-0 items-start gap-3">
+            <Avatar name={profile.shop_name || profile.display_name || profile.username} seed={profile.id} size={52} />
+            <div className="min-w-0">
             {profile.is_shop && (
               <span className="chip chip-active mb-2 inline-flex">🏠 店舗</span>
             )}
@@ -63,6 +66,7 @@ export default async function ProfilePage({ params }: { params: Promise<{ userna
                 <VerifiedBadge size={12} /> シーシャ店スタッフ（認証済み）
               </div>
             )}
+            </div>
           </div>
           <div className="shrink-0">
             {isSelf ? (

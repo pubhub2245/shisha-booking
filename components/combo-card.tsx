@@ -49,6 +49,7 @@ export function ComboCard({ combo }: { combo: ComboSummary }) {
         </span>
         <span className="flex items-center gap-3 text-xs" style={{ color: 'var(--color-ash-dim)' }}>
           <StrengthMeter strength={combo.top.strength} />
+          {combo.totalViews > 0 && <span>👁 {combo.totalViews}</span>}
           <span style={{ fontWeight: 600 }}>❤️ {combo.totalLikes}</span>
         </span>
       </div>

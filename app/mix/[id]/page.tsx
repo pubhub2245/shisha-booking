@@ -16,6 +16,8 @@ import { VerifiedBadge } from '@/components/verified-badge'
 import { StrengthMeter } from '@/components/strength-meter'
 import { HeatCurveChart } from '@/components/heat-curve-chart'
 import { hmsLabel, charcoalLabel, windCoverLabel, bowlLabel, packLabel } from '@/lib/heat'
+import { Avatar } from '@/components/avatar'
+import { relativeTime } from '@/lib/time'
 import { CommentForm } from '@/components/comment-form'
 import { ViewTracker } from '@/components/view-tracker'
 import { MixCard } from '@/components/mix-card'
@@ -162,8 +164,10 @@ export default async function MixDetail({ params }: { params: Promise<{ id: stri
           <ShareButton title={mix.title} />
           <StrengthMeter strength={mix.strength} />
         </div>
-        <div className="mt-3 text-sm" style={{ color: 'var(--color-ash)' }}>
-          by <AuthorLink author={mix.author} /> ・ 👁 {mix.view_count}
+        <div className="mt-3 flex items-center gap-2 text-sm" style={{ color: 'var(--color-ash)' }}>
+          {mix.author && <Avatar name={mix.author.display_name || mix.author.username} seed={mix.author.id} size={24} />}
+          <span>by <AuthorLink author={mix.author} /></span>
+          <span style={{ color: 'var(--color-ash-dim)' }}>・ {relativeTime(mix.created_at)} ・ 👁 {mix.view_count}</span>
         </div>
 
         {mix.taste_tags.length > 0 && (
@@ -300,8 +304,12 @@ export default async function MixDetail({ params }: { params: Promise<{ id: stri
           {comments.map((c) => (
             <div key={c.id} className="card p-4">
               <div className="flex items-center justify-between">
-                <div className="text-sm" style={{ fontWeight: 600 }}>
+                <div className="flex items-center gap-2 text-sm" style={{ fontWeight: 600 }}>
+                  <Avatar name={c.author?.display_name || c.author?.username} seed={c.user_id} size={26} />
                   <AuthorLink author={c.author} />
+                  <span className="text-xs" style={{ color: 'var(--color-ash-dim)', fontWeight: 400 }}>
+                    {relativeTime(c.created_at)}
+                  </span>
                 </div>
                 {user?.id === c.user_id && (
                   <form action={deleteComment}>
@@ -341,8 +349,9 @@ export default async function MixDetail({ params }: { params: Promise<{ id: stri
         </section>
       )}
 
-      <div className="mt-12 flex justify-center">
-        <Link href="/post" className="btn btn-ember">あなたのミックスも投稿する</Link>
+      <div className="mt-12 flex flex-wrap justify-center gap-3">
+        <Link href={`/post?from=${mix.id}`} className="btn btn-ember">この作り方をベースに投稿</Link>
+        <Link href="/post" className="btn btn-ghost">ゼロから投稿する</Link>
       </div>
     </div>
   )

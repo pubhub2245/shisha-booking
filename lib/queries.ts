@@ -112,6 +112,7 @@ export async function getCombos(opts: FeedOptions = {}): Promise<ComboSummary[]>
       flavorNames: (top.mix_flavors ?? []).map((f) => f.name),
       methodCount: methods.length,
       totalLikes: methods.reduce((s, m) => s + m.like_count, 0),
+      totalViews: methods.reduce((s, m) => s + (m.view_count ?? 0), 0),
       tags: [...tagSet].slice(0, 3),
       top,
       latest,
