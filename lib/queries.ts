@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
+import { comboKey, comboSlug, comboKeyFromSlug } from '@/lib/combo'
 import type {
   MixWithRelations,
   Mix,
@@ -10,6 +11,7 @@ import type {
   Flavor,
   ProApplication,
   ProApplicationWithUser,
+  ComboSummary,
 } from '@/lib/types/database'
 
 export type FeedOptions = {
@@ -80,6 +82,63 @@ export async function getMixes(opts: FeedOptions = {}): Promise<MixWithRelations
   } catch (e) {
     console.error('[getMixes] fatal', e)
     return []
+  }
+}
+
+/** フィード用：ミックス（作り方）を Combo（組み合わせ）単位にまとめる */
+export async function getCombos(opts: FeedOptions = {}): Promise<ComboSummary[]> {
+  const mixes = await getMixes(opts)
+  const groups = new Map<string, MixWithRelations[]>()
+  for (const m of mixes) {
+    const key = m.combo_key || comboKey(m.mix_flavors ?? [])
+    const arr = groups.get(key) ?? []
+    arr.push(m)
+    groups.set(key, arr)
+  }
+
+  const combos: ComboSummary[] = []
+  for (const [key, methods] of groups) {
+    methods.sort((a, b) => b.like_count - a.like_count || (a.created_at < b.created_at ? 1 : -1))
+    const top = methods[0]
+    const tagSet = new Set<string>()
+    for (const m of methods) for (const t of m.taste_tags) tagSet.add(t)
+    const latest = methods.reduce((mx, m) => (m.created_at > mx ? m.created_at : mx), methods[0].created_at)
+    combos.push({
+      key,
+      slug: comboSlug(key),
+      flavorNames: (top.mix_flavors ?? []).map((f) => f.name),
+      methodCount: methods.length,
+      totalLikes: methods.reduce((s, m) => s + m.like_count, 0),
+      tags: [...tagSet].slice(0, 3),
+      top,
+      latest,
+    })
+  }
+
+  combos.sort((a, b) =>
+    opts.sort === 'popular' ? b.totalLikes - a.totalLikes : a.latest < b.latest ? 1 : -1
+  )
+  return combos
+}
+
+/** Combo 詳細：その組み合わせの全ての作り方（Method） */
+export async function getComboBySlug(
+  slug: string
+): Promise<{ key: string; flavorNames: string[]; methods: MixWithRelations[] } | null> {
+  try {
+    const key = comboKeyFromSlug(slug)
+    const supabase = await createClient()
+    const { data } = await supabase
+      .from('mixes')
+      .select('*')
+      .eq('combo_key', key)
+      .order('like_count', { ascending: false })
+    const mixes = (data ?? []) as Mix[]
+    if (mixes.length === 0) return null
+    const methods = await attachRelations(supabase, mixes)
+    return { key, flavorNames: (methods[0].mix_flavors ?? []).map((f) => f.name), methods }
+  } catch {
+    return null
   }
 }
 

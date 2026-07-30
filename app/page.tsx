@@ -1,7 +1,6 @@
 import Link from 'next/link'
-import { getMixes, getLikedMixIds, getTasteTags, getFlavors } from '@/lib/queries'
-import { getCurrentUser } from '@/lib/auth'
-import { MixCard } from '@/components/mix-card'
+import { getCombos, getTasteTags, getFlavors } from '@/lib/queries'
+import { ComboCard } from '@/components/combo-card'
 
 export const dynamic = 'force-dynamic'
 
@@ -15,14 +14,11 @@ export default async function Home({
   const tag = sp.tag
   const q = sp.q
 
-  const [mixes, likedIds, tags, user, flavors] = await Promise.all([
-    getMixes({ sort, tag, q }),
-    getLikedMixIds(),
+  const [combos, tags, flavors] = await Promise.all([
+    getCombos({ sort, tag, q }),
     getTasteTags(),
-    getCurrentUser(),
     getFlavors(),
   ])
-  const isAuthed = !!user
   const flavorShortcuts = flavors.slice(0, 12)
 
   const buildHref = (patch: Record<string, string | undefined>) => {
@@ -91,7 +87,7 @@ export default async function Home({
             </Link>
           </div>
           <span className="text-xs" style={{ color: 'var(--color-ash-dim)' }}>
-            {mixes.length} 件のミックス
+            {combos.length} 件の組み合わせ
           </span>
         </div>
 
@@ -109,11 +105,11 @@ export default async function Home({
         )}
       </div>
 
-      {/* ---------- GRID ---------- */}
-      {mixes.length > 0 ? (
+      {/* ---------- GRID (Combo単位) ---------- */}
+      {combos.length > 0 ? (
         <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {mixes.map((mix) => (
-            <MixCard key={mix.id} mix={mix} liked={likedIds.has(mix.id)} isAuthed={isAuthed} />
+          {combos.map((combo) => (
+            <ComboCard key={combo.key} combo={combo} />
           ))}
         </div>
       ) : (

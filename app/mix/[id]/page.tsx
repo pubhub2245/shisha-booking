@@ -20,6 +20,7 @@ import { MixCard } from '@/components/mix-card'
 import { deleteMix } from '@/actions/mixes'
 import { deleteComment } from '@/actions/social'
 import { withAffiliateTag } from '@/lib/affiliate'
+import { comboKey, comboSlug } from '@/lib/combo'
 import type { MixWithRelations, MixAuthor } from '@/lib/types/database'
 
 export const dynamic = 'force-dynamic'
@@ -129,6 +130,14 @@ export default async function MixDetail({ params }: { params: Promise<{ id: stri
         <h1 className="text-3xl leading-tight sm:text-4xl" style={{ fontWeight: 800 }}>
           {mix.title}
         </h1>
+
+        <Link
+          href={`/combo/${comboSlug(mix.combo_key || comboKey(flavors))}`}
+          className="mt-2 inline-block text-sm"
+          style={{ color: 'var(--color-ember-hot)', fontWeight: 600 }}
+        >
+          この組み合わせの作り方をすべて見る →
+        </Link>
 
         <div className="mt-4 flex flex-wrap items-center gap-3">
           <LikeButton

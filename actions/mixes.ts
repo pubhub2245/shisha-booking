@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import type { Strength } from '@/lib/types/database'
+import { comboKey } from '@/lib/combo'
 
 export type MixFormState = { error: string } | null
 
@@ -69,6 +70,7 @@ export async function createMix(_prev: MixFormState, formData: FormData): Promis
       strength,
       heat_management: heat,
       placement_note: placement,
+      combo_key: comboKey(flavors),
     })
     .select('id')
     .single()
@@ -130,7 +132,7 @@ export async function updateMix(_prev: MixFormState, formData: FormData): Promis
 
   const { error } = await supabase
     .from('mixes')
-    .update({ title, description, taste_tags: tasteTags, strength, heat_management: heat, placement_note: placement })
+    .update({ title, description, taste_tags: tasteTags, strength, heat_management: heat, placement_note: placement, combo_key: comboKey(flavors) })
     .eq('id', mixId)
   if (error) {
     console.error('[updateMix]', error.message)

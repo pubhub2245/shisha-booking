@@ -55,6 +55,7 @@ export type Mix = {
   placement_note: string | null
   like_count: number
   view_count: number
+  combo_key: string
   created_at: string
 }
 
@@ -108,6 +109,18 @@ export type MixAuthor = Pick<
 export type MixWithRelations = Mix & {
   author: MixAuthor | null
   mix_flavors: MixFlavor[]
+}
+
+// Combo（組み合わせ）= 同じフレーバー種類の作り方（Method）を束ねたもの
+export type ComboSummary = {
+  key: string
+  slug: string
+  flavorNames: string[]
+  methodCount: number
+  totalLikes: number
+  tags: string[]
+  top: MixWithRelations
+  latest: string
 }
 
 // Supabase Database 型（最小限 / 手書き）
