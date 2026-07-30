@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation'
 import { getCurrentUser } from '@/lib/auth'
-import { getComboBySlug } from '@/lib/queries'
+import { getComboBySlug, getFlavors } from '@/lib/queries'
 import { MixForm, type MixFormInitial } from '@/components/mix-form'
 
 export const dynamic = 'force-dynamic'
@@ -12,7 +12,11 @@ export default async function PostPage({
 }: {
   searchParams: Promise<{ combo?: string }>
 }) {
-  const [{ combo: comboSlug }, user] = await Promise.all([searchParams, getCurrentUser()])
+  const [{ combo: comboSlug }, user, flavors] = await Promise.all([
+    searchParams,
+    getCurrentUser(),
+    getFlavors(),
+  ])
   if (!user) redirect('/post')
 
   // Combo ページからの導線：フレーバーを引き継いで「作り方」を追加
@@ -28,8 +32,10 @@ export default async function PostPage({
         strength: null,
         tasteTags: '',
         heat: '',
+        heatCurve: null,
         placement: '',
         flavors: (combo.methods[0].mix_flavors ?? []).map((f) => ({
+          flavorId: f.flavor_id ?? '',
           name: f.name,
           brand: f.brand ?? '',
           ratio: '',
@@ -54,7 +60,7 @@ export default async function PostPage({
           あなたのミックスを図鑑に。いいねが集まれば人気ミックスとしてみんなの参考になります。
         </p>
       )}
-      <MixForm mode="create" initial={initial} />
+      <MixForm mode="create" initial={initial} flavors={flavors} />
     </div>
   )
 }

@@ -3,20 +3,22 @@
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
-import type { Strength } from '@/lib/types/database'
+import type { Strength, HeatPoint } from '@/lib/types/database'
 import { comboKey } from '@/lib/combo'
 
 export type MixFormState = { error: string } | null
 
 type FlavorInput = {
+  flavor_id: string | null
   brand: string
   name: string
   ratio: number | null
   affiliate_url: string | null
 }
 
-/** 投稿フォームから複数フレーバー行をパースする。name[] / brand[] ... の並列配列 */
+/** 投稿フォームから複数フレーバー行をパースする（選択式：flavor_id + brand/name の並列配列） */
 function parseFlavors(formData: FormData): FlavorInput[] {
+  const ids = formData.getAll('flavor_id').map((v) => String(v).trim())
   const names = formData.getAll('flavor_name').map((v) => String(v).trim())
   const brands = formData.getAll('flavor_brand').map((v) => String(v).trim())
   const ratios = formData.getAll('flavor_ratio').map((v) => String(v).trim())
@@ -26,6 +28,7 @@ function parseFlavors(formData: FormData): FlavorInput[] {
   for (let i = 0; i < names.length; i++) {
     if (!names[i]) continue
     out.push({
+      flavor_id: ids[i] || null,
       brand: brands[i] || '',
       name: names[i],
       ratio: ratios[i] ? Number(ratios[i]) || null : null,
@@ -33,6 +36,52 @@ function parseFlavors(formData: FormData): FlavorInput[] {
     })
   }
   return out
+}
+
+/** 熱管理カーブ（JSON）をパースして検証する */
+function parseHeatCurve(formData: FormData): HeatPoint[] | null {
+  const raw = String(formData.get('heat_curve') ?? '')
+  if (!raw) return null
+  try {
+    const arr = JSON.parse(raw)
+    if (!Array.isArray(arr)) return null
+    const pts = arr
+      .filter((p) => p && typeof p.t === 'number' && typeof p.v === 'number')
+      .map((p) => ({ t: Math.max(0, Math.min(180, Math.round(p.t))), v: Math.max(1, Math.min(5, Math.round(p.v))) }))
+      .slice(0, 20)
+    return pts.length >= 2 ? pts : null
+  } catch {
+    return null
+  }
+}
+
+/** 新規フレーバー（flavor_id 無し）をマスタに追加し、id を紐付ける（誤字防止＆図鑑成長） */
+async function growFlavorMaster(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  flavors: FlavorInput[]
+): Promise<void> {
+  const newOnes = flavors.filter((f) => !f.flavor_id && f.name)
+  if (newOnes.length === 0) return
+  try {
+    await supabase
+      .from('flavors')
+      .upsert(
+        newOnes.map((f) => ({ brand: f.brand || '', name: f.name })),
+        { onConflict: 'brand,name', ignoreDuplicates: true }
+      )
+    const { data } = await supabase
+      .from('flavors')
+      .select('id, brand, name')
+      .in('name', newOnes.map((f) => f.name))
+    const map = new Map(
+      (data ?? []).map((r) => [`${(r.brand as string) ?? ''}|${r.name as string}`, r.id as string])
+    )
+    for (const f of flavors) {
+      if (!f.flavor_id && f.name) f.flavor_id = map.get(`${f.brand || ''}|${f.name}`) ?? null
+    }
+  } catch (e) {
+    console.error('[growFlavorMaster]', e)
+  }
 }
 
 export async function createMix(_prev: MixFormState, formData: FormData): Promise<MixFormState> {
@@ -56,9 +105,12 @@ export async function createMix(_prev: MixFormState, formData: FormData): Promis
     .slice(0, 8)
 
   const flavors = parseFlavors(formData)
+  const heatCurve = parseHeatCurve(formData)
 
   if (!title) return { error: 'ミックスのタイトルを入力してください。' }
   if (flavors.length < 1) return { error: 'フレーバーを1つ以上追加してください。' }
+
+  await growFlavorMaster(supabase, flavors)
 
   const { data: mix, error } = await supabase
     .from('mixes')
@@ -69,6 +121,7 @@ export async function createMix(_prev: MixFormState, formData: FormData): Promis
       taste_tags: tasteTags,
       strength,
       heat_management: heat,
+      heat_curve: heatCurve,
       placement_note: placement,
       combo_key: comboKey(flavors),
     })
@@ -83,6 +136,7 @@ export async function createMix(_prev: MixFormState, formData: FormData): Promis
   const rows = flavors.map((f, i) => ({
     mix_id: mix.id as string,
     position: i,
+    flavor_id: f.flavor_id,
     brand: f.brand || null,
     name: f.name,
     ratio: f.ratio,
@@ -127,12 +181,15 @@ export async function updateMix(_prev: MixFormState, formData: FormData): Promis
 
   const { title, description, strength, heat, placement, tasteTags } = parseMixFields(formData)
   const flavors = parseFlavors(formData)
+  const heatCurve = parseHeatCurve(formData)
   if (!title) return { error: 'ミックスのタイトルを入力してください。' }
   if (flavors.length < 1) return { error: 'フレーバーを1つ以上追加してください。' }
 
+  await growFlavorMaster(supabase, flavors)
+
   const { error } = await supabase
     .from('mixes')
-    .update({ title, description, taste_tags: tasteTags, strength, heat_management: heat, placement_note: placement, combo_key: comboKey(flavors) })
+    .update({ title, description, taste_tags: tasteTags, strength, heat_management: heat, heat_curve: heatCurve, placement_note: placement, combo_key: comboKey(flavors) })
     .eq('id', mixId)
   if (error) {
     console.error('[updateMix]', error.message)
@@ -144,6 +201,7 @@ export async function updateMix(_prev: MixFormState, formData: FormData): Promis
   const rows = flavors.map((f, i) => ({
     mix_id: mixId,
     position: i,
+    flavor_id: f.flavor_id,
     brand: f.brand || null,
     name: f.name,
     ratio: f.ratio,

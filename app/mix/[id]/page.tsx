@@ -14,6 +14,7 @@ import { BookmarkButton } from '@/components/bookmark-button'
 import { ShareButton } from '@/components/share-button'
 import { VerifiedBadge } from '@/components/verified-badge'
 import { StrengthMeter } from '@/components/strength-meter'
+import { HeatCurveChart } from '@/components/heat-curve-chart'
 import { CommentForm } from '@/components/comment-form'
 import { ViewTracker } from '@/components/view-tracker'
 import { MixCard } from '@/components/mix-card'
@@ -226,13 +227,24 @@ export default async function MixDetail({ params }: { params: Promise<{ id: stri
       </section>
 
       {/* ---------- BREW NOTES ---------- */}
-      {(mix.heat_management || mix.placement_note) && (
+      {(mix.heat_curve || mix.heat_management || mix.placement_note) && (
         <section className="mt-8">
           <h2 className="mb-3 text-sm eyebrow">How to make — 作り方ノート</h2>
+
+          {mix.heat_curve && mix.heat_curve.length >= 2 && (
+            <div className="card mb-4 p-5">
+              <div className="mb-1 text-sm" style={{ fontWeight: 700 }}>🔥 熱管理カーブ</div>
+              <p className="mb-3 text-xs" style={{ color: 'var(--color-ash-dim)' }}>
+                横軸＝経過時間、縦軸＝火力（弱→強）
+              </p>
+              <HeatCurveChart points={mix.heat_curve} />
+            </div>
+          )}
+
           <div className="grid gap-4 sm:grid-cols-2">
             {mix.heat_management && (
               <div className="card p-5">
-                <div className="mb-2 text-sm" style={{ fontWeight: 700 }}>🔥 熱帯・炭の管理</div>
+                <div className="mb-2 text-sm" style={{ fontWeight: 700 }}>🔥 熱管理の補足</div>
                 <p className="text-sm leading-relaxed" style={{ color: 'var(--color-ash)' }}>
                   {mix.heat_management}
                 </p>

@@ -2,6 +2,9 @@
 
 export type Strength = 'light' | 'medium' | 'strong'
 
+/** 熱管理カーブの1点: t=経過分, v=火力(1-5) */
+export type HeatPoint = { t: number; v: number }
+
 // interface ではなく type で宣言する（Record<string, unknown> への代入性のため。
 // supabase-js の GenericSchema 制約を満たすのに必要）。
 export type Profile = {
@@ -52,6 +55,7 @@ export type Mix = {
   taste_tags: string[]
   strength: Strength | null
   heat_management: string | null
+  heat_curve: HeatPoint[] | null
   placement_note: string | null
   like_count: number
   view_count: number

@@ -2,7 +2,8 @@
 
 import { useActionState, useState } from 'react'
 import { createMix, updateMix, type MixFormState } from '@/actions/mixes'
-import type { Strength } from '@/lib/types/database'
+import type { Strength, Flavor, HeatPoint } from '@/lib/types/database'
+import { HeatCurveInput } from '@/components/heat-curve-input'
 
 export type MixFormInitial = {
   title: string
@@ -10,40 +11,60 @@ export type MixFormInitial = {
   strength: Strength | null
   tasteTags: string
   heat: string
+  heatCurve: HeatPoint[] | null
   placement: string
-  flavors: { name: string; brand: string; ratio: string; url: string }[]
+  flavors: { flavorId: string; name: string; brand: string; ratio: string; url: string }[]
 }
 
-type Row = { id: number; name: string; brand: string; ratio: string; url: string }
+type Row = { id: number; flavorId: string; newBrand: string; newName: string; ratio: string; url: string }
+
+const NEW = '__new__'
 
 export function MixForm({
   mode,
   mixId,
   initial,
+  flavors,
 }: {
   mode: 'create' | 'edit'
   mixId?: string
   initial?: MixFormInitial
+  flavors: Flavor[]
 }) {
   const action0 = mode === 'edit' ? updateMix : createMix
   const [state, action, pending] = useActionState<MixFormState, FormData>(action0, null)
 
+  const masterById = new Map(flavors.map((f) => [f.id, f]))
+
   const seed: Row[] =
     initial && initial.flavors.length > 0
-      ? initial.flavors.map((f, i) => ({ id: i + 1, ...f }))
+      ? initial.flavors.map((f, i) => {
+          const useMaster = f.flavorId && masterById.has(f.flavorId)
+          return {
+            id: i + 1,
+            flavorId: useMaster ? f.flavorId : f.name ? NEW : '',
+            newBrand: useMaster ? '' : f.brand,
+            newName: useMaster ? '' : f.name,
+            ratio: f.ratio,
+            url: f.url,
+          }
+        })
       : [
-          { id: 1, name: '', brand: '', ratio: '', url: '' },
-          { id: 2, name: '', brand: '', ratio: '', url: '' },
+          { id: 1, flavorId: '', newBrand: '', newName: '', ratio: '', url: '' },
+          { id: 2, flavorId: '', newBrand: '', newName: '', ratio: '', url: '' },
         ]
   const [rows, setRows] = useState<Row[]>(seed)
   const [nextId, setNextId] = useState(seed.length + 1)
 
   function addRow() {
-    setRows((r) => [...r, { id: nextId, name: '', brand: '', ratio: '', url: '' }])
+    setRows((r) => [...r, { id: nextId, flavorId: '', newBrand: '', newName: '', ratio: '', url: '' }])
     setNextId((n) => n + 1)
   }
   function removeRow(id: number) {
     setRows((r) => (r.length > 1 ? r.filter((x) => x.id !== id) : r))
+  }
+  function update(id: number, patch: Partial<Row>) {
+    setRows((r) => r.map((x) => (x.id === id ? { ...x, ...patch } : x)))
   }
 
   return (
@@ -63,45 +84,67 @@ export function MixForm({
         <input name="title" required defaultValue={initial?.title} placeholder="例：王道スッキリ｜ダブルアップル × ミント" maxLength={80} />
       </div>
 
-      {/* ---------- FLAVORS ---------- */}
+      {/* ---------- FLAVORS (選択式) ---------- */}
       <div>
         <div className="mb-2 flex items-center justify-between">
-          <label className="text-sm" style={{ color: 'var(--color-ash)', fontWeight: 600 }}>
-            使用フレーバー *
-          </label>
-          <span className="text-xs" style={{ color: 'var(--color-ash-dim)' }}>購入リンクを貼るとアフィリエイトになります</span>
+          <label className="text-sm" style={{ color: 'var(--color-ash)', fontWeight: 600 }}>使用フレーバー *</label>
+          <span className="text-xs" style={{ color: 'var(--color-ash-dim)' }}>一覧から選択（無ければ新規追加）</span>
         </div>
         <div className="flex flex-col gap-3">
-          {rows.map((row, i) => (
-            <div key={row.id} className="card p-4">
-              <div className="mb-2 flex items-center justify-between">
-                <span className="text-xs" style={{ color: 'var(--color-ember-hot)', fontWeight: 700 }}>
-                  フレーバー {i + 1}
-                </span>
-                <button type="button" onClick={() => removeRow(row.id)} className="text-xs" style={{ color: 'var(--color-ash-dim)' }}>
-                  削除
-                </button>
-              </div>
-              <div className="grid gap-3 sm:grid-cols-[1fr_1fr_90px]">
-                <div className="field">
-                  <input name="flavor_name" defaultValue={row.name} placeholder="フレーバー名（例：ダブルアップル）" />
+          {rows.map((row, i) => {
+            const master = masterById.get(row.flavorId)
+            const isNew = row.flavorId === NEW
+            const brand = isNew ? row.newBrand : master?.brand ?? ''
+            const name = isNew ? row.newName : master?.name ?? ''
+            return (
+              <div key={row.id} className="card p-4">
+                <div className="mb-2 flex items-center justify-between">
+                  <span className="text-xs" style={{ color: 'var(--color-ember-hot)', fontWeight: 700 }}>フレーバー {i + 1}</span>
+                  <button type="button" onClick={() => removeRow(row.id)} className="text-xs" style={{ color: 'var(--color-ash-dim)' }}>削除</button>
                 </div>
+
+                {/* submit 用の hidden（マスタ由来 or 新規入力を反映） */}
+                <input type="hidden" name="flavor_id" value={isNew ? '' : row.flavorId} />
+                <input type="hidden" name="flavor_brand" value={brand} />
+                <input type="hidden" name="flavor_name" value={name} />
+
                 <div className="field">
-                  <input name="flavor_brand" defaultValue={row.brand} placeholder="ブランド（例：AL FAKHER）" />
+                  <select
+                    value={row.flavorId}
+                    onChange={(e) => update(row.id, { flavorId: e.target.value })}
+                  >
+                    <option value="">選択してください</option>
+                    {flavors.map((f) => (
+                      <option key={f.id} value={f.id}>{f.brand} ｜ {f.name}</option>
+                    ))}
+                    <option value={NEW}>リストにない（新規追加）</option>
+                  </select>
                 </div>
-                <div className="field">
-                  <input name="flavor_ratio" defaultValue={row.ratio} inputMode="numeric" placeholder="割合%" />
+
+                {isNew && (
+                  <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                    <div className="field">
+                      <input value={row.newBrand} onChange={(e) => update(row.id, { newBrand: e.target.value })} placeholder="ブランド（例：AL FAKHER）" />
+                    </div>
+                    <div className="field">
+                      <input value={row.newName} onChange={(e) => update(row.id, { newName: e.target.value })} placeholder="フレーバー名（例：ダブルアップル）" />
+                    </div>
+                  </div>
+                )}
+
+                <div className="mt-3 grid gap-3 sm:grid-cols-[110px_1fr]">
+                  <div className="field">
+                    <input name="flavor_ratio" defaultValue={row.ratio} inputMode="numeric" placeholder="割合%" />
+                  </div>
+                  <div className="field">
+                    <input name="flavor_url" defaultValue={row.url} placeholder="購入リンク（任意 / アフィリエイトURL）" />
+                  </div>
                 </div>
               </div>
-              <div className="field mt-3">
-                <input name="flavor_url" defaultValue={row.url} placeholder="購入リンク（任意 / アフィリエイトURL）" />
-              </div>
-            </div>
-          ))}
+            )
+          })}
         </div>
-        <button type="button" onClick={addRow} className="btn btn-ghost mt-3 text-sm">
-          ＋ フレーバーを追加
-        </button>
+        <button type="button" onClick={addRow} className="btn btn-ghost mt-3 text-sm">＋ フレーバーを追加</button>
       </div>
 
       <div className="field">
@@ -128,8 +171,14 @@ export function MixForm({
         作り方ノート（任意）— シーシャは作り方で味が変わります。ノウハウを共有しましょう。
       </p>
 
+      {/* 熱管理カーブ */}
+      <div>
+        <label className="mb-2 block text-sm" style={{ color: 'var(--color-ash)', fontWeight: 600 }}>🔥 熱管理カーブ（経過時間 × 火力）</label>
+        <HeatCurveInput initial={initial?.heatCurve ?? undefined} />
+      </div>
+
       <div className="field">
-        <label>🔥 熱帯・炭の管理（時間経過のイメージ）</label>
+        <label>🔥 熱管理の補足メモ（任意）</label>
         <textarea name="heat_management" defaultValue={initial?.heat} placeholder="例：序盤は炭3つで軽め、中盤に1つ足して立ち上げる。" maxLength={600} />
       </div>
 
