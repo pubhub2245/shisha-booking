@@ -11,6 +11,7 @@ export type Profile = {
   bio: string | null
   avatar_url: string | null
   is_shop: boolean
+  is_pro: boolean
   shop_name: string | null
   shop_area: string | null
   shop_url: string | null
@@ -84,7 +85,7 @@ export type Like = {
 // join した表示用
 export type MixAuthor = Pick<
   Profile,
-  'id' | 'username' | 'display_name' | 'is_shop' | 'shop_name'
+  'id' | 'username' | 'display_name' | 'is_shop' | 'is_pro' | 'shop_name'
 >
 
 export type MixWithRelations = Mix & {

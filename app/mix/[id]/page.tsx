@@ -12,6 +12,7 @@ import { getCurrentUser } from '@/lib/auth'
 import { LikeButton } from '@/components/like-button'
 import { BookmarkButton } from '@/components/bookmark-button'
 import { ShareButton } from '@/components/share-button'
+import { VerifiedBadge } from '@/components/verified-badge'
 import { StrengthMeter } from '@/components/strength-meter'
 import { CommentForm } from '@/components/comment-form'
 import { ViewTracker } from '@/components/view-tracker'
@@ -31,14 +32,21 @@ function authorName(author: MixAuthor | null): string {
 
 function AuthorLink({ author }: { author: MixAuthor | null }) {
   const name = authorName(author)
+  const badge = author?.is_pro ? <VerifiedBadge size={14} /> : null
   if (author?.username) {
     return (
-      <Link href={`/u/${author.username}`} className="hover:underline" style={{ color: 'var(--color-ember-hot)', fontWeight: 600 }}>
+      <Link href={`/u/${author.username}`} className="inline-flex items-center gap-1 hover:underline" style={{ color: 'var(--color-ember-hot)', fontWeight: 600 }}>
         {name}
+        {badge}
       </Link>
     )
   }
-  return <span style={{ color: 'var(--color-ash-dim)' }}>{name}</span>
+  return (
+    <span className="inline-flex items-center gap-1" style={{ color: 'var(--color-ash-dim)' }}>
+      {name}
+      {badge}
+    </span>
+  )
 }
 
 export async function generateMetadata({

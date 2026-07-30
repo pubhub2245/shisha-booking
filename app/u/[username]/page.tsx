@@ -11,6 +11,7 @@ import {
 import { getCurrentUser } from '@/lib/auth'
 import { MixCard } from '@/components/mix-card'
 import { FollowButton } from '@/components/follow-button'
+import { VerifiedBadge } from '@/components/verified-badge'
 
 export const dynamic = 'force-dynamic'
 
@@ -50,10 +51,18 @@ export default async function ProfilePage({ params }: { params: Promise<{ userna
             {profile.is_shop && (
               <span className="chip chip-active mb-2 inline-flex">🏠 店舗</span>
             )}
-            <h1 className="truncate text-2xl" style={{ fontWeight: 800 }}>
-              {profile.is_shop && profile.shop_name ? profile.shop_name : displayName}
+            <h1 className="flex items-center gap-1.5 text-2xl" style={{ fontWeight: 800 }}>
+              <span className="truncate">
+                {profile.is_shop && profile.shop_name ? profile.shop_name : displayName}
+              </span>
+              {profile.is_pro && <VerifiedBadge size={19} />}
             </h1>
             <div className="text-sm" style={{ color: 'var(--color-ash-dim)' }}>@{profile.username}</div>
+            {profile.is_pro && (
+              <div className="mt-1 inline-flex items-center gap-1 text-xs" style={{ color: 'var(--color-ember-hot)', fontWeight: 600 }}>
+                <VerifiedBadge size={12} /> シーシャ店スタッフ（認証済み）
+              </div>
+            )}
           </div>
           <div className="shrink-0">
             {isSelf ? (

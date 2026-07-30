@@ -32,7 +32,7 @@ async function attachRelations(
   const [{ data: flavors }, authorsRes] = await Promise.all([
     supabase.from('mix_flavors').select('*').in('mix_id', mixIds),
     authorIds.length
-      ? supabase.from('profiles').select('id, username, display_name, is_shop, shop_name').in('id', authorIds)
+      ? supabase.from('profiles').select('id, username, display_name, is_shop, is_pro, shop_name').in('id', authorIds)
       : Promise.resolve({ data: [] as MixAuthor[] }),
   ])
 
@@ -138,7 +138,7 @@ export async function getMixComments(mixId: string): Promise<CommentWithAuthor[]
     const authorIds = [...new Set(comments.map((c) => c.user_id))]
     const { data: authors } = await supabase
       .from('profiles')
-      .select('id, username, display_name, is_shop, shop_name')
+      .select('id, username, display_name, is_shop, is_pro, shop_name')
       .in('id', authorIds)
     const byId = new Map<string, MixAuthor>()
     for (const a of (authors ?? []) as MixAuthor[]) byId.set(a.id, a)

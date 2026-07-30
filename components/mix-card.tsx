@@ -2,6 +2,7 @@ import Link from 'next/link'
 import type { MixWithRelations } from '@/lib/types/database'
 import { LikeButton } from '@/components/like-button'
 import { StrengthMeter } from '@/components/strength-meter'
+import { VerifiedBadge } from '@/components/verified-badge'
 
 function authorLabel(mix: MixWithRelations): string {
   if (!mix.author) return 'MixHub 編集部'
@@ -69,8 +70,9 @@ export function MixCard({
         </div>
 
         <div className="mt-auto flex items-center justify-between gap-2 pt-4">
-          <span className="text-xs" style={{ color: 'var(--color-ash-dim)' }}>
+          <span className="inline-flex items-center gap-1 text-xs" style={{ color: 'var(--color-ash-dim)' }}>
             {authorLabel(mix)}
+            {mix.author?.is_pro && <VerifiedBadge size={13} />}
           </span>
           <StrengthMeter strength={mix.strength} />
         </div>
