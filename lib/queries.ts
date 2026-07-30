@@ -67,8 +67,18 @@ export async function getMixes(opts: FeedOptions = {}): Promise<MixWithRelations
     if (opts.tags && opts.tags.length) query = query.contains('taste_tags', opts.tags)
     if (opts.strength) query = query.eq('strength', opts.strength)
     if (opts.q && opts.q.trim()) {
-      const term = `%${opts.q.trim()}%`
-      query = query.or(`title.ilike.${term},description.ilike.${term}`)
+      // PostgREST の or() 構文を壊す文字を除去
+      const term = opts.q.trim().replace(/[(),]/g, ' ').trim()
+      if (term) {
+        // フレーバー名/ブランドが一致するミックスも対象に含める
+        const { data: mf } = await supabase
+          .from('mix_flavors')
+          .select('mix_id')
+          .or(`name.ilike.%${term}%,brand.ilike.%${term}%`)
+        const ids = [...new Set((mf ?? []).map((r) => r.mix_id as string))]
+        const idClause = ids.length ? `,id.in.(${ids.join(',')})` : ''
+        query = query.or(`title.ilike.%${term}%,description.ilike.%${term}%${idClause}`)
+      }
     }
 
     query =

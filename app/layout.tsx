@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Outfit, Noto_Sans_JP } from "next/font/google";
 import "./globals.css";
 import { SiteHeader } from "@/components/site-header";
@@ -33,6 +33,10 @@ export const metadata: Metadata = {
     type: "website",
     locale: "ja_JP",
   },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#f7f4ee",
 };
 
 export default function RootLayout({
