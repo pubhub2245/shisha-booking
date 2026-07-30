@@ -33,6 +33,10 @@ export default async function PostPage({
         tasteTags: '',
         heat: '',
         heatCurve: null,
+        hmsType: '',
+        charcoalType: '',
+        charcoalCount: '',
+        windCover: '',
         placement: '',
         flavors: (combo.methods[0].mix_flavors ?? []).map((f) => ({
           flavorId: f.flavor_id ?? '',

@@ -4,6 +4,7 @@ import { useActionState, useState } from 'react'
 import { createMix, updateMix, type MixFormState } from '@/actions/mixes'
 import type { Strength, Flavor, HeatPoint } from '@/lib/types/database'
 import { HeatCurveInput } from '@/components/heat-curve-input'
+import { HMS_OPTIONS, CHARCOAL_OPTIONS } from '@/lib/heat'
 
 export type MixFormInitial = {
   title: string
@@ -12,6 +13,10 @@ export type MixFormInitial = {
   tasteTags: string
   heat: string
   heatCurve: HeatPoint[] | null
+  hmsType: string
+  charcoalType: string
+  charcoalCount: string
+  windCover: string
   placement: string
   flavors: { flavorId: string; name: string; brand: string; ratio: string; url: string }[]
 }
@@ -171,15 +176,52 @@ export function MixForm({
         作り方ノート（任意）— シーシャは作り方で味が変わります。ノウハウを共有しましょう。
       </p>
 
+      {/* 炭・熱源セットアップ */}
+      <div className="card flex flex-col gap-4 p-5">
+        <div className="text-sm" style={{ fontWeight: 700 }}>炭・熱源セットアップ</div>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div className="field">
+            <label>ヒートマネジメント</label>
+            <select name="hms_type" defaultValue={initial?.hmsType ?? ''}>
+              <option value="">未設定</option>
+              {HMS_OPTIONS.map((o) => (
+                <option key={o.v} value={o.v}>{o.l}</option>
+              ))}
+            </select>
+          </div>
+          <div className="field">
+            <label>炭の種類</label>
+            <select name="charcoal_type" defaultValue={initial?.charcoalType ?? ''}>
+              <option value="">未設定</option>
+              {CHARCOAL_OPTIONS.map((o) => (
+                <option key={o.v} value={o.v}>{o.l}</option>
+              ))}
+            </select>
+          </div>
+          <div className="field">
+            <label>炭の個数</label>
+            <input name="charcoal_count" defaultValue={initial?.charcoalCount} inputMode="numeric" placeholder="例：3" />
+          </div>
+          <div className="field">
+            <label>風防を被せる</label>
+            <select name="wind_cover" defaultValue={initial?.windCover ?? ''}>
+              <option value="">未設定</option>
+              <option value="true">被せる</option>
+              <option value="false">被せない</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
       {/* 熱管理カーブ */}
       <div>
-        <label className="mb-2 block text-sm" style={{ color: 'var(--color-ash)', fontWeight: 600 }}>🔥 熱管理カーブ（経過時間 × 火力）</label>
+        <label className="mb-2 block text-sm" style={{ color: 'var(--color-ash)', fontWeight: 600 }}>🔥 熱管理カーブ（経過時間 × 火力 1〜100）</label>
         <HeatCurveInput initial={initial?.heatCurve ?? undefined} />
       </div>
 
       <div className="field">
         <label>🔥 熱管理の補足メモ（任意）</label>
-        <textarea name="heat_management" defaultValue={initial?.heat} placeholder="例：序盤は炭3つで軽め、中盤に1つ足して立ち上げる。" maxLength={600} />
+        <textarea name="heat_management" defaultValue={initial?.heat} placeholder="例：序盤は控えめ、中盤に立ち上げる。灰の掃除タイミングなど。" maxLength={600} />
       </div>
 
       <div className="field">

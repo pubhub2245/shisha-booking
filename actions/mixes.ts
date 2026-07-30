@@ -47,11 +47,29 @@ function parseHeatCurve(formData: FormData): HeatPoint[] | null {
     if (!Array.isArray(arr)) return null
     const pts = arr
       .filter((p) => p && typeof p.t === 'number' && typeof p.v === 'number')
-      .map((p) => ({ t: Math.max(0, Math.min(180, Math.round(p.t))), v: Math.max(1, Math.min(5, Math.round(p.v))) }))
+      .map((p) => ({ t: Math.max(0, Math.min(180, Math.round(p.t))), v: Math.max(1, Math.min(100, Math.round(p.v))) }))
       .slice(0, 20)
     return pts.length >= 2 ? pts : null
   } catch {
     return null
+  }
+}
+
+const HMS_VALUES = ['foil', 'kaloud', 'provost', 'other']
+const CHARCOAL_VALUES = ['cube', 'flat', 'coconut', 'ogatan', 'other']
+
+/** 炭・熱源セットアップをパース */
+function parseHeatSetup(formData: FormData) {
+  const hmsRaw = String(formData.get('hms_type') ?? '')
+  const charRaw = String(formData.get('charcoal_type') ?? '')
+  const countRaw = String(formData.get('charcoal_count') ?? '').trim()
+  const windRaw = String(formData.get('wind_cover') ?? '')
+  const count = countRaw ? Math.max(0, Math.min(20, Number(countRaw) || 0)) : null
+  return {
+    hms_type: HMS_VALUES.includes(hmsRaw) ? hmsRaw : null,
+    charcoal_type: CHARCOAL_VALUES.includes(charRaw) ? charRaw : null,
+    charcoal_count: count,
+    wind_cover: windRaw === 'true' ? true : windRaw === 'false' ? false : null,
   }
 }
 
@@ -106,6 +124,7 @@ export async function createMix(_prev: MixFormState, formData: FormData): Promis
 
   const flavors = parseFlavors(formData)
   const heatCurve = parseHeatCurve(formData)
+  const heatSetup = parseHeatSetup(formData)
 
   if (!title) return { error: 'ミックスのタイトルを入力してください。' }
   if (flavors.length < 1) return { error: 'フレーバーを1つ以上追加してください。' }
@@ -122,6 +141,7 @@ export async function createMix(_prev: MixFormState, formData: FormData): Promis
       strength,
       heat_management: heat,
       heat_curve: heatCurve,
+      ...heatSetup,
       placement_note: placement,
       combo_key: comboKey(flavors),
     })
@@ -182,6 +202,7 @@ export async function updateMix(_prev: MixFormState, formData: FormData): Promis
   const { title, description, strength, heat, placement, tasteTags } = parseMixFields(formData)
   const flavors = parseFlavors(formData)
   const heatCurve = parseHeatCurve(formData)
+  const heatSetup = parseHeatSetup(formData)
   if (!title) return { error: 'ミックスのタイトルを入力してください。' }
   if (flavors.length < 1) return { error: 'フレーバーを1つ以上追加してください。' }
 
@@ -189,7 +210,7 @@ export async function updateMix(_prev: MixFormState, formData: FormData): Promis
 
   const { error } = await supabase
     .from('mixes')
-    .update({ title, description, taste_tags: tasteTags, strength, heat_management: heat, heat_curve: heatCurve, placement_note: placement, combo_key: comboKey(flavors) })
+    .update({ title, description, taste_tags: tasteTags, strength, heat_management: heat, heat_curve: heatCurve, ...heatSetup, placement_note: placement, combo_key: comboKey(flavors) })
     .eq('id', mixId)
   if (error) {
     console.error('[updateMix]', error.message)

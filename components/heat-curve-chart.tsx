@@ -1,8 +1,6 @@
 import type { HeatPoint } from '@/lib/types/database'
 
-const LEVEL_LABEL: Record<number, string> = { 1: '弱', 3: '中', 5: '強' }
-
-/** 熱管理カーブの折れ線グラフ（横軸=経過分, 縦軸=火力1-5）。依存ライブラリなしの純SVG。 */
+/** 熱管理カーブの折れ線グラフ（横軸=経過分, 縦軸=火力0-100）。依存ライブラリなしの純SVG。 */
 export function HeatCurveChart({ points }: { points: HeatPoint[] }) {
   const pts = [...(points ?? [])]
     .filter((p) => typeof p.t === 'number' && typeof p.v === 'number')
@@ -11,13 +9,13 @@ export function HeatCurveChart({ points }: { points: HeatPoint[] }) {
 
   const W = 320
   const H = 170
-  const padL = 30
+  const padL = 34
   const padR = 12
   const padT = 12
   const padB = 26
   const maxT = Math.max(30, ...pts.map((p) => p.t))
   const x = (t: number) => padL + (maxT ? (t / maxT) * (W - padL - padR) : 0)
-  const y = (v: number) => padT + (1 - (Math.min(5, Math.max(1, v)) - 1) / 4) * (H - padT - padB)
+  const y = (v: number) => padT + (1 - Math.min(100, Math.max(0, v)) / 100) * (H - padT - padB)
 
   const line = pts.map((p) => `${x(p.t)},${y(p.v)}`).join(' ')
   const xTicks = [0, Math.round(maxT / 2), maxT]
@@ -25,11 +23,11 @@ export function HeatCurveChart({ points }: { points: HeatPoint[] }) {
   return (
     <svg viewBox={`0 0 ${W} ${H}`} width="100%" role="img" aria-label="熱管理カーブ" style={{ maxWidth: 420 }}>
       {/* Y grid + labels */}
-      {[1, 3, 5].map((lv) => (
+      {[0, 25, 50, 75, 100].map((lv) => (
         <g key={lv}>
           <line x1={padL} x2={W - padR} y1={y(lv)} y2={y(lv)} stroke="var(--line)" strokeWidth="1" />
           <text x={padL - 6} y={y(lv) + 3} textAnchor="end" fontSize="9" fill="var(--color-ash-dim)">
-            {LEVEL_LABEL[lv]}
+            {lv}
           </text>
         </g>
       ))}

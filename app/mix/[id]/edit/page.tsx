@@ -21,6 +21,10 @@ export default async function EditMixPage({ params }: { params: Promise<{ id: st
     tasteTags: mix.taste_tags.join(', '),
     heat: mix.heat_management ?? '',
     heatCurve: mix.heat_curve,
+    hmsType: mix.hms_type ?? '',
+    charcoalType: mix.charcoal_type ?? '',
+    charcoalCount: mix.charcoal_count != null ? String(mix.charcoal_count) : '',
+    windCover: mix.wind_cover === true ? 'true' : mix.wind_cover === false ? 'false' : '',
     placement: mix.placement_note ?? '',
     flavors: (mix.mix_flavors ?? []).map((f) => ({
       flavorId: f.flavor_id ?? '',

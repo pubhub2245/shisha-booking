@@ -56,6 +56,10 @@ export type Mix = {
   strength: Strength | null
   heat_management: string | null
   heat_curve: HeatPoint[] | null
+  hms_type: string | null
+  charcoal_type: string | null
+  charcoal_count: number | null
+  wind_cover: boolean | null
   placement_note: string | null
   like_count: number
   view_count: number

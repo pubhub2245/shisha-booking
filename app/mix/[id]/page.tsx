@@ -15,6 +15,7 @@ import { ShareButton } from '@/components/share-button'
 import { VerifiedBadge } from '@/components/verified-badge'
 import { StrengthMeter } from '@/components/strength-meter'
 import { HeatCurveChart } from '@/components/heat-curve-chart'
+import { hmsLabel, charcoalLabel, windCoverLabel } from '@/lib/heat'
 import { CommentForm } from '@/components/comment-form'
 import { ViewTracker } from '@/components/view-tracker'
 import { MixCard } from '@/components/mix-card'
@@ -227,9 +228,47 @@ export default async function MixDetail({ params }: { params: Promise<{ id: stri
       </section>
 
       {/* ---------- BREW NOTES ---------- */}
-      {(mix.heat_curve || mix.heat_management || mix.placement_note) && (
+      {(mix.heat_curve ||
+        mix.heat_management ||
+        mix.placement_note ||
+        mix.hms_type ||
+        mix.charcoal_type ||
+        mix.charcoal_count != null ||
+        mix.wind_cover != null) && (
         <section className="mt-8">
           <h2 className="mb-3 text-sm eyebrow">How to make — 作り方ノート</h2>
+
+          {(mix.hms_type || mix.charcoal_type || mix.charcoal_count != null || mix.wind_cover != null) && (
+            <div className="card mb-4 p-5">
+              <div className="mb-3 text-sm" style={{ fontWeight: 700 }}>🪨 炭・熱源セットアップ</div>
+              <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm sm:grid-cols-4">
+                {hmsLabel(mix.hms_type) && (
+                  <div>
+                    <dt className="text-xs" style={{ color: 'var(--color-ash-dim)' }}>ヒートマネジメント</dt>
+                    <dd style={{ fontWeight: 600 }}>{hmsLabel(mix.hms_type)}</dd>
+                  </div>
+                )}
+                {charcoalLabel(mix.charcoal_type) && (
+                  <div>
+                    <dt className="text-xs" style={{ color: 'var(--color-ash-dim)' }}>炭の種類</dt>
+                    <dd style={{ fontWeight: 600 }}>{charcoalLabel(mix.charcoal_type)}</dd>
+                  </div>
+                )}
+                {mix.charcoal_count != null && (
+                  <div>
+                    <dt className="text-xs" style={{ color: 'var(--color-ash-dim)' }}>個数</dt>
+                    <dd style={{ fontWeight: 600 }}>{mix.charcoal_count}個</dd>
+                  </div>
+                )}
+                {windCoverLabel(mix.wind_cover) && (
+                  <div>
+                    <dt className="text-xs" style={{ color: 'var(--color-ash-dim)' }}>風防</dt>
+                    <dd style={{ fontWeight: 600 }}>{windCoverLabel(mix.wind_cover)}</dd>
+                  </div>
+                )}
+              </dl>
+            </div>
+          )}
 
           {mix.heat_curve && mix.heat_curve.length >= 2 && (
             <div className="card mb-4 p-5">
