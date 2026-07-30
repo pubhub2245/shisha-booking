@@ -29,7 +29,7 @@ export async function proxy(request: NextRequest) {
   const path = request.nextUrl.pathname
 
   // 未ログインで保護ページ → ログインへ（元のパスを next に）
-  const protectedPaths = ["/post", "/mypage"]
+  const protectedPaths = ["/post", "/mypage", "/admin"]
   if (!user && protectedPaths.some((p) => path === p || path.startsWith(p + "/"))) {
     const loginUrl = new URL("/login", request.url)
     loginUrl.searchParams.set("next", path)
@@ -40,5 +40,5 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/post/:path*", "/mypage/:path*"],
+  matcher: ["/post/:path*", "/mypage/:path*", "/admin/:path*"],
 }

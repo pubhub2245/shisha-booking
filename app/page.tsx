@@ -49,6 +49,20 @@ export default async function Home({
           <Link href="/post" className="btn btn-ember">＋ ミックスを投稿</Link>
           <Link href="/ranking" className="btn btn-ghost">人気ランキングを見る</Link>
         </div>
+
+        {/* 気分から探す */}
+        <div className="mt-8">
+          <p className="mb-2 text-xs" style={{ color: 'var(--color-ash-dim)', letterSpacing: '0.08em' }}>
+            今の気分は？
+          </p>
+          <div className="flex flex-wrap justify-center gap-2">
+            {['甘い', 'スッキリ', 'フルーツ', '濃厚', '爽快', '定番'].map((m) => (
+              <Link key={m} href={`/?tag=${encodeURIComponent(m)}`} className={`chip ${tag === m ? 'chip-active' : ''}`}>
+                {m}
+              </Link>
+            ))}
+          </div>
+        </div>
       </section>
 
       {/* ---------- SEARCH ---------- */}

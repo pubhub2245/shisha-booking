@@ -81,6 +81,11 @@ export default async function MixDetail({ params }: { params: Promise<{ id: stri
   const isOwner = !!user && user.id === mix.author_id
   const isSample = mix.author_id === null
 
+  const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://shisha-booking.vercel.app'
+  const flavorLine = flavors.map((f) => f.name).join(' × ')
+  const tweetText = `${mix.title}${flavorLine ? `｜${flavorLine}` : ''}\n#シーシャ #MixHub`
+  const xShareUrl = `https://x.com/intent/tweet?text=${encodeURIComponent(tweetText)}&url=${encodeURIComponent(`${SITE_URL}/mix/${mix.id}`)}`
+
   return (
     <div className="wrap max-w-3xl py-10">
       <ViewTracker mixId={mix.id} />
@@ -134,6 +139,15 @@ export default async function MixDetail({ params }: { params: Promise<{ id: stri
             size="lg"
           />
           <BookmarkButton mixId={mix.id} initialSaved={bookmarkedIds.has(mix.id)} isAuthed={!!user} />
+          <a
+            href={xShareUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm transition-colors"
+            style={{ borderColor: 'var(--line-strong)', color: 'var(--color-ash)', fontWeight: 600 }}
+          >
+            𝕏 でシェア
+          </a>
           <ShareButton title={mix.title} />
           <StrengthMeter strength={mix.strength} />
         </div>

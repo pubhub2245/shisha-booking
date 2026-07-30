@@ -8,6 +8,8 @@ import type {
   Comment,
   Profile,
   Flavor,
+  ProApplication,
+  ProApplicationWithUser,
 } from '@/lib/types/database'
 
 export type FeedOptions = {
@@ -251,6 +253,50 @@ export async function isFollowing(targetId: string): Promise<boolean> {
     return !!data
   } catch {
     return false
+  }
+}
+
+// ---------- プロ認証 申請 ----------
+export async function getMyProApplication(): Promise<ProApplication | null> {
+  try {
+    const supabase = await createClient()
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+    if (!user) return null
+    const { data } = await supabase
+      .from('pro_applications')
+      .select('*')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle()
+    return (data as ProApplication) ?? null
+  } catch {
+    return null
+  }
+}
+
+export async function getPendingProApplications(): Promise<ProApplicationWithUser[]> {
+  try {
+    const supabase = await createClient()
+    const { data } = await supabase
+      .from('pro_applications')
+      .select('*')
+      .eq('status', 'pending')
+      .order('created_at', { ascending: true })
+    const apps = (data ?? []) as ProApplication[]
+    if (apps.length === 0) return []
+    const userIds = [...new Set(apps.map((a) => a.user_id))]
+    const { data: users } = await supabase
+      .from('profiles')
+      .select('id, username, display_name, is_shop, is_pro, shop_name')
+      .in('id', userIds)
+    const byId = new Map<string, MixAuthor>()
+    for (const u of (users ?? []) as MixAuthor[]) byId.set(u.id, u)
+    return apps.map((a) => ({ ...a, user: byId.get(a.user_id) ?? null }))
+  } catch {
+    return []
   }
 }
 

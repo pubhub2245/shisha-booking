@@ -12,11 +12,28 @@ export type Profile = {
   avatar_url: string | null
   is_shop: boolean
   is_pro: boolean
+  is_admin: boolean
   shop_name: string | null
   shop_area: string | null
   shop_url: string | null
   created_at: string
 }
+
+export type ProApplicationStatus = 'pending' | 'approved' | 'rejected'
+
+export type ProApplication = {
+  id: string
+  user_id: string
+  sns_type: 'x' | 'instagram'
+  sns_handle: string
+  shop_name: string
+  message: string | null
+  status: ProApplicationStatus
+  created_at: string
+  reviewed_at: string | null
+}
+
+export type ProApplicationWithUser = ProApplication & { user: MixAuthor | null }
 
 export type Flavor = {
   id: string
@@ -113,10 +130,13 @@ export type Database = {
       comments: Tbl<Comment>
       bookmarks: Tbl<Bookmark>
       follows: Tbl<Follow>
+      pro_applications: Tbl<ProApplication>
     }
     Views: Record<string, never>
     Functions: {
       increment_view: { Args: { p_mix_id: string }; Returns: undefined }
+      is_admin: { Args: Record<string, never>; Returns: boolean }
+      review_pro_application: { Args: { p_app_id: string; p_approve: boolean }; Returns: undefined }
     }
     Enums: Record<string, never>
   }

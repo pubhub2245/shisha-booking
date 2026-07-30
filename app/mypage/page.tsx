@@ -7,10 +7,12 @@ import {
   getBookmarkedMixes,
   getLikedMixes,
   getFollowCounts,
+  getMyProApplication,
 } from '@/lib/queries'
 import { MixCard } from '@/components/mix-card'
 import type { MixWithRelations } from '@/lib/types/database'
 import { ProfileForm } from './profile-form'
+import { ProApplicationForm } from './pro-application'
 
 export const dynamic = 'force-dynamic'
 export const metadata = { title: 'マイページ — MixHub' }
@@ -44,12 +46,13 @@ export default async function MyPage() {
   const user = await getCurrentUser()
   if (!user) redirect('/login?next=/mypage')
 
-  const [myMixes, likedIds, bookmarked, liked, counts] = await Promise.all([
+  const [myMixes, likedIds, bookmarked, liked, counts, proApp] = await Promise.all([
     getMixesByAuthor(user.id),
     getLikedMixIds(),
     getBookmarkedMixes(),
     getLikedMixes(),
     getFollowCounts(user.id),
+    getMyProApplication(),
   ])
 
   return (
@@ -59,11 +62,18 @@ export default async function MyPage() {
           <p className="eyebrow">My page</p>
           <h1 className="mt-2 text-3xl" style={{ fontWeight: 800 }}>マイページ</h1>
         </div>
-        {user.profile?.username && (
-          <Link href={`/u/${user.profile.username}`} className="btn btn-ghost text-sm">
-            公開プロフィール →
-          </Link>
-        )}
+        <div className="flex flex-col items-end gap-2">
+          {user.profile?.username && (
+            <Link href={`/u/${user.profile.username}`} className="btn btn-ghost text-sm">
+              公開プロフィール →
+            </Link>
+          )}
+          {user.profile?.is_admin && (
+            <Link href="/admin/pro" className="text-xs" style={{ color: 'var(--color-ember-hot)', fontWeight: 600 }}>
+              🛡 プロ認証の審査へ
+            </Link>
+          )}
+        </div>
       </div>
 
       <div className="mt-4 flex gap-5 text-sm">
@@ -75,6 +85,11 @@ export default async function MyPage() {
       <section className="mt-8">
         <h2 className="text-sm" style={{ fontWeight: 700, color: 'var(--color-ash)' }}>プロフィール</h2>
         <ProfileForm profile={user.profile} />
+      </section>
+
+      <section className="mt-8">
+        <h2 className="mb-3 text-sm" style={{ fontWeight: 700, color: 'var(--color-ash)' }}>プロ認証（シーシャ店スタッフ）</h2>
+        <ProApplicationForm isPro={user.profile?.is_pro ?? false} application={proApp} />
       </section>
 
       <div className="divider my-10" />
