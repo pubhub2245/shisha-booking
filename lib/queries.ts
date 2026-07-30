@@ -430,6 +430,33 @@ export async function getFlavors(): Promise<Flavor[]> {
   }
 }
 
+/** フレーバー一覧に使用回数を付与（人気順の材料） */
+export async function getFlavorsWithUsage(): Promise<(Flavor & { count: number })[]> {
+  try {
+    const supabase = await createClient()
+    const [{ data: flavors }, { data: mf }] = await Promise.all([
+      supabase.from('flavors').select('*').order('brand').order('name'),
+      supabase.from('mix_flavors').select('flavor_id, brand, name'),
+    ])
+    const byId = new Map<string, number>()
+    const byName = new Map<string, number>()
+    for (const r of mf ?? []) {
+      const fid = r.flavor_id as string | null
+      if (fid) byId.set(fid, (byId.get(fid) ?? 0) + 1)
+      else if (r.name) {
+        const k = `${((r.brand as string) || '').toLowerCase()}|${(r.name as string).toLowerCase()}`
+        byName.set(k, (byName.get(k) ?? 0) + 1)
+      }
+    }
+    return ((flavors ?? []) as Flavor[]).map((f) => {
+      const k = `${f.brand.toLowerCase()}|${f.name.toLowerCase()}`
+      return { ...f, count: (byId.get(f.id) ?? 0) + (byName.get(k) ?? 0) }
+    })
+  } catch {
+    return []
+  }
+}
+
 export async function getFlavorById(id: string): Promise<Flavor | null> {
   try {
     const supabase = await createClient()
