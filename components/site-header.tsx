@@ -33,6 +33,7 @@ export async function SiteHeader() {
           <Link href="/" className="transition-colors hover:text-[var(--color-cream)]">図鑑</Link>
           <Link href="/flavors" className="transition-colors hover:text-[var(--color-cream)]">フレーバー</Link>
           <Link href="/ranking" className="transition-colors hover:text-[var(--color-cream)]">ランキング</Link>
+          {user && <Link href="/timeline" className="transition-colors hover:text-[var(--color-cream)]">タイムライン</Link>}
           <Link href="/post" className="transition-colors hover:text-[var(--color-cream)]">投稿する</Link>
         </nav>
 

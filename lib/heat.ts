@@ -15,6 +15,29 @@ export const CHARCOAL_OPTIONS = [
   { v: 'other', l: 'その他' },
 ] as const
 
+export const BOWL_OPTIONS = [
+  { v: 'clay', l: 'クレイ' },
+  { v: 'funnel', l: 'ファンネル' },
+  { v: 'vortex', l: 'ハリカ/ボルテックス' },
+  { v: 'silicone', l: 'シリコン' },
+  { v: 'other', l: 'その他' },
+] as const
+
+export const PACK_OPTIONS = [
+  { v: 'fluff', l: 'ふんわり（フラッフ）' },
+  { v: 'flat', l: 'フラット' },
+  { v: 'dense', l: '密盛り（デンス）' },
+  { v: 'overpack', l: 'オーバーパック' },
+  { v: 'other', l: 'その他' },
+] as const
+
+export function bowlLabel(v: string | null | undefined): string | null {
+  return BOWL_OPTIONS.find((o) => o.v === v)?.l ?? null
+}
+export function packLabel(v: string | null | undefined): string | null {
+  return PACK_OPTIONS.find((o) => o.v === v)?.l ?? null
+}
+
 export function hmsLabel(v: string | null | undefined): string | null {
   return HMS_OPTIONS.find((o) => o.v === v)?.l ?? null
 }

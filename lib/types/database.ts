@@ -64,6 +64,8 @@ export type Mix = {
   charcoal_type: string | null
   charcoal_count: number | null
   wind_cover: boolean | null
+  bowl_type: string | null
+  pack_style: string | null
   placement_note: string | null
   like_count: number
   view_count: number

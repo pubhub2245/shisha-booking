@@ -251,6 +251,29 @@ export async function getBookmarkedMixes(): Promise<MixWithRelations[]> {
   }
 }
 
+/** フォロー中ユーザーの新着ミックス（タイムライン） */
+export async function getFollowingMixes(): Promise<MixWithRelations[]> {
+  try {
+    const supabase = await createClient()
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+    if (!user) return []
+    const { data: fl } = await supabase.from('follows').select('following_id').eq('follower_id', user.id)
+    const ids = (fl ?? []).map((r) => r.following_id as string)
+    if (ids.length === 0) return []
+    const { data } = await supabase
+      .from('mixes')
+      .select('*')
+      .in('author_id', ids)
+      .order('created_at', { ascending: false })
+      .limit(60)
+    return attachRelations(supabase, (data ?? []) as Mix[])
+  } catch {
+    return []
+  }
+}
+
 /** 現在のユーザーがいいねしたミックス */
 export async function getLikedMixes(): Promise<MixWithRelations[]> {
   try {
@@ -357,6 +380,29 @@ export async function getPendingProApplications(): Promise<ProApplicationWithUse
     const byId = new Map<string, MixAuthor>()
     for (const u of (users ?? []) as MixAuthor[]) byId.set(u.id, u)
     return apps.map((a) => ({ ...a, user: byId.get(a.user_id) ?? null }))
+  } catch {
+    return []
+  }
+}
+
+// ---------- 店舗 ----------
+export async function getShops(): Promise<(Profile & { mix_count: number })[]> {
+  try {
+    const supabase = await createClient()
+    const { data: shops } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('is_shop', true)
+      .order('created_at', { ascending: false })
+    const list = (shops ?? []) as Profile[]
+    if (list.length === 0) return []
+    const { data: mixes } = await supabase.from('mixes').select('author_id').in('author_id', list.map((s) => s.id))
+    const counts = new Map<string, number>()
+    for (const m of mixes ?? []) {
+      const a = m.author_id as string | null
+      if (a) counts.set(a, (counts.get(a) ?? 0) + 1)
+    }
+    return list.map((s) => ({ ...s, mix_count: counts.get(s.id) ?? 0 }))
   } catch {
     return []
   }

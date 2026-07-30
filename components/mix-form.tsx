@@ -4,7 +4,7 @@ import { useActionState, useState } from 'react'
 import { createMix, updateMix, type MixFormState } from '@/actions/mixes'
 import type { Strength, Flavor, HeatPoint, HeatEvent } from '@/lib/types/database'
 import { HeatCurveEditor } from '@/components/heat-curve-editor'
-import { HMS_OPTIONS, CHARCOAL_OPTIONS } from '@/lib/heat'
+import { HMS_OPTIONS, CHARCOAL_OPTIONS, BOWL_OPTIONS, PACK_OPTIONS } from '@/lib/heat'
 
 export type MixFormInitial = {
   title: string
@@ -18,6 +18,8 @@ export type MixFormInitial = {
   charcoalType: string
   charcoalCount: string
   windCover: string
+  bowlType: string
+  packStyle: string
   placement: string
   flavors: { flavorId: string; name: string; brand: string; ratio: string; url: string }[]
 }
@@ -209,6 +211,24 @@ export function MixForm({
               <option value="">未設定</option>
               <option value="true">被せる</option>
               <option value="false">被せない</option>
+            </select>
+          </div>
+          <div className="field">
+            <label>ボウル</label>
+            <select name="bowl_type" defaultValue={initial?.bowlType ?? ''}>
+              <option value="">未設定</option>
+              {BOWL_OPTIONS.map((o) => (
+                <option key={o.v} value={o.v}>{o.l}</option>
+              ))}
+            </select>
+          </div>
+          <div className="field">
+            <label>盛り方</label>
+            <select name="pack_style" defaultValue={initial?.packStyle ?? ''}>
+              <option value="">未設定</option>
+              {PACK_OPTIONS.map((o) => (
+                <option key={o.v} value={o.v}>{o.l}</option>
+              ))}
             </select>
           </div>
         </div>

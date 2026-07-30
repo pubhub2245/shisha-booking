@@ -38,6 +38,8 @@ export default async function PostPage({
         charcoalType: '',
         charcoalCount: '',
         windCover: '',
+        bowlType: '',
+        packStyle: '',
         placement: '',
         flavors: (combo.methods[0].mix_flavors ?? []).map((f) => ({
           flavorId: f.flavor_id ?? '',
