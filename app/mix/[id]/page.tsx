@@ -229,6 +229,7 @@ export default async function MixDetail({ params }: { params: Promise<{ id: stri
 
       {/* ---------- BREW NOTES ---------- */}
       {(mix.heat_curve ||
+        mix.heat_events ||
         mix.heat_management ||
         mix.placement_note ||
         mix.hms_type ||
@@ -270,13 +271,13 @@ export default async function MixDetail({ params }: { params: Promise<{ id: stri
             </div>
           )}
 
-          {mix.heat_curve && mix.heat_curve.length >= 2 && (
+          {((mix.heat_curve && mix.heat_curve.length >= 2) || mix.heat_events) && (
             <div className="card mb-4 p-5">
               <div className="mb-1 text-sm" style={{ fontWeight: 700 }}>🔥 熱管理カーブ</div>
               <p className="mb-3 text-xs" style={{ color: 'var(--color-ash-dim)' }}>
-                横軸＝経過時間、縦軸＝火力（弱→強）
+                横軸＝経過時間（分）、縦軸＝火力（0〜100）／点線＝炭イベント
               </p>
-              <HeatCurveChart points={mix.heat_curve} />
+              <HeatCurveChart points={mix.heat_curve ?? undefined} events={mix.heat_events ?? undefined} />
             </div>
           )}
 

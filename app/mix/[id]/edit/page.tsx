@@ -21,6 +21,7 @@ export default async function EditMixPage({ params }: { params: Promise<{ id: st
     tasteTags: mix.taste_tags.join(', '),
     heat: mix.heat_management ?? '',
     heatCurve: mix.heat_curve,
+    heatEvents: mix.heat_events,
     hmsType: mix.hms_type ?? '',
     charcoalType: mix.charcoal_type ?? '',
     charcoalCount: mix.charcoal_count != null ? String(mix.charcoal_count) : '',

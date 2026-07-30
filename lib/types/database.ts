@@ -2,8 +2,11 @@
 
 export type Strength = 'light' | 'medium' | 'strong'
 
-/** 熱管理カーブの1点: t=経過分, v=火力(1-5) */
+/** 熱管理カーブの1点: t=経過分, v=火力(1-100) */
 export type HeatPoint = { t: number; v: number }
+
+/** 炭イベント: t=経過分, type=種別, note=任意メモ */
+export type HeatEvent = { t: number; type: string; note?: string }
 
 // interface ではなく type で宣言する（Record<string, unknown> への代入性のため。
 // supabase-js の GenericSchema 制約を満たすのに必要）。
@@ -56,6 +59,7 @@ export type Mix = {
   strength: Strength | null
   heat_management: string | null
   heat_curve: HeatPoint[] | null
+  heat_events: HeatEvent[] | null
   hms_type: string | null
   charcoal_type: string | null
   charcoal_count: number | null

@@ -33,6 +33,7 @@ export default async function PostPage({
         tasteTags: '',
         heat: '',
         heatCurve: null,
+        heatEvents: null,
         hmsType: '',
         charcoalType: '',
         charcoalCount: '',

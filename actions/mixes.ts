@@ -3,8 +3,10 @@
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
-import type { Strength, HeatPoint } from '@/lib/types/database'
+import type { Strength, HeatPoint, HeatEvent } from '@/lib/types/database'
 import { comboKey } from '@/lib/combo'
+
+const HEAT_EVENT_TYPES = ['add', 'remove', 'ash', 'rotate', 'other']
 
 export type MixFormState = { error: string } | null
 
@@ -47,9 +49,30 @@ function parseHeatCurve(formData: FormData): HeatPoint[] | null {
     if (!Array.isArray(arr)) return null
     const pts = arr
       .filter((p) => p && typeof p.t === 'number' && typeof p.v === 'number')
-      .map((p) => ({ t: Math.max(0, Math.min(180, Math.round(p.t))), v: Math.max(1, Math.min(100, Math.round(p.v))) }))
-      .slice(0, 20)
+      .map((p) => ({ t: Math.max(0, Math.min(180, Math.round(p.t * 2) / 2)), v: Math.max(1, Math.min(100, Math.round(p.v))) }))
+      .slice(0, 40)
     return pts.length >= 2 ? pts : null
+  } catch {
+    return null
+  }
+}
+
+/** 炭イベント（JSON）をパース */
+function parseHeatEvents(formData: FormData): HeatEvent[] | null {
+  const raw = String(formData.get('heat_events') ?? '')
+  if (!raw) return null
+  try {
+    const arr = JSON.parse(raw)
+    if (!Array.isArray(arr)) return null
+    const evts: HeatEvent[] = arr
+      .filter((e) => e && typeof e.t === 'number' && HEAT_EVENT_TYPES.includes(e.type))
+      .map((e) => ({
+        t: Math.max(0, Math.min(180, Math.round(e.t * 2) / 2)),
+        type: e.type as string,
+        note: e.note ? String(e.note).slice(0, 120) : undefined,
+      }))
+      .slice(0, 30)
+    return evts.length > 0 ? evts : null
   } catch {
     return null
   }
@@ -124,6 +147,7 @@ export async function createMix(_prev: MixFormState, formData: FormData): Promis
 
   const flavors = parseFlavors(formData)
   const heatCurve = parseHeatCurve(formData)
+  const heatEvents = parseHeatEvents(formData)
   const heatSetup = parseHeatSetup(formData)
 
   if (!title) return { error: 'ミックスのタイトルを入力してください。' }
@@ -141,6 +165,7 @@ export async function createMix(_prev: MixFormState, formData: FormData): Promis
       strength,
       heat_management: heat,
       heat_curve: heatCurve,
+      heat_events: heatEvents,
       ...heatSetup,
       placement_note: placement,
       combo_key: comboKey(flavors),
@@ -202,6 +227,7 @@ export async function updateMix(_prev: MixFormState, formData: FormData): Promis
   const { title, description, strength, heat, placement, tasteTags } = parseMixFields(formData)
   const flavors = parseFlavors(formData)
   const heatCurve = parseHeatCurve(formData)
+  const heatEvents = parseHeatEvents(formData)
   const heatSetup = parseHeatSetup(formData)
   if (!title) return { error: 'ミックスのタイトルを入力してください。' }
   if (flavors.length < 1) return { error: 'フレーバーを1つ以上追加してください。' }
@@ -210,7 +236,7 @@ export async function updateMix(_prev: MixFormState, formData: FormData): Promis
 
   const { error } = await supabase
     .from('mixes')
-    .update({ title, description, taste_tags: tasteTags, strength, heat_management: heat, heat_curve: heatCurve, ...heatSetup, placement_note: placement, combo_key: comboKey(flavors) })
+    .update({ title, description, taste_tags: tasteTags, strength, heat_management: heat, heat_curve: heatCurve, heat_events: heatEvents, ...heatSetup, placement_note: placement, combo_key: comboKey(flavors) })
     .eq('id', mixId)
   if (error) {
     console.error('[updateMix]', error.message)

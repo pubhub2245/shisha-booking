@@ -4,6 +4,8 @@ import type { Metadata } from 'next'
 import { getComboBySlug, getLikedMixIds } from '@/lib/queries'
 import { getCurrentUser } from '@/lib/auth'
 import { MixCard } from '@/components/mix-card'
+import { HeatCurveChart, type CurveSeries } from '@/components/heat-curve-chart'
+import { CURVE_COLORS } from '@/lib/heat'
 
 export const dynamic = 'force-dynamic'
 
@@ -34,6 +36,16 @@ export default async function ComboPage({ params }: { params: Promise<{ slug: st
   const [top, ...rest] = combo.methods
   const totalLikes = combo.methods.reduce((s, m) => s + m.like_count, 0)
 
+  // 熱カーブ比較（2件以上に曲線があるとき）
+  const curveSeries: CurveSeries[] = combo.methods
+    .filter((m) => Array.isArray(m.heat_curve) && m.heat_curve.length >= 2)
+    .slice(0, 6)
+    .map((m, i) => ({
+      label: m.title.length > 16 ? m.title.slice(0, 16) + '…' : m.title,
+      color: CURVE_COLORS[i % CURVE_COLORS.length],
+      points: m.heat_curve!,
+    }))
+
   return (
     <div className="wrap max-w-3xl py-10">
       <Link href="/" className="text-sm" style={{ color: 'var(--color-ash-dim)' }}>← 図鑑にもどる</Link>
@@ -62,6 +74,19 @@ export default async function ComboPage({ params }: { params: Promise<{ slug: st
         </div>
         <MixCard mix={top} liked={likedIds.has(top.id)} isAuthed={!!user} />
       </section>
+
+      {/* ---------- 熱カーブ比較 ---------- */}
+      {curveSeries.length >= 2 && (
+        <section className="mt-10">
+          <h2 className="mb-1 text-sm eyebrow">Heat comparison — 熱カーブ比較</h2>
+          <p className="mb-3 text-xs" style={{ color: 'var(--color-ash-dim)' }}>
+            同じ組み合わせでも、作り手ごとに熱の入れ方が違います。重ねて見比べてみましょう。
+          </p>
+          <div className="card p-5">
+            <HeatCurveChart series={curveSeries} />
+          </div>
+        </section>
+      )}
 
       {/* ---------- バリエーション ---------- */}
       {rest.length > 0 && (

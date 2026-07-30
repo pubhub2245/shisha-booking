@@ -2,8 +2,8 @@
 
 import { useActionState, useState } from 'react'
 import { createMix, updateMix, type MixFormState } from '@/actions/mixes'
-import type { Strength, Flavor, HeatPoint } from '@/lib/types/database'
-import { HeatCurveInput } from '@/components/heat-curve-input'
+import type { Strength, Flavor, HeatPoint, HeatEvent } from '@/lib/types/database'
+import { HeatCurveEditor } from '@/components/heat-curve-editor'
 import { HMS_OPTIONS, CHARCOAL_OPTIONS } from '@/lib/heat'
 
 export type MixFormInitial = {
@@ -13,6 +13,7 @@ export type MixFormInitial = {
   tasteTags: string
   heat: string
   heatCurve: HeatPoint[] | null
+  heatEvents: HeatEvent[] | null
   hmsType: string
   charcoalType: string
   charcoalCount: string
@@ -215,8 +216,8 @@ export function MixForm({
 
       {/* 熱管理カーブ */}
       <div>
-        <label className="mb-2 block text-sm" style={{ color: 'var(--color-ash)', fontWeight: 600 }}>🔥 熱管理カーブ（経過時間 × 火力 1〜100）</label>
-        <HeatCurveInput initial={initial?.heatCurve ?? undefined} />
+        <label className="mb-2 block text-sm" style={{ color: 'var(--color-ash)', fontWeight: 600 }}>🔥 熱管理カーブ（経過時間 × 火力 1〜100）＋ 炭イベント</label>
+        <HeatCurveEditor initialCurve={initial?.heatCurve ?? undefined} initialEvents={initial?.heatEvents ?? undefined} />
       </div>
 
       <div className="field">
