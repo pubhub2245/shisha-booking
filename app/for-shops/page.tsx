@@ -25,7 +25,7 @@ export default function ForShops() {
     <div className="wrap max-w-3xl py-14">
       <p className="eyebrow">For shops</p>
       <h1 className="mt-3 text-4xl leading-tight" style={{ fontWeight: 800 }}>
-        あなたのお店の一杯を、<span className="ember-text">指名される味に。</span>
+        あなたのお店の一台を、<span className="ember-text">指名される味に。</span>
       </h1>
       <p className="mt-4 text-base" style={{ color: 'var(--color-ash)' }}>
         MixHub は、シーシャのミックスと作り方が集まる図鑑です。店舗として登録すると、

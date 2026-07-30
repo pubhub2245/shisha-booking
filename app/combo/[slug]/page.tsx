@@ -18,7 +18,7 @@ export async function generateMetadata({
   const line = combo.flavorNames.join(' × ')
   return {
     title: `${line} のミックス（${combo.methods.length}通りの作り方）— MixHub`,
-    description: `${line} の作り方を比較。人気の作り方から自分に合った一杯を見つけよう。`,
+    description: `${line} の作り方を比較。人気の作り方から自分に合った作り方を見つけよう。`,
   }
 }
 

@@ -173,7 +173,7 @@ on conflict (id) do nothing;
 insert into public.mixes (id, author_id, title, description, taste_tags, strength, heat_management, placement_note, like_count) values
   ('22222222-0000-0000-0000-000000000001', null,
    '王道スッキリ｜ダブルアップル × ミント',
-   '迷ったらこれ。定番の甘さにミントの清涼感を重ねた、誰にでも刺さる王道ミックス。初めての一杯にもおすすめ。',
+   '迷ったらこれ。定番の甘さにミントの清涼感を重ねた、誰にでも刺さる王道ミックス。初めての一台にもおすすめ。',
    array['甘い','スッキリ','定番'], 'medium',
    '序盤は炭3つで軽め、中盤に1つ足して立ち上げる。飛ばしすぎ注意。',
    'ダブルアップルを底に厚め、ミントは表面に薄く散らす。', 42),

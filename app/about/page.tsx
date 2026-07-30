@@ -6,7 +6,7 @@ export const metadata = {
 }
 
 const features = [
-  { icon: '📖', title: 'ミックス図鑑', body: 'フレーバーの組み合わせを検索・閲覧。気分から「吸いたい一杯」が見つかる。' },
+  { icon: '📖', title: 'ミックス図鑑', body: 'フレーバーの組み合わせを検索・閲覧。気分から「吸いたいミックス」が見つかる。' },
   { icon: '❤️', title: 'いいねで人気が可視化', body: '誰でも投稿でき、いいねが集まると人気ミックスに。みんなの「美味しい」が基準になる。' },
   { icon: '🔥', title: '作り方ノート', body: '熱帯（炭）の管理やフレーバーの置き方まで。作り手のノウハウを共有できる。' },
   { icon: '🛒', title: 'そのまま買える', body: '使用フレーバーに購入リンク。気になったらすぐ手に入れて、自分でも作れる。' },
@@ -39,7 +39,7 @@ export default function AboutPage() {
       </div>
 
       <div className="card mt-10 flex flex-col items-center gap-4 p-8 text-center">
-        <h2 className="text-xl" style={{ fontWeight: 700 }}>あなたの一杯も、図鑑に。</h2>
+        <h2 className="text-xl" style={{ fontWeight: 700 }}>あなたのミックスも、図鑑に。</h2>
         <div className="flex flex-wrap justify-center gap-3">
           <Link href="/signup" className="btn btn-ember">無料で始める</Link>
           <Link href="/" className="btn btn-ghost">図鑑を見る</Link>

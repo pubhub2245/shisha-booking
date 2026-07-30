@@ -35,7 +35,7 @@ export default async function Home({
       <section className="fade-up mx-auto max-w-3xl text-center">
         <p className="eyebrow">Shisha Mix Encyclopedia</p>
         <h1 className="mt-3 text-4xl leading-tight sm:text-5xl" style={{ fontWeight: 800, letterSpacing: '-0.01em' }}>
-          今日の一杯、<span className="ember-text">もう迷わない。</span>
+          今日のミックス、<span className="ember-text">もう迷わない。</span>
         </h1>
         <p className="mx-auto mt-4 max-w-xl text-base" style={{ color: 'var(--color-ash)' }}>
           日本中の「美味しい」ミックスと、その作り方が集まる図鑑。

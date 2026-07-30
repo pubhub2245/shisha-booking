@@ -47,11 +47,11 @@ export default async function PostPage({
       </h1>
       {comboLine ? (
         <p className="mt-2 text-sm" style={{ color: 'var(--color-ash)' }}>
-          <b>{comboLine}</b> の、あなたの作り方を追加します。割合や熱の入れ方・置き方で“あなたの一杯”を。
+          <b>{comboLine}</b> の、あなたの作り方を追加します。割合や熱の入れ方・置き方で“あなたの一台”を。
         </p>
       ) : (
         <p className="mt-2 text-sm" style={{ color: 'var(--color-ash)' }}>
-          あなたの一杯を図鑑に。いいねが集まれば人気ミックスとしてみんなの参考になります。
+          あなたのミックスを図鑑に。いいねが集まれば人気ミックスとしてみんなの参考になります。
         </p>
       )}
       <MixForm mode="create" initial={initial} />
