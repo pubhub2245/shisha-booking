@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { getMixes, getLikedMixIds, getTasteTags } from '@/lib/queries'
+import { getMixes, getLikedMixIds, getTasteTags, getFlavors } from '@/lib/queries'
 import { getCurrentUser } from '@/lib/auth'
 import { MixCard } from '@/components/mix-card'
 
@@ -15,13 +15,15 @@ export default async function Home({
   const tag = sp.tag
   const q = sp.q
 
-  const [mixes, likedIds, tags, user] = await Promise.all([
+  const [mixes, likedIds, tags, user, flavors] = await Promise.all([
     getMixes({ sort, tag, q }),
     getLikedMixIds(),
     getTasteTags(),
     getCurrentUser(),
+    getFlavors(),
   ])
   const isAuthed = !!user
+  const flavorShortcuts = flavors.slice(0, 12)
 
   const buildHref = (patch: Record<string, string | undefined>) => {
     const params = new URLSearchParams()
@@ -109,6 +111,49 @@ export default async function Home({
           <Link href="/post" className="btn btn-ember mt-5">＋ ミックスを投稿</Link>
         </div>
       )}
+
+      {/* ---------- FLAVOR SHORTCUTS ---------- */}
+      {flavorShortcuts.length > 0 && (
+        <section className="mt-16">
+          <div className="mb-3 flex items-baseline justify-between">
+            <h2 className="text-lg" style={{ fontWeight: 700 }}>フレーバーから探す</h2>
+            <Link href="/flavors" className="text-sm" style={{ color: 'var(--color-ember-hot)', fontWeight: 600 }}>
+              すべて見る →
+            </Link>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {flavorShortcuts.map((f) => (
+              <Link key={f.id} href={`/flavor/${f.id}`} className="chip">
+                {f.name}
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* ---------- TEASERS ---------- */}
+      <section className="mt-16 grid gap-4 sm:grid-cols-2">
+        <Link href="/for-shops" className="card card-hover flex flex-col justify-between gap-3 p-6">
+          <div>
+            <div className="text-xl" aria-hidden>🏠</div>
+            <h3 className="mt-2 text-base" style={{ fontWeight: 700 }}>店舗の方へ</h3>
+            <p className="mt-1 text-sm" style={{ color: 'var(--color-ash)' }}>
+              お店のミックスで指名集客。無料で店舗登録できます。
+            </p>
+          </div>
+          <span className="text-sm" style={{ color: 'var(--color-ember-hot)', fontWeight: 600 }}>詳しく見る →</span>
+        </Link>
+        <Link href="/about" className="card card-hover flex flex-col justify-between gap-3 p-6">
+          <div>
+            <div className="text-xl" aria-hidden>📖</div>
+            <h3 className="mt-2 text-base" style={{ fontWeight: 700 }}>MixHubとは</h3>
+            <p className="mt-1 text-sm" style={{ color: 'var(--color-ash)' }}>
+              日本のシーシャの「美味しい」を、みんなで育てる図鑑。
+            </p>
+          </div>
+          <span className="text-sm" style={{ color: 'var(--color-ember-hot)', fontWeight: 600 }}>詳しく見る →</span>
+        </Link>
+      </section>
     </div>
   )
 }
