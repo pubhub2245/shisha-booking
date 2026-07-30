@@ -16,7 +16,8 @@ import type {
 
 export type FeedOptions = {
   sort?: 'new' | 'popular'
-  tag?: string
+  tags?: string[]
+  strength?: 'light' | 'medium' | 'strong'
   q?: string
 }
 
@@ -62,7 +63,9 @@ export async function getMixes(opts: FeedOptions = {}): Promise<MixWithRelations
     const supabase = await createClient()
     let query = supabase.from('mixes').select('*')
 
-    if (opts.tag) query = query.contains('taste_tags', [opts.tag])
+    // 複数タグは AND（すべて含む）
+    if (opts.tags && opts.tags.length) query = query.contains('taste_tags', opts.tags)
+    if (opts.strength) query = query.eq('strength', opts.strength)
     if (opts.q && opts.q.trim()) {
       const term = `%${opts.q.trim()}%`
       query = query.or(`title.ilike.${term},description.ilike.${term}`)
