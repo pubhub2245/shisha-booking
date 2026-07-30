@@ -1,19 +1,43 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
-import { getMixById, getLikedMixIds } from '@/lib/queries'
+import {
+  getMixById,
+  getLikedMixIds,
+  getBookmarkedMixIds,
+  getMixComments,
+  getRelatedMixes,
+} from '@/lib/queries'
 import { getCurrentUser } from '@/lib/auth'
 import { LikeButton } from '@/components/like-button'
+import { BookmarkButton } from '@/components/bookmark-button'
 import { StrengthMeter } from '@/components/strength-meter'
+import { CommentForm } from '@/components/comment-form'
+import { ViewTracker } from '@/components/view-tracker'
+import { MixCard } from '@/components/mix-card'
+import { deleteMix } from '@/actions/mixes'
+import { deleteComment } from '@/actions/social'
 import { withAffiliateTag } from '@/lib/affiliate'
-import type { MixWithRelations } from '@/lib/types/database'
+import type { MixWithRelations, MixAuthor } from '@/lib/types/database'
 
 export const dynamic = 'force-dynamic'
 
-function authorLabel(mix: MixWithRelations): string {
-  if (!mix.author) return 'MixHub 編集部'
-  if (mix.author.is_shop && mix.author.shop_name) return mix.author.shop_name
-  return mix.author.display_name || (mix.author.username ? `@${mix.author.username}` : '名無し')
+function authorName(author: MixAuthor | null): string {
+  if (!author) return 'MixHub 編集部'
+  if (author.is_shop && author.shop_name) return author.shop_name
+  return author.display_name || (author.username ? `@${author.username}` : '名無し')
+}
+
+function AuthorLink({ author }: { author: MixAuthor | null }) {
+  const name = authorName(author)
+  if (author?.username) {
+    return (
+      <Link href={`/u/${author.username}`} className="hover:underline" style={{ color: 'var(--color-ember-hot)', fontWeight: 600 }}>
+        {name}
+      </Link>
+    )
+  }
+  return <span style={{ color: 'var(--color-ash-dim)' }}>{name}</span>
 }
 
 export async function generateMetadata({
@@ -24,24 +48,48 @@ export async function generateMetadata({
   const { id } = await params
   const mix = await getMixById(id)
   if (!mix) return { title: 'ミックスが見つかりません — MixHub' }
+  const flavorLine = (mix.mix_flavors ?? []).map((f) => f.name).join(' × ')
   return {
     title: `${mix.title} — MixHub`,
-    description: mix.description ?? 'シーシャのミックスレシピ',
+    description: mix.description ?? flavorLine ?? 'シーシャのミックスレシピ',
+    openGraph: { title: mix.title, description: mix.description ?? flavorLine },
   }
 }
 
 export default async function MixDetail({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
-  const [mix, likedIds, user] = await Promise.all([getMixById(id), getLikedMixIds(), getCurrentUser()])
+  const [mix, likedIds, bookmarkedIds, user, comments] = await Promise.all([
+    getMixById(id),
+    getLikedMixIds(),
+    getBookmarkedMixIds(),
+    getCurrentUser(),
+    getMixComments(id),
+  ])
   if (!mix) notFound()
+  const related = await getRelatedMixes(mix as MixWithRelations)
 
   const flavors = mix.mix_flavors ?? []
+  const isOwner = !!user && user.id === mix.author_id
 
   return (
     <div className="wrap max-w-3xl py-10">
-      <Link href="/" className="text-sm" style={{ color: 'var(--color-ash-dim)' }}>
-        ← 図鑑にもどる
-      </Link>
+      <ViewTracker mixId={mix.id} />
+      <div className="flex items-center justify-between">
+        <Link href="/" className="text-sm" style={{ color: 'var(--color-ash-dim)' }}>
+          ← 図鑑にもどる
+        </Link>
+        {isOwner && (
+          <div className="flex items-center gap-2">
+            <Link href={`/mix/${mix.id}/edit`} className="btn btn-ghost text-sm">編集</Link>
+            <form action={deleteMix}>
+              <input type="hidden" name="mix_id" value={mix.id} />
+              <button type="submit" className="text-sm" style={{ color: 'var(--color-ember-deep)' }}>
+                削除
+              </button>
+            </form>
+          </div>
+        )}
+      </div>
 
       {/* ---------- HEADER ---------- */}
       <header className="mt-5 fade-up">
@@ -57,7 +105,7 @@ export default async function MixDetail({ params }: { params: Promise<{ id: stri
           {mix.title}
         </h1>
 
-        <div className="mt-4 flex flex-wrap items-center gap-4">
+        <div className="mt-4 flex flex-wrap items-center gap-3">
           <LikeButton
             mixId={mix.id}
             initialCount={mix.like_count}
@@ -65,10 +113,11 @@ export default async function MixDetail({ params }: { params: Promise<{ id: stri
             isAuthed={!!user}
             size="lg"
           />
+          <BookmarkButton mixId={mix.id} initialSaved={bookmarkedIds.has(mix.id)} isAuthed={!!user} />
           <StrengthMeter strength={mix.strength} />
-          <span className="text-sm" style={{ color: 'var(--color-ash-dim)' }}>
-            by {authorLabel(mix)}
-          </span>
+        </div>
+        <div className="mt-3 text-sm" style={{ color: 'var(--color-ash)' }}>
+          by <AuthorLink author={mix.author} /> ・ 👁 {mix.view_count}
         </div>
 
         {mix.taste_tags.length > 0 && (
@@ -153,6 +202,54 @@ export default async function MixDetail({ params }: { params: Promise<{ id: stri
                 </p>
               </div>
             )}
+          </div>
+        </section>
+      )}
+
+      {/* ---------- COMMENTS ---------- */}
+      <section className="mt-10">
+        <h2 className="mb-3 text-sm eyebrow">Comments — コメント（{comments.length}）</h2>
+        <div className="flex flex-col gap-3">
+          {comments.map((c) => (
+            <div key={c.id} className="card p-4">
+              <div className="flex items-center justify-between">
+                <div className="text-sm" style={{ fontWeight: 600 }}>
+                  <AuthorLink author={c.author} />
+                </div>
+                {user?.id === c.user_id && (
+                  <form action={deleteComment}>
+                    <input type="hidden" name="id" value={c.id} />
+                    <input type="hidden" name="mix_id" value={mix.id} />
+                    <button type="submit" className="text-xs" style={{ color: 'var(--color-ash-dim)' }}>
+                      削除
+                    </button>
+                  </form>
+                )}
+              </div>
+              <p className="mt-1.5 whitespace-pre-wrap text-sm" style={{ color: 'var(--color-cream)' }}>
+                {c.body}
+              </p>
+            </div>
+          ))}
+          {comments.length === 0 && (
+            <p className="text-sm" style={{ color: 'var(--color-ash-dim)' }}>
+              まだコメントはありません。最初のコメントを書きましょう。
+            </p>
+          )}
+        </div>
+        <div className="mt-4">
+          <CommentForm mixId={mix.id} isAuthed={!!user} />
+        </div>
+      </section>
+
+      {/* ---------- RELATED ---------- */}
+      {related.length > 0 && (
+        <section className="mt-12">
+          <h2 className="mb-3 text-sm eyebrow">Related — 似た系統のミックス</h2>
+          <div className="grid gap-5 sm:grid-cols-2">
+            {related.map((m) => (
+              <MixCard key={m.id} mix={m} liked={likedIds.has(m.id)} isAuthed={!!user} />
+            ))}
           </div>
         </section>
       )}

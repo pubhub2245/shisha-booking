@@ -1,5 +1,14 @@
 import { createClient } from '@/lib/supabase/server'
-import type { MixWithRelations, Mix, MixFlavor, MixAuthor } from '@/lib/types/database'
+import type {
+  MixWithRelations,
+  Mix,
+  MixFlavor,
+  MixAuthor,
+  CommentWithAuthor,
+  Comment,
+  Profile,
+  Flavor,
+} from '@/lib/types/database'
 
 export type FeedOptions = {
   sort?: 'new' | 'popular'
@@ -112,6 +121,196 @@ export async function getLikedMixIds(): Promise<Set<string>> {
     return new Set((data ?? []).map((r) => r.mix_id as string))
   } catch {
     return new Set()
+  }
+}
+
+// ---------- コメント ----------
+export async function getMixComments(mixId: string): Promise<CommentWithAuthor[]> {
+  try {
+    const supabase = await createClient()
+    const { data } = await supabase
+      .from('comments')
+      .select('*')
+      .eq('mix_id', mixId)
+      .order('created_at', { ascending: true })
+    const comments = (data ?? []) as Comment[]
+    if (comments.length === 0) return []
+    const authorIds = [...new Set(comments.map((c) => c.user_id))]
+    const { data: authors } = await supabase
+      .from('profiles')
+      .select('id, username, display_name, is_shop, shop_name')
+      .in('id', authorIds)
+    const byId = new Map<string, MixAuthor>()
+    for (const a of (authors ?? []) as MixAuthor[]) byId.set(a.id, a)
+    return comments.map((c) => ({ ...c, author: byId.get(c.user_id) ?? null }))
+  } catch {
+    return []
+  }
+}
+
+// ---------- ブックマーク ----------
+export async function getBookmarkedMixIds(): Promise<Set<string>> {
+  try {
+    const supabase = await createClient()
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+    if (!user) return new Set()
+    const { data } = await supabase.from('bookmarks').select('mix_id').eq('user_id', user.id)
+    return new Set((data ?? []).map((r) => r.mix_id as string))
+  } catch {
+    return new Set()
+  }
+}
+
+export async function getBookmarkedMixes(): Promise<MixWithRelations[]> {
+  try {
+    const supabase = await createClient()
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+    if (!user) return []
+    const { data: bm } = await supabase
+      .from('bookmarks')
+      .select('mix_id')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false })
+    const ids = (bm ?? []).map((r) => r.mix_id as string)
+    if (ids.length === 0) return []
+    const { data } = await supabase.from('mixes').select('*').in('id', ids)
+    const mixes = (data ?? []) as Mix[]
+    // ブックマーク順を保持
+    mixes.sort((a, b) => ids.indexOf(a.id) - ids.indexOf(b.id))
+    return attachRelations(supabase, mixes)
+  } catch {
+    return []
+  }
+}
+
+/** 現在のユーザーがいいねしたミックス */
+export async function getLikedMixes(): Promise<MixWithRelations[]> {
+  try {
+    const supabase = await createClient()
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+    if (!user) return []
+    const { data: likes } = await supabase
+      .from('likes')
+      .select('mix_id')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false })
+    const ids = (likes ?? []).map((r) => r.mix_id as string)
+    if (ids.length === 0) return []
+    const { data } = await supabase.from('mixes').select('*').in('id', ids)
+    const mixes = (data ?? []) as Mix[]
+    mixes.sort((a, b) => ids.indexOf(a.id) - ids.indexOf(b.id))
+    return attachRelations(supabase, mixes)
+  } catch {
+    return []
+  }
+}
+
+// ---------- プロフィール / フォロー ----------
+export async function getProfileByUsername(username: string): Promise<Profile | null> {
+  try {
+    const supabase = await createClient()
+    const { data } = await supabase.from('profiles').select('*').eq('username', username).maybeSingle()
+    return (data as Profile) ?? null
+  } catch {
+    return null
+  }
+}
+
+export async function getFollowCounts(userId: string): Promise<{ followers: number; following: number }> {
+  try {
+    const supabase = await createClient()
+    const [{ count: followers }, { count: following }] = await Promise.all([
+      supabase.from('follows').select('*', { count: 'exact', head: true }).eq('following_id', userId),
+      supabase.from('follows').select('*', { count: 'exact', head: true }).eq('follower_id', userId),
+    ])
+    return { followers: followers ?? 0, following: following ?? 0 }
+  } catch {
+    return { followers: 0, following: 0 }
+  }
+}
+
+export async function isFollowing(targetId: string): Promise<boolean> {
+  try {
+    const supabase = await createClient()
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+    if (!user) return false
+    const { data } = await supabase
+      .from('follows')
+      .select('following_id')
+      .eq('follower_id', user.id)
+      .eq('following_id', targetId)
+      .maybeSingle()
+    return !!data
+  } catch {
+    return false
+  }
+}
+
+// ---------- フレーバー図鑑 ----------
+export async function getFlavors(): Promise<Flavor[]> {
+  try {
+    const supabase = await createClient()
+    const { data } = await supabase.from('flavors').select('*').order('brand').order('name')
+    return (data ?? []) as Flavor[]
+  } catch {
+    return []
+  }
+}
+
+export async function getFlavorById(id: string): Promise<Flavor | null> {
+  try {
+    const supabase = await createClient()
+    const { data } = await supabase.from('flavors').select('*').eq('id', id).maybeSingle()
+    return (data as Flavor) ?? null
+  } catch {
+    return null
+  }
+}
+
+/** そのフレーバーを使っているミックス（flavor_id 一致、または brand+name 一致） */
+export async function getMixesUsingFlavor(flavor: Flavor): Promise<MixWithRelations[]> {
+  try {
+    const supabase = await createClient()
+    const { data: mf } = await supabase
+      .from('mix_flavors')
+      .select('mix_id, flavor_id, brand, name')
+      .or(`flavor_id.eq.${flavor.id},and(brand.eq.${flavor.brand},name.eq.${flavor.name})`)
+    const ids = [...new Set((mf ?? []).map((r) => r.mix_id as string))]
+    if (ids.length === 0) return []
+    const { data } = await supabase
+      .from('mixes')
+      .select('*')
+      .in('id', ids)
+      .order('like_count', { ascending: false })
+    return attachRelations(supabase, (data ?? []) as Mix[])
+  } catch {
+    return []
+  }
+}
+
+/** 味わいタグが重なる関連ミックス（自分を除く） */
+export async function getRelatedMixes(mix: Mix, limit = 4): Promise<MixWithRelations[]> {
+  try {
+    if (!mix.taste_tags || mix.taste_tags.length === 0) return []
+    const supabase = await createClient()
+    const { data } = await supabase
+      .from('mixes')
+      .select('*')
+      .overlaps('taste_tags', mix.taste_tags)
+      .neq('id', mix.id)
+      .order('like_count', { ascending: false })
+      .limit(limit)
+    return attachRelations(supabase, (data ?? []) as Mix[])
+  } catch {
+    return []
   }
 }
 

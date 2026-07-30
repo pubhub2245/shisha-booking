@@ -14,9 +14,11 @@ export function SiteFooter() {
         </div>
         <nav className="flex flex-wrap gap-x-6 gap-y-2 text-sm" style={{ color: 'var(--color-ash)' }}>
           <Link href="/" className="hover:text-[var(--color-cream)]">図鑑</Link>
-          <Link href="/?sort=popular" className="hover:text-[var(--color-cream)]">人気</Link>
+          <Link href="/flavors" className="hover:text-[var(--color-cream)]">フレーバー</Link>
+          <Link href="/ranking" className="hover:text-[var(--color-cream)]">ランキング</Link>
           <Link href="/post" className="hover:text-[var(--color-cream)]">投稿する</Link>
           <Link href="/for-shops" className="hover:text-[var(--color-cream)]">店舗の方へ</Link>
+          <Link href="/about" className="hover:text-[var(--color-cream)]">MixHubとは</Link>
         </nav>
       </div>
       <div className="wrap pb-8 text-xs" style={{ color: 'var(--color-ash-dim)' }}>

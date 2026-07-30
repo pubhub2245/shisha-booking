@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation'
 import { getCurrentUser } from '@/lib/auth'
-import { PostForm } from './post-form'
+import { MixForm } from '@/components/mix-form'
 
 export const dynamic = 'force-dynamic'
 
@@ -19,7 +19,7 @@ export default async function PostPage() {
       <p className="mt-2 text-sm" style={{ color: 'var(--color-ash)' }}>
         あなたの一杯を図鑑に。いいねが集まれば人気ミックスとしてみんなの参考になります。
       </p>
-      <PostForm />
+      <MixForm mode="create" />
     </div>
   )
 }

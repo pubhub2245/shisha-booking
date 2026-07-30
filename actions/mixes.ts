@@ -93,6 +93,81 @@ export async function createMix(_prev: MixFormState, formData: FormData): Promis
   redirect(`/mix/${mix.id}`)
 }
 
+function parseMixFields(formData: FormData) {
+  const title = String(formData.get('title') ?? '').trim()
+  const description = String(formData.get('description') ?? '').trim() || null
+  const strengthRaw = String(formData.get('strength') ?? '').trim()
+  const strength: Strength | null =
+    strengthRaw === 'light' || strengthRaw === 'medium' || strengthRaw === 'strong' ? strengthRaw : null
+  const heat = String(formData.get('heat_management') ?? '').trim() || null
+  const placement = String(formData.get('placement_note') ?? '').trim() || null
+  const tasteTags = String(formData.get('taste_tags') ?? '')
+    .split(/[,、\s]+/)
+    .map((t) => t.trim())
+    .filter(Boolean)
+    .slice(0, 8)
+  return { title, description, strength, heat, placement, tasteTags }
+}
+
+export async function updateMix(_prev: MixFormState, formData: FormData): Promise<MixFormState> {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) redirect('/login')
+
+  const mixId = String(formData.get('mix_id') ?? '')
+  if (!mixId) return { error: '対象が不明です。' }
+
+  // 所有者チェック
+  const { data: owned } = await supabase.from('mixes').select('author_id').eq('id', mixId).maybeSingle()
+  if (!owned || owned.author_id !== user.id) return { error: 'このミックスを編集する権限がありません。' }
+
+  const { title, description, strength, heat, placement, tasteTags } = parseMixFields(formData)
+  const flavors = parseFlavors(formData)
+  if (!title) return { error: 'ミックスのタイトルを入力してください。' }
+  if (flavors.length < 1) return { error: 'フレーバーを1つ以上追加してください。' }
+
+  const { error } = await supabase
+    .from('mixes')
+    .update({ title, description, taste_tags: tasteTags, strength, heat_management: heat, placement_note: placement })
+    .eq('id', mixId)
+  if (error) {
+    console.error('[updateMix]', error.message)
+    return { error: '更新に失敗しました。時間をおいて再度お試しください。' }
+  }
+
+  // フレーバーは総入れ替え
+  await supabase.from('mix_flavors').delete().eq('mix_id', mixId)
+  const rows = flavors.map((f, i) => ({
+    mix_id: mixId,
+    position: i,
+    brand: f.brand || null,
+    name: f.name,
+    ratio: f.ratio,
+    affiliate_url: f.affiliate_url,
+  }))
+  await supabase.from('mix_flavors').insert(rows)
+
+  revalidatePath('/')
+  revalidatePath(`/mix/${mixId}`)
+  redirect(`/mix/${mixId}`)
+}
+
+export async function deleteMix(formData: FormData): Promise<void> {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) redirect('/login')
+  const mixId = String(formData.get('mix_id') ?? '')
+  if (!mixId) redirect('/mypage')
+  await supabase.from('mixes').delete().eq('id', mixId).eq('author_id', user.id)
+  revalidatePath('/')
+  revalidatePath('/mypage')
+  redirect('/mypage')
+}
+
 /** いいねのトグル。戻り値で最新状態を返す（楽観的 UI 用）。 */
 export async function toggleLike(mixId: string): Promise<{ liked: boolean; count: number } | { error: string }> {
   const supabase = await createClient()

@@ -29,9 +29,10 @@ export async function SiteHeader() {
           </span>
         </Link>
 
-        <nav className="hidden items-center gap-7 text-sm sm:flex" style={{ color: 'var(--color-ash)' }}>
+        <nav className="hidden items-center gap-6 text-sm md:flex" style={{ color: 'var(--color-ash)' }}>
           <Link href="/" className="transition-colors hover:text-[var(--color-cream)]">図鑑</Link>
-          <Link href="/?sort=popular" className="transition-colors hover:text-[var(--color-cream)]">人気ランキング</Link>
+          <Link href="/flavors" className="transition-colors hover:text-[var(--color-cream)]">フレーバー</Link>
+          <Link href="/ranking" className="transition-colors hover:text-[var(--color-cream)]">ランキング</Link>
           <Link href="/post" className="transition-colors hover:text-[var(--color-cream)]">投稿する</Link>
         </nav>
 

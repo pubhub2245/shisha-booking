@@ -19,10 +19,19 @@ const notoSansJp = Noto_Sans_JP({
   variable: "--font-noto-sans-jp",
 });
 
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://shisha-booking.vercel.app";
+
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
   title: "MixHub — シーシャのミックス図鑑",
   description:
     "シーシャ屋で迷わない。日本中の「美味しい」ミックスと作り方が集まる、シーシャのミックス図鑑 & コミュニティ。人気のミックスを探して、あなたのレシピも投稿しよう。",
+  openGraph: {
+    title: "MixHub — シーシャのミックス図鑑",
+    description: "日本中の「美味しい」シーシャ ミックスと作り方が集まる図鑑コミュニティ。",
+    type: "website",
+    locale: "ja_JP",
+  },
 };
 
 export default function RootLayout({

@@ -45,7 +45,7 @@ export default async function Home({
         </p>
         <div className="mt-7 flex flex-wrap items-center justify-center gap-3">
           <Link href="/post" className="btn btn-ember">＋ ミックスを投稿</Link>
-          <Link href="/?sort=popular" className="btn btn-ghost">人気のミックスを見る</Link>
+          <Link href="/ranking" className="btn btn-ghost">人気ランキングを見る</Link>
         </div>
       </section>
 

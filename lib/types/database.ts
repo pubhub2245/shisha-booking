@@ -36,6 +36,29 @@ export type Mix = {
   heat_management: string | null
   placement_note: string | null
   like_count: number
+  view_count: number
+  created_at: string
+}
+
+export type Comment = {
+  id: string
+  mix_id: string
+  user_id: string
+  body: string
+  created_at: string
+}
+
+export type CommentWithAuthor = Comment & { author: MixAuthor | null }
+
+export type Bookmark = {
+  mix_id: string
+  user_id: string
+  created_at: string
+}
+
+export type Follow = {
+  follower_id: string
+  following_id: string
   created_at: string
 }
 
@@ -86,9 +109,14 @@ export type Database = {
       mixes: Tbl<Mix>
       mix_flavors: Tbl<MixFlavor>
       likes: Tbl<Like>
+      comments: Tbl<Comment>
+      bookmarks: Tbl<Bookmark>
+      follows: Tbl<Follow>
     }
     Views: Record<string, never>
-    Functions: Record<string, never>
+    Functions: {
+      increment_view: { Args: { p_mix_id: string }; Returns: undefined }
+    }
     Enums: Record<string, never>
   }
 }
