@@ -11,6 +11,7 @@ import {
 import { getCurrentUser } from '@/lib/auth'
 import { LikeButton } from '@/components/like-button'
 import { BookmarkButton } from '@/components/bookmark-button'
+import { ShareButton } from '@/components/share-button'
 import { StrengthMeter } from '@/components/strength-meter'
 import { CommentForm } from '@/components/comment-form'
 import { ViewTracker } from '@/components/view-tracker'
@@ -114,6 +115,7 @@ export default async function MixDetail({ params }: { params: Promise<{ id: stri
             size="lg"
           />
           <BookmarkButton mixId={mix.id} initialSaved={bookmarkedIds.has(mix.id)} isAuthed={!!user} />
+          <ShareButton title={mix.title} />
           <StrengthMeter strength={mix.strength} />
         </div>
         <div className="mt-3 text-sm" style={{ color: 'var(--color-ash)' }}>
