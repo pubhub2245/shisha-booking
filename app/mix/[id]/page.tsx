@@ -71,6 +71,7 @@ export default async function MixDetail({ params }: { params: Promise<{ id: stri
 
   const flavors = mix.mix_flavors ?? []
   const isOwner = !!user && user.id === mix.author_id
+  const isSample = mix.author_id === null
 
   return (
     <div className="wrap max-w-3xl py-10">
@@ -91,6 +92,16 @@ export default async function MixDetail({ params }: { params: Promise<{ id: stri
           </div>
         )}
       </div>
+
+      {isSample && (
+        <div
+          className="mt-4 rounded-xl border px-4 py-3 text-sm"
+          style={{ borderColor: 'var(--line-strong)', background: 'var(--accent-tint)', color: 'var(--color-ash)' }}
+        >
+          🧪 これは <b>MixHub 編集部のサンプル</b>です。作り方は一般的な目安で、専門家の監修はされていません。
+          実際の「美味しい作り方」は、これから皆さんの投稿で育てていきます。
+        </div>
+      )}
 
       {/* ---------- HEADER ---------- */}
       <header className="mt-5 fade-up">

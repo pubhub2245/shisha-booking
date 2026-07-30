@@ -55,6 +55,14 @@ export function MixCard({
         )}
 
         <div className="mt-3 flex flex-wrap gap-1.5">
+          {mix.author_id === null && (
+            <span
+              className="chip"
+              style={{ borderColor: 'var(--line-strong)', color: 'var(--color-ash-dim)', background: 'transparent' }}
+            >
+              サンプル
+            </span>
+          )}
           {mix.taste_tags.slice(0, 3).map((t) => (
             <span key={t} className="chip">#{t}</span>
           ))}
