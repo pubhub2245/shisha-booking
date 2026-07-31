@@ -17,6 +17,7 @@ import { StrengthMeter } from '@/components/strength-meter'
 import { HeatCurveChart } from '@/components/heat-curve-chart'
 import { hmsLabel, charcoalLabel, windCoverLabel, bowlLabel, packLabel } from '@/lib/heat'
 import { Avatar } from '@/components/avatar'
+import { CompletenessMeter } from '@/components/completeness'
 import { relativeTime } from '@/lib/time'
 import { CommentForm } from '@/components/comment-form'
 import { ViewTracker } from '@/components/view-tracker'
@@ -168,6 +169,9 @@ export default async function MixDetail({ params }: { params: Promise<{ id: stri
           {mix.author && <Avatar name={mix.author.display_name || mix.author.username} seed={mix.author.id} size={24} />}
           <span>by <AuthorLink author={mix.author} /></span>
           <span style={{ color: 'var(--color-ash-dim)' }}>・ {relativeTime(mix.created_at)} ・ 👁 {mix.view_count}</span>
+        </div>
+        <div className="mt-2">
+          <CompletenessMeter mix={mix} />
         </div>
 
         {mix.taste_tags.length > 0 && (

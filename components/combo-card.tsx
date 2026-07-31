@@ -35,6 +35,14 @@ export function ComboCard({ combo }: { combo: ComboSummary }) {
       )}
 
       <div className="mt-3 flex flex-wrap gap-1.5">
+        {combo.topScore >= 60 && (
+          <span
+            className="chip"
+            style={{ borderColor: 'var(--color-ember)', color: 'var(--color-ember-hot)', background: 'var(--accent-tint)' }}
+          >
+            📝 作り方くわしい
+          </span>
+        )}
         {combo.tags.map((t) => (
           <span key={t} className="chip">#{t}</span>
         ))}

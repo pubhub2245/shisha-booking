@@ -11,6 +11,7 @@ const STRENGTHS: { v: Strength; l: string }[] = [
   { v: 'strong', l: '濃いめ' },
 ]
 const STRENGTH_LABEL: Record<Strength, string> = { light: '軽め', medium: 'ふつう', strong: '濃いめ' }
+type Sort = 'new' | 'popular' | 'detailed'
 // 気分（キュレーション）
 const MOOD_TASTE = ['甘い', 'スッキリ', '濃厚', 'さっぱり', '爽快']
 const MOOD_TYPE = ['フルーツ', 'ミント', 'ベリー', 'デザート', 'トロピカル', 'お茶', '和']
@@ -26,7 +27,7 @@ export default async function Home({
   searchParams: Promise<{ sort?: string; tag?: string | string[]; strength?: string; q?: string }>
 }) {
   const sp = await searchParams
-  const sort = sp.sort === 'popular' ? 'popular' : 'new'
+  const sort: Sort = sp.sort === 'popular' ? 'popular' : sp.sort === 'detailed' ? 'detailed' : 'new'
   const activeTags = toArray(sp.tag)
   const strength = (['light', 'medium', 'strong'] as const).includes(sp.strength as Strength)
     ? (sp.strength as Strength)
@@ -42,10 +43,10 @@ export default async function Home({
   const flavorShortcuts = flavors.slice(0, 12)
 
   // URL 構築（tag は複数 append）
-  const href = (o: { tags?: string[]; strength?: Strength; sort?: string; q?: string }) => {
+  const href = (o: { tags?: string[]; strength?: Strength; sort?: Sort; q?: string }) => {
     const p = new URLSearchParams()
-    const s = o.sort ?? (sort === 'popular' ? 'popular' : undefined)
-    if (s) p.set('sort', s)
+    const s = o.sort ?? sort
+    if (s && s !== 'new') p.set('sort', s)
     if (o.q ?? q) p.set('q', (o.q ?? q) as string)
     const st = 'strength' in o ? o.strength : strength
     if (st) p.set('strength', st)
@@ -115,7 +116,7 @@ export default async function Home({
         <form action="/" method="get" className="mt-4 flex gap-2">
           {activeTags.map((t) => <input key={t} type="hidden" name="tag" value={t} />)}
           {strength && <input type="hidden" name="strength" value={strength} />}
-          {sort === 'popular' && <input type="hidden" name="sort" value="popular" />}
+          {sort !== 'new' && <input type="hidden" name="sort" value={sort} />}
           <input
             name="q"
             defaultValue={q ?? ''}
@@ -129,9 +130,10 @@ export default async function Home({
 
       {/* ---------- 結果バー ---------- */}
       <div className="mx-auto mt-6 flex max-w-2xl items-center justify-between gap-3 sm:max-w-none">
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <Link href={href({ sort: 'new' })} className={`chip ${sort === 'new' ? 'chip-active' : ''}`}>新着</Link>
           <Link href={href({ sort: 'popular' })} className={`chip ${sort === 'popular' ? 'chip-active' : ''}`}>人気順</Link>
+          <Link href={href({ sort: 'detailed' })} className={`chip ${sort === 'detailed' ? 'chip-active' : ''}`}>詳しい順</Link>
         </div>
         <div className="flex items-center gap-3">
           {hasFilters && (

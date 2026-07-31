@@ -70,7 +70,7 @@ export default async function ComboPage({ params }: { params: Promise<{ slug: st
       <section className="mt-8">
         <div className="mb-3 flex items-center gap-2">
           <h2 className="text-sm eyebrow">定番の作り方</h2>
-          <span className="text-xs" style={{ color: 'var(--color-ash-dim)' }}>いちばん「いいね」が多い作り方</span>
+          <span className="text-xs" style={{ color: 'var(--color-ash-dim)' }}>いちばん詳しく作り込まれた作り方</span>
         </div>
         <MixCard mix={top} liked={likedIds.has(top.id)} isAuthed={!!user} />
       </section>
@@ -91,7 +91,8 @@ export default async function ComboPage({ params }: { params: Promise<{ slug: st
       {/* ---------- バリエーション ---------- */}
       {rest.length > 0 && (
         <section className="mt-10">
-          <h2 className="mb-3 text-sm eyebrow">他の作り方（{rest.length}）</h2>
+          <h2 className="mb-1 text-sm eyebrow">他の作り方（{rest.length}）</h2>
+          <p className="mb-3 text-xs" style={{ color: 'var(--color-ash-dim)' }}>詳しく書かれた作り方から順に表示しています</p>
           <div className="grid gap-5 sm:grid-cols-2">
             {rest.map((m) => (
               <MixCard key={m.id} mix={m} liked={likedIds.has(m.id)} isAuthed={!!user} />

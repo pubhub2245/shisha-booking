@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { comboKey, comboSlug, comboKeyFromSlug } from '@/lib/combo'
+import { mixQuality, mixCompleteness } from '@/lib/quality'
 import type {
   MixWithRelations,
   Mix,
@@ -15,7 +16,7 @@ import type {
 } from '@/lib/types/database'
 
 export type FeedOptions = {
-  sort?: 'new' | 'popular'
+  sort?: 'new' | 'popular' | 'detailed'
   tags?: string[]
   strength?: 'light' | 'medium' | 'strong'
   q?: string
@@ -111,7 +112,8 @@ export async function getCombos(opts: FeedOptions = {}): Promise<ComboSummary[]>
 
   const combos: ComboSummary[] = []
   for (const [key, methods] of groups) {
-    methods.sort((a, b) => b.like_count - a.like_count || (a.created_at < b.created_at ? 1 : -1))
+    // 作り込み度を主・いいねを従に、詳しく書かれた作り方を定番（代表）にする
+    methods.sort((a, b) => mixQuality(b) - mixQuality(a) || (a.created_at < b.created_at ? 1 : -1))
     const top = methods[0]
     const tagSet = new Set<string>()
     for (const m of methods) for (const t of m.taste_tags) tagSet.add(t)
@@ -123,15 +125,18 @@ export async function getCombos(opts: FeedOptions = {}): Promise<ComboSummary[]>
       methodCount: methods.length,
       totalLikes: methods.reduce((s, m) => s + m.like_count, 0),
       totalViews: methods.reduce((s, m) => s + (m.view_count ?? 0), 0),
+      topScore: mixCompleteness(top),
       tags: [...tagSet].slice(0, 3),
       top,
       latest,
     })
   }
 
-  combos.sort((a, b) =>
-    opts.sort === 'popular' ? b.totalLikes - a.totalLikes : a.latest < b.latest ? 1 : -1
-  )
+  combos.sort((a, b) => {
+    if (opts.sort === 'popular') return b.totalLikes - a.totalLikes
+    if (opts.sort === 'detailed') return b.topScore - a.topScore || (a.latest < b.latest ? 1 : -1)
+    return a.latest < b.latest ? 1 : -1
+  })
   return combos
 }
 
@@ -142,14 +147,12 @@ export async function getComboBySlug(
   try {
     const key = comboKeyFromSlug(slug)
     const supabase = await createClient()
-    const { data } = await supabase
-      .from('mixes')
-      .select('*')
-      .eq('combo_key', key)
-      .order('like_count', { ascending: false })
+    const { data } = await supabase.from('mixes').select('*').eq('combo_key', key)
     const mixes = (data ?? []) as Mix[]
     if (mixes.length === 0) return null
     const methods = await attachRelations(supabase, mixes)
+    // 作り込み度（詳しさ）を主・いいねを従に並べる
+    methods.sort((a, b) => mixQuality(b) - mixQuality(a) || (a.created_at < b.created_at ? 1 : -1))
     return { key, flavorNames: (methods[0].mix_flavors ?? []).map((f) => f.name), methods }
   } catch {
     return null

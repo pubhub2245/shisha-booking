@@ -3,6 +3,7 @@ import type { MixWithRelations } from '@/lib/types/database'
 import { LikeButton } from '@/components/like-button'
 import { StrengthMeter } from '@/components/strength-meter'
 import { VerifiedBadge } from '@/components/verified-badge'
+import { CompletenessBadge } from '@/components/completeness'
 
 function authorLabel(mix: MixWithRelations): string {
   if (!mix.author) return 'MixHub 編集部'
@@ -64,7 +65,8 @@ export function MixCard({
               サンプル
             </span>
           )}
-          {mix.taste_tags.slice(0, 3).map((t) => (
+          <CompletenessBadge mix={mix} />
+          {mix.taste_tags.slice(0, 2).map((t) => (
             <span key={t} className="chip">#{t}</span>
           ))}
         </div>
