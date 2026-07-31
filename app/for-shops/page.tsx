@@ -1,20 +1,24 @@
 import Link from 'next/link'
+import { IconOrb, type OrbPreset } from '@/components/icon-orb'
 
 export const metadata = { title: '店舗の方へ — MixHub' }
 
-const benefits = [
+const benefits: { icon: string; preset: OrbPreset; title: string; body: string }[] = [
   {
     icon: '🎯',
+    preset: 'green',
     title: '指名で選ばれる',
     body: '「このお店のミックスが吸いたい」を作る。お店のレシピが図鑑に載り、ファンが増えます。',
   },
   {
     icon: '📈',
+    preset: 'amber',
     title: '集客につながる',
     body: '人気ミックスの発信元としてエリア・SNSリンクを掲載。来店の動機を生み出します。',
   },
   {
     icon: '📖',
+    preset: 'violet',
     title: 'ノウハウが資産に',
     body: '作り方ノートを蓄積。将来的にはレシピ・ノウハウの販売で新たな収益も。',
   },
@@ -35,8 +39,8 @@ export default function ForShops() {
       <div className="mt-10 grid gap-5 sm:grid-cols-3">
         {benefits.map((b) => (
           <div key={b.title} className="card p-6">
-            <div className="text-2xl">{b.icon}</div>
-            <h3 className="mt-3 text-base" style={{ fontWeight: 700 }}>{b.title}</h3>
+            <IconOrb preset={b.preset} size={52}>{b.icon}</IconOrb>
+            <h3 className="mt-4 text-base" style={{ fontWeight: 700 }}>{b.title}</h3>
             <p className="mt-2 text-sm" style={{ color: 'var(--color-ash)' }}>{b.body}</p>
           </div>
         ))}

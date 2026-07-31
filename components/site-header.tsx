@@ -20,7 +20,10 @@ export async function SiteHeader() {
           <span
             aria-hidden
             className="brand-mark flex h-8 w-8 items-center justify-center rounded-xl text-lg text-white"
-            style={{ background: 'var(--color-ember)' }}
+            style={{
+              background: 'linear-gradient(145deg, var(--color-coal), var(--color-ember))',
+              boxShadow: '0 6px 14px -6px rgb(31 138 118 / 0.5), inset 0 1px 0 rgb(255 255 255 / 0.3)',
+            }}
           >
             M
           </span>

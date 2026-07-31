@@ -1,16 +1,17 @@
 import Link from 'next/link'
+import { IconOrb, type OrbPreset } from '@/components/icon-orb'
 
 export const metadata = {
   title: 'MixHub について',
   description: 'MixHub は、日本のシーシャの「美味しい」ミックスと作り方が集まる図鑑コミュニティです。',
 }
 
-const features = [
-  { icon: '📖', title: 'ミックス図鑑', body: 'フレーバーの組み合わせを検索・閲覧。気分から「吸いたいミックス」が見つかる。' },
-  { icon: '❤️', title: 'いいねで人気が可視化', body: '誰でも投稿でき、いいねが集まると人気ミックスに。みんなの「美味しい」が基準になる。' },
-  { icon: '🔥', title: '作り方ノート', body: '熱帯（炭）の管理やフレーバーの置き方まで。作り手のノウハウを共有できる。' },
-  { icon: '🛒', title: 'そのまま買える', body: '使用フレーバーに購入リンク。気になったらすぐ手に入れて、自分でも作れる。' },
-  { icon: '🏠', title: '店舗も参加', body: 'お店として登録すれば、あなたのミックスがファンに届き、来店のきっかけに。' },
+const features: { icon: string; preset: OrbPreset; title: string; body: string }[] = [
+  { icon: '📖', preset: 'green', title: 'ミックス図鑑', body: 'フレーバーの組み合わせを検索・閲覧。気分から「吸いたいミックス」が見つかる。' },
+  { icon: '❤️', preset: 'amber', title: 'いいねで人気が可視化', body: '誰でも投稿でき、いいねが集まると人気ミックスに。みんなの「美味しい」が基準になる。' },
+  { icon: '🔥', preset: 'amber', title: '作り方ノート', body: '熱管理カーブや炭のセットアップ、フレーバーの置き方まで。作り手のノウハウを共有できる。' },
+  { icon: '🛒', preset: 'violet', title: 'そのまま買える', body: '使用フレーバーに購入リンク。気になったらすぐ手に入れて、自分でも作れる。' },
+  { icon: '🏠', preset: 'blue', title: '店舗も参加', body: 'お店として登録すれば、あなたのミックスがファンに届き、来店のきっかけに。' },
 ]
 
 export default function AboutPage() {
@@ -28,8 +29,8 @@ export default function AboutPage() {
 
       <div className="mt-10 flex flex-col gap-4">
         {features.map((f) => (
-          <div key={f.title} className="card flex items-start gap-4 p-5">
-            <span className="text-2xl">{f.icon}</span>
+          <div key={f.title} className="card flex items-center gap-4 p-5">
+            <IconOrb preset={f.preset} size={50}>{f.icon}</IconOrb>
             <div>
               <h2 className="text-base" style={{ fontWeight: 700 }}>{f.title}</h2>
               <p className="mt-1 text-sm" style={{ color: 'var(--color-ash)' }}>{f.body}</p>

@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { getCombos, getTasteTags, getFlavors } from '@/lib/queries'
 import { ComboCard } from '@/components/combo-card'
+import { IconOrb } from '@/components/icon-orb'
 
 export const dynamic = 'force-dynamic'
 
@@ -62,7 +63,7 @@ export default async function Home({
   return (
     <div className="wrap py-10 sm:py-14">
       {/* ---------- HERO ---------- */}
-      <section className="fade-up mx-auto max-w-3xl text-center">
+      <section className="glow-bg fade-up mx-auto max-w-3xl text-center">
         <p className="eyebrow">Shisha Mix Encyclopedia</p>
         <h1 className="mt-3 text-4xl leading-tight sm:text-5xl" style={{ fontWeight: 800, letterSpacing: '-0.01em' }}>
           今日のミックス、<span className="ember-text">もう迷わない。</span>
@@ -195,27 +196,49 @@ export default async function Home({
         </section>
       )}
 
+      {/* ---------- 使い方 3ステップ ---------- */}
+      <section className="mt-16">
+        <div className="mb-5 text-center">
+          <p className="eyebrow">How it works</p>
+          <h2 className="mt-2 text-2xl" style={{ fontWeight: 800 }}>3ステップで、迷わず一台</h2>
+        </div>
+        <div className="grid gap-4 sm:grid-cols-3">
+          {[
+            { preset: 'green' as const, icon: '🔍', n: 1, t: '気分で探す', d: '甘い・スッキリ・強さから、いま吸いたい組み合わせを見つける。' },
+            { preset: 'amber' as const, icon: '🔥', n: 2, t: '作り方を極める', d: '熱管理カーブや炭のセットアップまで、詳しい作り方が見られる。' },
+            { preset: 'violet' as const, icon: '🛒', n: 3, t: '買って・投稿する', d: '材料をそのまま購入。自分の一台も図鑑に投稿しよう。' },
+          ].map((s) => (
+            <div key={s.n} className="card flex flex-col items-center gap-3 p-6 text-center">
+              <IconOrb preset={s.preset} size={60}>{s.icon}</IconOrb>
+              <div className="text-xs" style={{ color: 'var(--color-ember-hot)', fontWeight: 700, letterSpacing: '0.1em' }}>STEP {s.n}</div>
+              <h3 className="text-base" style={{ fontWeight: 700 }}>{s.t}</h3>
+              <p className="text-sm" style={{ color: 'var(--color-ash)' }}>{s.d}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
       {/* ---------- TEASERS ---------- */}
-      <section className="mt-16 grid gap-4 sm:grid-cols-2">
-        <Link href="/for-shops" className="card card-hover flex flex-col justify-between gap-3 p-6">
+      <section className="mt-14 grid gap-4 sm:grid-cols-2">
+        <Link href="/for-shops" className="card card-hover flex items-center gap-4 p-6">
+          <IconOrb preset="amber" size={52}>🏠</IconOrb>
           <div>
-            <div className="text-xl" aria-hidden>🏠</div>
-            <h3 className="mt-2 text-base" style={{ fontWeight: 700 }}>店舗の方へ</h3>
+            <h3 className="text-base" style={{ fontWeight: 700 }}>店舗の方へ</h3>
             <p className="mt-1 text-sm" style={{ color: 'var(--color-ash)' }}>
               お店のミックスで指名集客。無料で店舗登録できます。
             </p>
+            <span className="mt-1 inline-block text-sm" style={{ color: 'var(--color-ember-hot)', fontWeight: 600 }}>詳しく見る →</span>
           </div>
-          <span className="text-sm" style={{ color: 'var(--color-ember-hot)', fontWeight: 600 }}>詳しく見る →</span>
         </Link>
-        <Link href="/about" className="card card-hover flex flex-col justify-between gap-3 p-6">
+        <Link href="/about" className="card card-hover flex items-center gap-4 p-6">
+          <IconOrb preset="green" size={52}>📖</IconOrb>
           <div>
-            <div className="text-xl" aria-hidden>📖</div>
-            <h3 className="mt-2 text-base" style={{ fontWeight: 700 }}>MixHubとは</h3>
+            <h3 className="text-base" style={{ fontWeight: 700 }}>MixHubとは</h3>
             <p className="mt-1 text-sm" style={{ color: 'var(--color-ash)' }}>
               日本のシーシャの「美味しい」を、みんなで育てる図鑑。
             </p>
+            <span className="mt-1 inline-block text-sm" style={{ color: 'var(--color-ember-hot)', fontWeight: 600 }}>詳しく見る →</span>
           </div>
-          <span className="text-sm" style={{ color: 'var(--color-ember-hot)', fontWeight: 600 }}>詳しく見る →</span>
         </Link>
       </section>
     </div>
