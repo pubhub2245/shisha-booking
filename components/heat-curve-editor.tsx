@@ -158,7 +158,7 @@ export function HeatCurveEditor({
                 />
                 <span className="text-xs" style={{ color: 'var(--color-ash-dim)' }}>分</span>
               </div>
-              <div className="flex flex-1 items-center gap-2">
+              <div className="flex min-w-0 flex-1 items-center gap-2">
                 <input
                   type="range" min={1} max={100} value={p.v}
                   onChange={(e) => setPoints((ps) => ps.map((q, i) => (i === idx ? { ...q, v: Number(e.target.value) } : q)))}

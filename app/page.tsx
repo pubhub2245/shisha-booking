@@ -120,10 +120,10 @@ export default async function Home({
             name="q"
             defaultValue={q ?? ''}
             placeholder="フレーバー名・キーワードで検索"
-            className="flex-1 rounded-xl border px-4 py-2.5 text-sm outline-none"
+            className="min-w-0 flex-1 rounded-xl border px-4 py-2.5 text-sm outline-none"
             style={{ background: '#fff', borderColor: 'var(--line-strong)', color: 'var(--color-cream)' }}
           />
-          <button type="submit" className="btn btn-ghost text-sm">検索</button>
+          <button type="submit" className="btn btn-ghost shrink-0 text-sm">検索</button>
         </form>
       </section>
 
