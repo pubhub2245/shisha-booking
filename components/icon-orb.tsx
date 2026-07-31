@@ -20,7 +20,7 @@ export function IconOrb({
   const c = PRESETS[preset]
   return (
     <span
-      className="relative inline-flex shrink-0 items-center justify-center"
+      className="orb relative inline-flex shrink-0 items-center justify-center"
       style={{ width: size, height: size }}
     >
       {/* glow halo */}

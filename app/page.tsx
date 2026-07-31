@@ -64,9 +64,17 @@ export default async function Home({
     <div className="wrap py-10 sm:py-14">
       {/* ---------- HERO ---------- */}
       <section className="glow-bg fade-up mx-auto max-w-3xl text-center">
+        {/* 浮遊するフレーバーオーブ（遊び心） */}
+        <div className="mb-5 flex flex-wrap justify-center gap-2.5 sm:gap-3">
+          <span className="float d1"><IconOrb preset="green" size={40}>🍏</IconOrb></span>
+          <span className="float d2"><IconOrb preset="amber" size={40}>🍊</IconOrb></span>
+          <span className="float d3"><IconOrb preset="blue" size={40}>🫐</IconOrb></span>
+          <span className="float d4"><IconOrb preset="violet" size={40}>🍇</IconOrb></span>
+          <span className="float d5"><IconOrb preset="green" size={40}>🍃</IconOrb></span>
+        </div>
         <p className="eyebrow">Shisha Mix Encyclopedia</p>
         <h1 className="mt-3 text-4xl leading-tight sm:text-5xl" style={{ fontWeight: 800, letterSpacing: '-0.01em' }}>
-          今日のミックス、<span className="ember-text">もう迷わない。</span>
+          今日のミックス、<span className="text-grad-anim">もう迷わない。</span>
         </h1>
         <p className="mx-auto mt-4 max-w-xl text-base" style={{ color: 'var(--color-ash)' }}>
           気分をタップするだけ。日本中の「美味しい」組み合わせと作り方が集まる図鑑から、
@@ -209,7 +217,7 @@ export default async function Home({
             { preset: 'violet' as const, icon: '🛒', n: 3, t: '買って・投稿する', d: '材料をそのまま購入。自分の一台も図鑑に投稿しよう。' },
           ].map((s) => (
             <div key={s.n} className="card flex flex-col items-center gap-3 p-6 text-center">
-              <IconOrb preset={s.preset} size={60}>{s.icon}</IconOrb>
+              <span className={`float d${s.n}`}><IconOrb preset={s.preset} size={60}>{s.icon}</IconOrb></span>
               <div className="text-xs" style={{ color: 'var(--color-ember-hot)', fontWeight: 700, letterSpacing: '0.1em' }}>STEP {s.n}</div>
               <h3 className="text-base" style={{ fontWeight: 700 }}>{s.t}</h3>
               <p className="text-sm" style={{ color: 'var(--color-ash)' }}>{s.d}</p>

@@ -111,6 +111,8 @@ h1, h2, h3, h4 { line-height: 1.28; font-weight: 700; letter-spacing: 0.005em; c
   transform: translateY(-2px);
   box-shadow: 0 12px 28px -18px rgb(35 32 26 / 0.28);
 }
+.orb { transition: transform .25s cubic-bezier(.2,.7,.2,1); }
+.card-hover:hover .orb { transform: scale(1.08) rotate(-4deg); }
 
 /* ---------- Buttons ---------- */
 .btn {
@@ -205,6 +207,32 @@ a.chip:hover {
   to { opacity: 1; transform: none; }
 }
 .fade-up { animation: fadeUp .5s cubic-bezier(.2,.7,.2,1) both; }
+
+/* 遊び心：ふわふわ浮遊＆グラデーションの揺らぎ（動きが苦手な人には無効化） */
+@keyframes floatY {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+@keyframes hueShift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+.text-grad-anim {
+  background: linear-gradient(90deg, var(--color-ember-hot), var(--color-coal), var(--color-ember-hot));
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .float { animation: floatY 4s ease-in-out infinite; }
+  .d1 { animation-delay: .2s; }
+  .d2 { animation-delay: .6s; }
+  .d3 { animation-delay: 1s; }
+  .d4 { animation-delay: 1.4s; }
+  .d5 { animation-delay: .9s; }
+  .text-grad-anim { animation: hueShift 5s ease-in-out infinite; }
+}
 
 /* ソフトなグロー背景（ヒーロー等） */
 .glow-bg {
