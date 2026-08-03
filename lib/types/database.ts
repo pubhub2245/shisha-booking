@@ -33,6 +33,7 @@ export type ProApplication = {
   sns_type: 'x' | 'instagram'
   sns_handle: string
   shop_name: string
+  shop_id: string | null
   message: string | null
   status: ProApplicationStatus
   created_at: string
@@ -159,6 +160,17 @@ export type ShopFlavor = {
   created_at: string
 }
 
+/** クリック計測（アフィリエイト等の送客ログ） */
+export type LinkClick = {
+  id: number
+  user_id: string | null
+  flavor_id: string | null
+  mix_id: string | null
+  shop_id: string | null
+  target: string
+  created_at: string
+}
+
 // join した表示用
 export type MixAuthor = Pick<
   Profile,
@@ -168,6 +180,12 @@ export type MixAuthor = Pick<
 export type MixWithRelations = Mix & {
   author: MixAuthor | null
   mix_flavors: MixFlavor[]
+}
+
+/** あと1フレーバーで作れるコンボ（不足している1品を提示） */
+export type NearMakeable = {
+  combo: ComboSummary
+  missing: { brand: string | null; name: string; flavorId: string | null }
 }
 
 // Combo（組み合わせ）= 同じフレーバー種類の作り方（Method）を束ねたもの
@@ -209,6 +227,7 @@ export type Database = {
       shops: Tbl<Shop>
       shop_members: Tbl<ShopMember>
       shop_flavors: Tbl<ShopFlavor>
+      link_clicks: Tbl<LinkClick>
     }
     Views: Record<string, never>
     Functions: {

@@ -24,7 +24,7 @@ import { ViewTracker } from '@/components/view-tracker'
 import { MixCard } from '@/components/mix-card'
 import { deleteMix } from '@/actions/mixes'
 import { deleteComment } from '@/actions/social'
-import { withAffiliateTag } from '@/lib/affiliate'
+import { goHref } from '@/lib/go'
 import { comboKey, comboSlug } from '@/lib/combo'
 import type { MixWithRelations, MixAuthor } from '@/lib/types/database'
 
@@ -216,9 +216,9 @@ export default async function MixDetail({ params }: { params: Promise<{ id: stri
                   </div>
                 )}
               </div>
-              {withAffiliateTag(f.affiliate_url) && (
+              {goHref(f.affiliate_url, { f: f.flavor_id, m: mix.id }) && (
                 <a
-                  href={withAffiliateTag(f.affiliate_url)!}
+                  href={goHref(f.affiliate_url, { f: f.flavor_id, m: mix.id })!}
                   target="_blank"
                   rel="noopener noreferrer sponsored"
                   className="btn btn-ghost text-sm"

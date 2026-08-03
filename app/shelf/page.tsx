@@ -1,9 +1,10 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { getCurrentUser } from '@/lib/auth'
-import { getFlavorsWithUsage, getMyShelfFlavorIds, getCombos } from '@/lib/queries'
+import { getFlavorsWithUsage, getMyShelfFlavorIds, getCombos, getMyNearMakeable } from '@/lib/queries'
 import { ComboCard } from '@/components/combo-card'
 import { ShelfFlavorChip } from '@/components/shelf-flavor-chip'
+import { ShelfButton } from '@/components/shelf-button'
 import type { Flavor } from '@/lib/types/database'
 
 export const dynamic = 'force-dynamic'
@@ -18,10 +19,11 @@ export default async function ShelfPage() {
   const user = await getCurrentUser()
   if (!user) redirect('/login?next=/shelf')
 
-  const [flavors, shelfIds, makeable] = await Promise.all([
+  const [flavors, shelfIds, makeable, near] = await Promise.all([
     getFlavorsWithUsage(),
     getMyShelfFlavorIds(),
     getCombos({ makeableOnly: true, sort: 'detailed' }),
+    getMyNearMakeable(),
   ])
 
   const ownedCount = shelfIds.size
@@ -74,6 +76,47 @@ export default async function ShelfPage() {
           </div>
         )}
       </section>
+
+      {/* ---------- あと1つで作れる ---------- */}
+      {near.length > 0 && (
+        <section className="mt-12">
+          <div className="mb-1 flex items-baseline justify-between">
+            <h2 className="text-lg" style={{ fontWeight: 700 }}>🛒 あと1つで作れる（{near.length}）</h2>
+          </div>
+          <p className="mb-3 text-sm" style={{ color: 'var(--color-ash)' }}>
+            不足しているフレーバーを1つ足すだけで作れる組み合わせです。
+          </p>
+          <div className="grid gap-4 sm:grid-cols-2">
+            {near.map(({ combo, missing }) => (
+              <div key={combo.key} className="card flex flex-col gap-3 p-4">
+                <Link href={`/combo/${combo.slug}`} className="flex flex-wrap items-center gap-x-2 gap-y-1" style={{ fontWeight: 700 }}>
+                  {combo.flavorNames.slice(0, 4).map((n, i) => {
+                    const isMissing = n === missing.name
+                    return (
+                      <span key={i} className="flex items-center gap-2">
+                        {i > 0 && <span style={{ color: 'var(--color-ember)' }}>×</span>}
+                        <span style={isMissing ? { color: 'var(--color-ash-dim)', textDecoration: 'underline dotted' } : undefined}>{n}</span>
+                      </span>
+                    )
+                  })}
+                </Link>
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <span className="text-xs" style={{ color: 'var(--color-ash)' }}>
+                    不足: <b style={{ color: 'var(--color-ember-hot)' }}>{missing.name}</b>
+                    {missing.brand ? <span style={{ color: 'var(--color-ash-dim)' }}>（{missing.brand}）</span> : null}
+                  </span>
+                  {missing.flavorId ? (
+                    <div className="flex items-center gap-2">
+                      <ShelfButton flavorId={missing.flavorId} initialOwned={false} isAuthed nextPath="/shelf" />
+                      <Link href={`/flavor/${missing.flavorId}`} className="text-xs" style={{ color: 'var(--color-ember-hot)', fontWeight: 600 }}>詳細 →</Link>
+                    </div>
+                  ) : null}
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* ---------- 棚の編集 ---------- */}
       <section className="mt-12">

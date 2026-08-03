@@ -122,7 +122,11 @@ export default async function MyPage() {
 
       <section className="mt-8">
         <h2 className="mb-3 text-sm" style={{ fontWeight: 700, color: 'var(--color-ash)' }}>プロ認証（シーシャ店スタッフ）</h2>
-        <ProApplicationForm isPro={user.profile?.is_pro ?? false} application={proApp} />
+        <ProApplicationForm
+          isPro={user.profile?.is_pro ?? false}
+          application={proApp}
+          shops={myShops.map((s) => ({ id: s.id, name: s.name }))}
+        />
       </section>
 
       <div className="divider my-10" />

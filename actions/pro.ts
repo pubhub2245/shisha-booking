@@ -15,11 +15,30 @@ export async function submitProApplication(_prev: ProAppState, formData: FormDat
   const snsTypeRaw = String(formData.get('sns_type') ?? '')
   const snsType = snsTypeRaw === 'x' || snsTypeRaw === 'instagram' ? snsTypeRaw : null
   const snsHandle = String(formData.get('sns_handle') ?? '').trim()
-  const shopName = String(formData.get('shop_name') ?? '').trim()
+  const shopIdRaw = String(formData.get('shop_id') ?? '').trim()
+  let shopName = String(formData.get('shop_name') ?? '').trim()
   const message = String(formData.get('message') ?? '').trim() || null
 
   if (!snsType) return { error: 'SNSの種類を選んでください。' }
   if (!snsHandle) return { error: 'SNSアカウント（@またはURL）を入力してください。' }
+
+  // 所属店舗が選ばれた場合は、本人が承認済みメンバーか検証し、店名を採用する
+  let shopId: string | null = null
+  if (shopIdRaw) {
+    const { data: mem } = await supabase
+      .from('shop_members')
+      .select('status')
+      .eq('shop_id', shopIdRaw)
+      .eq('user_id', user.id)
+      .maybeSingle()
+    if (!mem || (mem as { status: string }).status !== 'approved') {
+      return { error: '選択したお店に所属していません。先にお店への参加が承認される必要があります。' }
+    }
+    const { data: shop } = await supabase.from('shops').select('name').eq('id', shopIdRaw).maybeSingle()
+    if (!shop) return { error: '選択したお店が見つかりません。' }
+    shopId = shopIdRaw
+    shopName = (shop as { name: string }).name
+  }
   if (!shopName) return { error: '在籍しているシーシャ店名を入力してください。' }
 
   const { error } = await supabase.from('pro_applications').insert({
@@ -27,6 +46,7 @@ export async function submitProApplication(_prev: ProAppState, formData: FormDat
     sns_type: snsType,
     sns_handle: snsHandle,
     shop_name: shopName,
+    shop_id: shopId,
     message,
   })
   if (error) {

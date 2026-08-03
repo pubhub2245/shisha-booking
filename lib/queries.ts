@@ -13,6 +13,7 @@ import type {
   ProApplication,
   ProApplicationWithUser,
   ComboSummary,
+  NearMakeable,
   Shop,
   ShopMember,
   ShopMemberRole,
@@ -386,6 +387,37 @@ export async function getCombos(opts: FeedOptions = {}): Promise<ComboSummary[]>
   // 「作れるものだけ」指定時は所持フレーバー集合を取得
   const owned = opts.makeableOnly ? await getOwnedFlavorKeys() : null
   return buildCombos(mixes, opts, owned)
+}
+
+/** 所持フレーバーで「あと1つ」だけ足りないコンボ（不足フレーバーを提示） */
+export async function getNearMakeableForKeys(ownedKeys: Set<string>): Promise<NearMakeable[]> {
+  if (ownedKeys.size === 0) return []
+  const [mixes, flavorsMaster] = await Promise.all([getMixes({}), getFlavors()])
+  const combos = buildCombos(mixes, { sort: 'detailed' }, null)
+  const idByKey = new Map(flavorsMaster.map((f) => [flavorKey(f.brand, f.name), f.id]))
+  const near: NearMakeable[] = []
+  for (const c of combos) {
+    const setFlavors = c.top.mix_flavors ?? []
+    if (setFlavors.length < 2) continue // 単一フレーバーは「あと1つ」の対象外
+    const missing = setFlavors.filter((f) => !ownedKeys.has(flavorKey(f.brand, f.name)))
+    if (missing.length !== 1) continue
+    const mf = missing[0]
+    near.push({
+      combo: c,
+      missing: {
+        brand: mf.brand,
+        name: mf.name,
+        flavorId: mf.flavor_id ?? idByKey.get(flavorKey(mf.brand, mf.name)) ?? null,
+      },
+    })
+  }
+  return near.slice(0, 12)
+}
+
+/** ログイン中ユーザーの「あと1つで作れる」コンボ */
+export async function getMyNearMakeable(): Promise<NearMakeable[]> {
+  const owned = await getOwnedFlavorKeys()
+  return getNearMakeableForKeys(owned)
 }
 
 /** Combo 詳細：その組み合わせの全ての作り方（Method） */

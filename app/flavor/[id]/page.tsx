@@ -11,7 +11,7 @@ import {
 import { getCurrentUser } from '@/lib/auth'
 import { MixCard } from '@/components/mix-card'
 import { ShelfButton } from '@/components/shelf-button'
-import { withAffiliateTag } from '@/lib/affiliate'
+import { goHref } from '@/lib/go'
 
 export const dynamic = 'force-dynamic'
 
@@ -41,7 +41,7 @@ export default async function FlavorDetail({ params }: { params: Promise<{ id: s
     getMyShelfFlavorIds(),
     getShopsWithFlavor(flavor),
   ])
-  const buyUrl = withAffiliateTag(flavor.affiliate_url)
+  const buyUrl = goHref(flavor.affiliate_url, { f: flavor.id })
 
   return (
     <div className="wrap max-w-3xl py-10">

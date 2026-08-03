@@ -1,17 +1,21 @@
 'use client'
 
-import { useActionState } from 'react'
+import { useActionState, useState } from 'react'
+import Link from 'next/link'
 import { submitProApplication, type ProAppState } from '@/actions/pro'
 import type { ProApplication } from '@/lib/types/database'
 
 export function ProApplicationForm({
   isPro,
   application,
+  shops,
 }: {
   isPro: boolean
   application: ProApplication | null
+  shops: { id: string; name: string }[]
 }) {
   const [state, action, pending] = useActionState<ProAppState, FormData>(submitProApplication, null)
+  const [shopId, setShopId] = useState(shops[0]?.id ?? '')
 
   if (isPro) {
     return (
@@ -29,6 +33,8 @@ export function ProApplicationForm({
       </div>
     )
   }
+
+  const useFreeText = shops.length === 0 || shopId === ''
 
   return (
     <form action={action} className="card flex flex-col gap-4 p-5">
@@ -59,10 +65,31 @@ export function ProApplicationForm({
         <label>SNSアカウント（@ または プロフィールURL）</label>
         <input name="sns_handle" placeholder="@your_account または https://x.com/..." required />
       </div>
-      <div className="field">
-        <label>在籍しているシーシャ店名</label>
-        <input name="shop_name" placeholder="SHISHA LOUNGE ○○" required />
-      </div>
+
+      {shops.length > 0 && (
+        <div className="field">
+          <label>在籍しているお店</label>
+          <select name="shop_id" value={shopId} onChange={(e) => setShopId(e.target.value)}>
+            {shops.map((s) => (
+              <option key={s.id} value={s.id}>{s.name}</option>
+            ))}
+            <option value="">その他（手入力）</option>
+          </select>
+          <p className="mt-1 text-xs" style={{ color: 'var(--color-ash-dim)' }}>
+            所属店舗が候補に出ます。まだ紐付けていない場合は
+            <Link href="/shops" style={{ color: 'var(--color-ember-hot)' }}>お店に参加申請</Link>
+            すると選べます。
+          </p>
+        </div>
+      )}
+
+      {useFreeText && (
+        <div className="field">
+          <label>{shops.length ? 'お店の名前（手入力）' : '在籍しているシーシャ店名'}</label>
+          <input name="shop_name" placeholder="SHISHA LOUNGE ○○" required />
+        </div>
+      )}
+
       <div className="field">
         <label>補足（任意）</label>
         <textarea name="message" placeholder="役職・在籍歴・確認の参考になる情報など" maxLength={300} />

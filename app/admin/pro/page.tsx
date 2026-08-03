@@ -53,7 +53,15 @@ export default async function AdminProPage() {
               <dl className="mt-3 flex flex-col gap-1.5 text-sm">
                 <div className="flex gap-2">
                   <dt style={{ color: 'var(--color-ash-dim)' }}>在籍店</dt>
-                  <dd style={{ fontWeight: 600 }}>{app.shop_name}</dd>
+                  <dd style={{ fontWeight: 600 }}>
+                    {app.shop_id ? (
+                      <Link href={`/shop/${app.shop_id}`} style={{ color: 'var(--color-ember-hot)' }}>
+                        {app.shop_name} 🏠<span style={{ fontSize: '0.7rem', fontWeight: 400 }}>（所属確認済）</span>
+                      </Link>
+                    ) : (
+                      app.shop_name
+                    )}
+                  </dd>
                 </div>
                 <div className="flex gap-2">
                   <dt style={{ color: 'var(--color-ash-dim)' }}>SNS</dt>
