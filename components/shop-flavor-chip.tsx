@@ -4,10 +4,12 @@ import { useState, useTransition } from 'react'
 import { toggleShopFlavor } from '@/actions/shop-inventory'
 
 export function ShopFlavorChip({
+  shopId,
   flavorId,
   label,
   initialInStock,
 }: {
+  shopId: string
   flavorId: string
   label: string
   initialInStock: boolean
@@ -19,7 +21,7 @@ export function ShopFlavorChip({
     const next = !inStock
     setInStock(next)
     startTransition(async () => {
-      const res = await toggleShopFlavor(flavorId)
+      const res = await toggleShopFlavor(shopId, flavorId)
       if ('error' in res) setInStock(!next)
       else setInStock(res.inStock)
     })

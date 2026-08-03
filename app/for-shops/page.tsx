@@ -61,11 +61,11 @@ export default function ForShops() {
       <div className="card mt-10 flex flex-col items-center gap-4 p-8 text-center">
         <h2 className="text-xl" style={{ fontWeight: 700 }}>登録は無料。まずはアカウントから。</h2>
         <p className="text-sm" style={{ color: 'var(--color-ash)' }}>
-          アカウント作成後、マイページの「店舗として登録する」をオンにするだけ。
+          アカウント作成後、「お店を登録」からお店を作成。あなたがオーナーになり、他のスタッフも参加申請 → 承認で紐付けられます。
         </p>
         <div className="flex flex-wrap justify-center gap-3">
           <Link href="/signup" className="btn btn-ember">無料で始める</Link>
-          <Link href="/mypage" className="btn btn-ghost">店舗登録へ</Link>
+          <Link href="/shop/new" className="btn btn-ghost">お店を登録する</Link>
         </div>
       </div>
     </div>

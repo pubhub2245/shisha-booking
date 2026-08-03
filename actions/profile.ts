@@ -15,22 +15,11 @@ export async function updateProfile(_prev: ProfileState, formData: FormData): Pr
   const displayName = String(formData.get('display_name') ?? '').trim() || null
   const username = String(formData.get('username') ?? '').trim() || null
   const bio = String(formData.get('bio') ?? '').trim() || null
-  const isShop = formData.get('is_shop') === 'on'
-  const shopName = String(formData.get('shop_name') ?? '').trim() || null
-  const shopArea = String(formData.get('shop_area') ?? '').trim() || null
-  const shopUrl = String(formData.get('shop_url') ?? '').trim() || null
 
+  // 店舗は独立エンティティ（shops）に分離。is_shop は所属承認トリガーで同期するため触らない。
   const { error } = await supabase
     .from('profiles')
-    .update({
-      display_name: displayName,
-      username,
-      bio,
-      is_shop: isShop,
-      shop_name: isShop ? shopName : null,
-      shop_area: isShop ? shopArea : null,
-      shop_url: isShop ? shopUrl : null,
-    })
+    .update({ display_name: displayName, username, bio })
     .eq('id', user.id)
 
   if (error) {

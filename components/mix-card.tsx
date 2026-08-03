@@ -7,7 +7,6 @@ import { CompletenessBadge } from '@/components/completeness'
 
 function authorLabel(mix: MixWithRelations): string {
   if (!mix.author) return 'MixHub 編集部'
-  if (mix.author.is_shop && mix.author.shop_name) return mix.author.shop_name
   return mix.author.display_name || (mix.author.username ? `@${mix.author.username}` : '名無し')
 }
 

@@ -8,6 +8,7 @@ import {
   getLikedMixes,
   getFollowCounts,
   getMyProApplication,
+  getMyShops,
 } from '@/lib/queries'
 import { MixCard } from '@/components/mix-card'
 import type { MixWithRelations } from '@/lib/types/database'
@@ -46,13 +47,14 @@ export default async function MyPage() {
   const user = await getCurrentUser()
   if (!user) redirect('/login?next=/mypage')
 
-  const [myMixes, likedIds, bookmarked, liked, counts, proApp] = await Promise.all([
+  const [myMixes, likedIds, bookmarked, liked, counts, proApp, myShops] = await Promise.all([
     getMixesByAuthor(user.id),
     getLikedMixIds(),
     getBookmarkedMixes(),
     getLikedMixes(),
     getFollowCounts(user.id),
     getMyProApplication(),
+    getMyShops(),
   ])
 
   return (
@@ -63,11 +65,6 @@ export default async function MyPage() {
           <h1 className="mt-2 text-3xl" style={{ fontWeight: 800 }}>マイページ</h1>
         </div>
         <div className="flex flex-col items-end gap-2">
-          {user.profile?.is_shop && (
-            <Link href="/shop/inventory" className="btn btn-ember text-sm">
-              🏠 在庫棚を管理
-            </Link>
-          )}
           <Link href="/shelf" className="btn btn-ghost text-sm">
             🫙 マイ棚
           </Link>
@@ -93,6 +90,34 @@ export default async function MyPage() {
       <section className="mt-8">
         <h2 className="text-sm" style={{ fontWeight: 700, color: 'var(--color-ash)' }}>プロフィール</h2>
         <ProfileForm profile={user.profile} />
+      </section>
+
+      <section className="mt-8">
+        <div className="mb-3 flex items-center justify-between">
+          <h2 className="text-sm" style={{ fontWeight: 700, color: 'var(--color-ash)' }}>所属店舗</h2>
+          <Link href="/shop/new" className="text-xs" style={{ color: 'var(--color-ember-hot)', fontWeight: 600 }}>＋ お店を登録</Link>
+        </div>
+        {myShops.length > 0 ? (
+          <div className="flex flex-col gap-2">
+            {myShops.map((s) => (
+              <div key={s.id} className="card flex items-center justify-between gap-3 p-4">
+                <Link href={`/shop/${s.id}`} className="flex min-w-0 items-center gap-2">
+                  {s.role === 'owner' && <span aria-hidden title="オーナー">👑</span>}
+                  <span className="truncate text-sm" style={{ fontWeight: 700 }}>🏠 {s.name}</span>
+                  {s.area && <span className="shrink-0 text-xs" style={{ color: 'var(--color-ash-dim)' }}>{s.area}</span>}
+                </Link>
+                <Link href={`/shop/${s.id}/manage`} className="btn btn-ghost shrink-0 text-xs">在庫・管理</Link>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="card p-5 text-sm" style={{ color: 'var(--color-ash)' }}>
+            シーシャ店で働いている方は、<Link href="/shop/new" style={{ color: 'var(--color-ember-hot)', fontWeight: 600 }}>お店を登録</Link>
+            するか、
+            <Link href="/shops" style={{ color: 'var(--color-ember-hot)', fontWeight: 600 }}>店舗一覧</Link>
+            から働いているお店に参加申請できます。
+          </div>
+        )}
       </section>
 
       <section className="mt-8">

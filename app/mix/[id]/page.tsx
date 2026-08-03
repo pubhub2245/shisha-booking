@@ -32,7 +32,6 @@ export const dynamic = 'force-dynamic'
 
 function authorName(author: MixAuthor | null): string {
   if (!author) return 'MixHub 編集部'
-  if (author.is_shop && author.shop_name) return author.shop_name
   return author.display_name || (author.username ? `@${author.username}` : '名無し')
 }
 

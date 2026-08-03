@@ -11,7 +11,6 @@ import {
 import { getCurrentUser } from '@/lib/auth'
 import { MixCard } from '@/components/mix-card'
 import { ShelfButton } from '@/components/shelf-button'
-import { VerifiedBadge } from '@/components/verified-badge'
 import { withAffiliateTag } from '@/lib/affiliate'
 
 export const dynamic = 'force-dynamic'
@@ -78,16 +77,11 @@ export default async function FlavorDetail({ params }: { params: Promise<{ id: s
           </h2>
           <div className="grid gap-3 sm:grid-cols-2">
             {shops.map((s) => (
-              <Link key={s.id} href={`/s/${s.username}`} className="card card-hover flex items-center justify-between gap-3 p-4">
+              <Link key={s.id} href={`/shop/${s.id}`} className="card card-hover flex items-center justify-between gap-3 p-4">
                 <div className="min-w-0">
-                  <div className="flex items-center gap-1.5">
-                    <span className="truncate text-sm" style={{ fontWeight: 700 }}>
-                      {s.shop_name || s.display_name || `@${s.username}`}
-                    </span>
-                    {s.is_pro && <VerifiedBadge size={13} />}
-                  </div>
-                  {s.shop_area && (
-                    <div className="mt-0.5 text-xs" style={{ color: 'var(--color-ash-dim)' }}>📍 {s.shop_area}</div>
+                  <span className="block truncate text-sm" style={{ fontWeight: 700 }}>{s.name}</span>
+                  {s.area && (
+                    <div className="mt-0.5 text-xs" style={{ color: 'var(--color-ash-dim)' }}>📍 {s.area}</div>
                   )}
                 </div>
                 <span className="shrink-0 text-xs" style={{ color: 'var(--color-ember-hot)', fontWeight: 600 }}>メニュー →</span>

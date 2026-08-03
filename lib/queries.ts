@@ -13,6 +13,13 @@ import type {
   ProApplication,
   ProApplicationWithUser,
   ComboSummary,
+  Shop,
+  ShopMember,
+  ShopMemberRole,
+  ShopMemberStatus,
+  ShopWithCounts,
+  ShopMemberWithUser,
+  MyMembership,
 } from '@/lib/types/database'
 
 export type FeedOptions = {
@@ -56,6 +63,128 @@ export async function getOwnedFlavorKeys(): Promise<Set<string>> {
   }
 }
 
+// ---------- お店（shops / shop_members） ----------
+
+export async function getShopById(id: string): Promise<Shop | null> {
+  try {
+    const supabase = await createClient()
+    const { data } = await supabase.from('shops').select('*').eq('id', id).maybeSingle()
+    return (data as Shop) ?? null
+  } catch {
+    return null
+  }
+}
+
+/** お店一覧（在庫数・所属人数つき）。ディレクトリ用。 */
+export async function getShopsWithCounts(): Promise<ShopWithCounts[]> {
+  try {
+    const supabase = await createClient()
+    const { data: shops } = await supabase.from('shops').select('*').order('created_at', { ascending: false })
+    const list = (shops ?? []) as Shop[]
+    if (list.length === 0) return []
+    const ids = list.map((s) => s.id)
+    const [{ data: fl }, { data: mem }] = await Promise.all([
+      supabase.from('shop_flavors').select('shop_id').in('shop_id', ids),
+      supabase.from('shop_members').select('shop_id, status').in('shop_id', ids).eq('status', 'approved'),
+    ])
+    const fCount = new Map<string, number>()
+    for (const r of fl ?? []) fCount.set(r.shop_id as string, (fCount.get(r.shop_id as string) ?? 0) + 1)
+    const mCount = new Map<string, number>()
+    for (const r of mem ?? []) mCount.set(r.shop_id as string, (mCount.get(r.shop_id as string) ?? 0) + 1)
+    return list.map((s) => ({ ...s, flavor_count: fCount.get(s.id) ?? 0, member_count: mCount.get(s.id) ?? 0 }))
+  } catch {
+    return []
+  }
+}
+
+/** 指定ユーザーが「承認済みで所属」しているお店（＋自分の役割） */
+export async function getShopsByMember(userId: string): Promise<(Shop & { role: ShopMemberRole })[]> {
+  try {
+    const supabase = await createClient()
+    const { data: mem } = await supabase
+      .from('shop_members')
+      .select('shop_id, role')
+      .eq('user_id', userId)
+      .eq('status', 'approved')
+    const rows = (mem ?? []) as { shop_id: string; role: ShopMemberRole }[]
+    if (rows.length === 0) return []
+    const { data: shops } = await supabase.from('shops').select('*').in('id', rows.map((r) => r.shop_id))
+    const roleById = new Map(rows.map((r) => [r.shop_id, r.role]))
+    return ((shops ?? []) as Shop[]).map((s) => ({ ...s, role: roleById.get(s.id) ?? 'staff' }))
+  } catch {
+    return []
+  }
+}
+
+/** ログイン中ユーザーが所属（承認済み）のお店 */
+export async function getMyShops(): Promise<(Shop & { role: ShopMemberRole })[]> {
+  try {
+    const supabase = await createClient()
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+    if (!user) return []
+    return getShopsByMember(user.id)
+  } catch {
+    return []
+  }
+}
+
+/** ログイン中ユーザーの、あるお店への所属状態 */
+export async function getMyMembership(shopId: string): Promise<MyMembership> {
+  try {
+    const supabase = await createClient()
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+    if (!user) return null
+    const { data } = await supabase
+      .from('shop_members')
+      .select('role, status')
+      .eq('shop_id', shopId)
+      .eq('user_id', user.id)
+      .maybeSingle()
+    return (data as MyMembership) ?? null
+  } catch {
+    return null
+  }
+}
+
+async function membersByStatus(shopId: string, status: ShopMemberStatus): Promise<ShopMemberWithUser[]> {
+  try {
+    const supabase = await createClient()
+    const { data } = await supabase
+      .from('shop_members')
+      .select('*')
+      .eq('shop_id', shopId)
+      .eq('status', status)
+      .order('created_at', { ascending: true })
+    const rows = (data ?? []) as ShopMember[]
+    if (rows.length === 0) return []
+    const userIds = [...new Set(rows.map((r) => r.user_id))]
+    const { data: users } = await supabase
+      .from('profiles')
+      .select('id, username, display_name, is_shop, is_pro, shop_name')
+      .in('id', userIds)
+    const byId = new Map<string, MixAuthor>()
+    for (const u of (users ?? []) as MixAuthor[]) byId.set(u.id, u)
+    return rows.map((r) => ({ ...r, user: byId.get(r.user_id) ?? null }))
+  } catch {
+    return []
+  }
+}
+
+/** 承認済みの所属スタッフ（オーナーを先頭に） */
+export async function getShopMembers(shopId: string): Promise<ShopMemberWithUser[]> {
+  const members = await membersByStatus(shopId, 'approved')
+  return members.sort((a, b) => (a.role === 'owner' ? -1 : b.role === 'owner' ? 1 : 0))
+}
+
+/** 参加申請中（オーナーの承認待ち） */
+export async function getPendingMembers(shopId: string): Promise<ShopMemberWithUser[]> {
+  return membersByStatus(shopId, 'pending')
+}
+
 // ---------- 店舗の在庫棚（shop_flavors） ----------
 
 /** 店の在庫に入っている flavor_id 集合（在庫編集UIのトグル状態用） */
@@ -97,8 +226,8 @@ export async function getShopMenuCombos(shopId: string): Promise<ComboSummary[]>
   return buildCombos(mixes, { sort: 'detailed' }, owned)
 }
 
-/** そのフレーバーを在庫に持つ店舗一覧（来店誘導用） */
-export async function getShopsWithFlavor(flavor: Flavor): Promise<Profile[]> {
+/** そのフレーバーを在庫に持つお店一覧（来店誘導用） */
+export async function getShopsWithFlavor(flavor: Flavor): Promise<Shop[]> {
   try {
     const supabase = await createClient()
     // flavor_id 一致、または同じ brand+name の別 flavor_id も拾う
@@ -111,12 +240,8 @@ export async function getShopsWithFlavor(flavor: Flavor): Promise<Profile[]> {
     const { data: sf } = await supabase.from('shop_flavors').select('shop_id').in('flavor_id', flavorIds)
     const shopIds = [...new Set((sf ?? []).map((r) => r.shop_id as string))]
     if (shopIds.length === 0) return []
-    const { data: shops } = await supabase
-      .from('profiles')
-      .select('*')
-      .in('id', shopIds)
-      .eq('is_shop', true)
-    return (shops ?? []) as Profile[]
+    const { data: shops } = await supabase.from('shops').select('*').in('id', shopIds)
+    return (shops ?? []) as Shop[]
   } catch {
     return []
   }
@@ -517,29 +642,6 @@ export async function getPendingProApplications(): Promise<ProApplicationWithUse
     const byId = new Map<string, MixAuthor>()
     for (const u of (users ?? []) as MixAuthor[]) byId.set(u.id, u)
     return apps.map((a) => ({ ...a, user: byId.get(a.user_id) ?? null }))
-  } catch {
-    return []
-  }
-}
-
-// ---------- 店舗 ----------
-export async function getShops(): Promise<(Profile & { mix_count: number })[]> {
-  try {
-    const supabase = await createClient()
-    const { data: shops } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('is_shop', true)
-      .order('created_at', { ascending: false })
-    const list = (shops ?? []) as Profile[]
-    if (list.length === 0) return []
-    const { data: mixes } = await supabase.from('mixes').select('author_id').in('author_id', list.map((s) => s.id))
-    const counts = new Map<string, number>()
-    for (const m of mixes ?? []) {
-      const a = m.author_id as string | null
-      if (a) counts.set(a, (counts.get(a) ?? 0) + 1)
-    }
-    return list.map((s) => ({ ...s, mix_count: counts.get(s.id) ?? 0 }))
   } catch {
     return []
   }

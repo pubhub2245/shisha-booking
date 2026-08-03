@@ -120,7 +120,39 @@ export type Shelf = {
   created_at: string
 }
 
-/** 店舗の在庫棚（公開）。shop_id = 店アカウントの profiles.id */
+/** お店（独立エンティティ）。owner_id = 登録した個人アカウント */
+export type Shop = {
+  id: string
+  name: string
+  area: string | null
+  url: string | null
+  description: string | null
+  owner_id: string
+  created_at: string
+}
+
+export type ShopMemberRole = 'owner' | 'staff'
+export type ShopMemberStatus = 'pending' | 'approved'
+
+/** 個人アカウント ↔ お店 の所属（オーナー承認制） */
+export type ShopMember = {
+  shop_id: string
+  user_id: string
+  role: ShopMemberRole
+  status: ShopMemberStatus
+  created_at: string
+}
+
+/** 一覧表示用：店＋在庫数＋所属人数 */
+export type ShopWithCounts = Shop & { flavor_count: number; member_count: number }
+
+/** 所属メンバー（表示用にプロフィール付き） */
+export type ShopMemberWithUser = ShopMember & { user: MixAuthor | null }
+
+/** 自分のあるお店への所属状態 */
+export type MyMembership = { role: ShopMemberRole; status: ShopMemberStatus } | null
+
+/** 店舗の在庫棚（公開）。shop_id = shops.id */
 export type ShopFlavor = {
   shop_id: string
   flavor_id: string
@@ -174,6 +206,8 @@ export type Database = {
       follows: Tbl<Follow>
       pro_applications: Tbl<ProApplication>
       shelf: Tbl<Shelf>
+      shops: Tbl<Shop>
+      shop_members: Tbl<ShopMember>
       shop_flavors: Tbl<ShopFlavor>
     }
     Views: Record<string, never>
