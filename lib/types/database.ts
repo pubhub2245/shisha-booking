@@ -114,6 +114,12 @@ export type Like = {
   created_at: string
 }
 
+export type Shelf = {
+  user_id: string
+  flavor_id: string
+  created_at: string
+}
+
 // join した表示用
 export type MixAuthor = Pick<
   Profile,
@@ -160,6 +166,7 @@ export type Database = {
       bookmarks: Tbl<Bookmark>
       follows: Tbl<Follow>
       pro_applications: Tbl<ProApplication>
+      shelf: Tbl<Shelf>
     }
     Views: Record<string, never>
     Functions: {

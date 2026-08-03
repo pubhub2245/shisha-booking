@@ -63,6 +63,9 @@ export default async function MyPage() {
           <h1 className="mt-2 text-3xl" style={{ fontWeight: 800 }}>マイページ</h1>
         </div>
         <div className="flex flex-col items-end gap-2">
+          <Link href="/shelf" className="btn btn-ghost text-sm">
+            🫙 マイ棚
+          </Link>
           {user.profile?.username && (
             <Link href={`/u/${user.profile.username}`} className="btn btn-ghost text-sm">
               公開プロフィール →

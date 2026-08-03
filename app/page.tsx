@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { getCombos, getTasteTags, getFlavors } from '@/lib/queries'
+import { getCurrentUser } from '@/lib/auth'
 import { ComboCard } from '@/components/combo-card'
 import { IconOrb } from '@/components/icon-orb'
 
@@ -25,7 +26,7 @@ function toArray(v: string | string[] | undefined): string[] {
 export default async function Home({
   searchParams,
 }: {
-  searchParams: Promise<{ sort?: string; tag?: string | string[]; strength?: string; q?: string }>
+  searchParams: Promise<{ sort?: string; tag?: string | string[]; strength?: string; q?: string; makeable?: string }>
 }) {
   const sp = await searchParams
   const sort: Sort = sp.sort === 'popular' ? 'popular' : sp.sort === 'detailed' ? 'detailed' : 'new'
@@ -34,17 +35,19 @@ export default async function Home({
     ? (sp.strength as Strength)
     : undefined
   const q = sp.q
-  const hasFilters = activeTags.length > 0 || !!strength || !!q
+  const user = await getCurrentUser()
+  const makeableOnly = !!user && sp.makeable === '1'
+  const hasFilters = activeTags.length > 0 || !!strength || !!q || makeableOnly
 
   const [combos, allTags, flavors] = await Promise.all([
-    getCombos({ sort, tags: activeTags, strength, q }),
+    getCombos({ sort, tags: activeTags, strength, q, makeableOnly }),
     getTasteTags(),
     getFlavors(),
   ])
   const flavorShortcuts = flavors.slice(0, 12)
 
   // URL 構築（tag は複数 append）
-  const href = (o: { tags?: string[]; strength?: Strength; sort?: Sort; q?: string }) => {
+  const href = (o: { tags?: string[]; strength?: Strength; sort?: Sort; q?: string; makeable?: boolean }) => {
     const p = new URLSearchParams()
     const s = o.sort ?? sort
     if (s && s !== 'new') p.set('sort', s)
@@ -52,6 +55,7 @@ export default async function Home({
     const st = 'strength' in o ? o.strength : strength
     if (st) p.set('strength', st)
     for (const t of o.tags ?? activeTags) p.append('tag', t)
+    if ('makeable' in o ? o.makeable : makeableOnly) p.set('makeable', '1')
     const str = p.toString()
     return str ? `/?${str}` : '/'
   }
@@ -143,6 +147,11 @@ export default async function Home({
           <Link href={href({ sort: 'new' })} className={`chip ${sort === 'new' ? 'chip-active' : ''}`}>新着</Link>
           <Link href={href({ sort: 'popular' })} className={`chip ${sort === 'popular' ? 'chip-active' : ''}`}>人気順</Link>
           <Link href={href({ sort: 'detailed' })} className={`chip ${sort === 'detailed' ? 'chip-active' : ''}`}>詳しい順</Link>
+          {user && (
+            <Link href={href({ makeable: !makeableOnly })} className={`chip ${makeableOnly ? 'chip-active' : ''}`}>
+              🫙 棚で作れる
+            </Link>
+          )}
         </div>
         <div className="flex items-center gap-3">
           {hasFilters && (
@@ -161,6 +170,9 @@ export default async function Home({
           {strength && (
             <Link href={toggleStrength(strength)} className="chip chip-active">{STRENGTH_LABEL[strength]} ✕</Link>
           )}
+          {makeableOnly && (
+            <Link href={href({ makeable: false })} className="chip chip-active">🫙 棚で作れる ✕</Link>
+          )}
           {q && <span className="chip">「{q}」</span>}
         </div>
       )}
@@ -174,11 +186,16 @@ export default async function Home({
         </div>
       ) : (
         <div className="card mt-6 p-12 text-center">
-          <p className="text-lg" style={{ fontWeight: 700 }}>この気分のミックスはまだありません</p>
+          <p className="text-lg" style={{ fontWeight: 700 }}>
+            {makeableOnly ? '棚のフレーバーで作れるミックスがありません' : 'この気分のミックスはまだありません'}
+          </p>
           <p className="mt-2 text-sm" style={{ color: 'var(--color-ash)' }}>
-            {hasFilters ? '条件をゆるめるか、' : ''}この組み合わせの作り方を、あなたが最初に投稿しませんか？
+            {makeableOnly
+              ? 'マイ棚に持っているフレーバーを追加すると、作れるミックスが増えます。'
+              : `${hasFilters ? '条件をゆるめるか、' : ''}この組み合わせの作り方を、あなたが最初に投稿しませんか？`}
           </p>
           <div className="mt-5 flex justify-center gap-3">
+            {makeableOnly && <Link href="/shelf" className="btn btn-ghost">🫙 マイ棚を編集</Link>}
             {hasFilters && <Link href="/" className="btn btn-ghost">条件をクリア</Link>}
             <Link href="/post" className="btn btn-ember">＋ ミックスを投稿</Link>
           </div>

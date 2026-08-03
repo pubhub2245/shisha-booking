@@ -4,10 +4,14 @@
 
 type FlavorLike = { brand: string | null; name: string }
 
-function normFlavor(brand: string | null, name: string): string {
+export function flavorKey(brand: string | null, name: string): string {
   const b = (brand ?? '').trim()
   const n = name.trim()
   return `${b}|${n}`.toLowerCase()
+}
+
+function normFlavor(brand: string | null, name: string): string {
+  return flavorKey(brand, name)
 }
 
 /** フレーバー集合から combo_key を生成（DB のバックフィルSQLと一致させる） */

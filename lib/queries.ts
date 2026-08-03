@@ -1,5 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
-import { comboKey, comboSlug, comboKeyFromSlug } from '@/lib/combo'
+import { comboKey, comboSlug, comboKeyFromSlug, flavorKey } from '@/lib/combo'
 import { mixQuality, mixCompleteness } from '@/lib/quality'
 import type {
   MixWithRelations,
@@ -20,6 +20,40 @@ export type FeedOptions = {
   tags?: string[]
   strength?: 'light' | 'medium' | 'strong'
   q?: string
+  makeableOnly?: boolean
+}
+
+/** マイ棚に入れている flavor_id 集合（UIのトグル状態用） */
+export async function getMyShelfFlavorIds(): Promise<Set<string>> {
+  try {
+    const supabase = await createClient()
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+    if (!user) return new Set()
+    const { data } = await supabase.from('shelf').select('flavor_id').eq('user_id', user.id)
+    return new Set((data ?? []).map((r) => r.flavor_id as string))
+  } catch {
+    return new Set()
+  }
+}
+
+/** 所持フレーバーの正規化キー集合（brand|name）— 作れる判定用 */
+export async function getOwnedFlavorKeys(): Promise<Set<string>> {
+  try {
+    const supabase = await createClient()
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+    if (!user) return new Set()
+    const { data: sh } = await supabase.from('shelf').select('flavor_id').eq('user_id', user.id)
+    const ids = (sh ?? []).map((r) => r.flavor_id as string)
+    if (ids.length === 0) return new Set()
+    const { data: fl } = await supabase.from('flavors').select('brand, name').in('id', ids)
+    return new Set((fl ?? []).map((f) => flavorKey(f.brand as string, f.name as string)))
+  } catch {
+    return new Set()
+  }
 }
 
 /**
@@ -99,9 +133,19 @@ export async function getMixes(opts: FeedOptions = {}): Promise<MixWithRelations
   }
 }
 
+/** そのミックスが所持フレーバーだけで作れるか（brand|name がすべて棚にある） */
+function isMakeable(mix: MixWithRelations, owned: Set<string>): boolean {
+  const flavors = mix.mix_flavors ?? []
+  if (flavors.length === 0) return false
+  return flavors.every((f) => owned.has(flavorKey(f.brand, f.name)))
+}
+
 /** フィード用：ミックス（作り方）を Combo（組み合わせ）単位にまとめる */
 export async function getCombos(opts: FeedOptions = {}): Promise<ComboSummary[]> {
   const mixes = await getMixes(opts)
+  // 「作れるものだけ」指定時は所持フレーバー集合を取得
+  const owned = opts.makeableOnly ? await getOwnedFlavorKeys() : null
+
   const groups = new Map<string, MixWithRelations[]>()
   for (const m of mixes) {
     const key = m.combo_key || comboKey(m.mix_flavors ?? [])
@@ -112,6 +156,11 @@ export async function getCombos(opts: FeedOptions = {}): Promise<ComboSummary[]>
 
   const combos: ComboSummary[] = []
   for (const [key, methods] of groups) {
+    // 「作れるものだけ」：どれか1つでも所持フレーバーで作れる作り方があるコンボのみ
+    if (owned) {
+      if (owned.size === 0) continue
+      if (!methods.some((m) => isMakeable(m, owned))) continue
+    }
     // 作り込み度を主・いいねを従に、詳しく書かれた作り方を定番（代表）にする
     methods.sort((a, b) => mixQuality(b) - mixQuality(a) || (a.created_at < b.created_at ? 1 : -1))
     const top = methods[0]

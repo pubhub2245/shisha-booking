@@ -1,9 +1,10 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
-import { getFlavorById, getMixesUsingFlavor, getLikedMixIds } from '@/lib/queries'
+import { getFlavorById, getMixesUsingFlavor, getLikedMixIds, getMyShelfFlavorIds } from '@/lib/queries'
 import { getCurrentUser } from '@/lib/auth'
 import { MixCard } from '@/components/mix-card'
+import { ShelfButton } from '@/components/shelf-button'
 import { withAffiliateTag } from '@/lib/affiliate'
 
 export const dynamic = 'force-dynamic'
@@ -27,10 +28,11 @@ export default async function FlavorDetail({ params }: { params: Promise<{ id: s
   const flavor = await getFlavorById(id)
   if (!flavor) notFound()
 
-  const [mixes, likedIds, user] = await Promise.all([
+  const [mixes, likedIds, user, shelfIds] = await Promise.all([
     getMixesUsingFlavor(flavor),
     getLikedMixIds(),
     getCurrentUser(),
+    getMyShelfFlavorIds(),
   ])
   const buyUrl = withAffiliateTag(flavor.affiliate_url)
 
@@ -45,11 +47,19 @@ export default async function FlavorDetail({ params }: { params: Promise<{ id: s
           <div className="text-xs" style={{ color: 'var(--color-ash-dim)' }}>{flavor.brand}</div>
           <h1 className="text-2xl" style={{ fontWeight: 800 }}>{flavor.name}</h1>
         </div>
-        {buyUrl && (
-          <a href={buyUrl} target="_blank" rel="noopener noreferrer sponsored" className="btn btn-ember self-start">
-            このフレーバーを購入する
-          </a>
-        )}
+        <div className="flex flex-wrap items-center gap-2">
+          <ShelfButton
+            flavorId={flavor.id}
+            initialOwned={shelfIds.has(flavor.id)}
+            isAuthed={!!user}
+            nextPath={`/flavor/${flavor.id}`}
+          />
+          {buyUrl && (
+            <a href={buyUrl} target="_blank" rel="noopener noreferrer sponsored" className="btn btn-ember">
+              このフレーバーを購入する
+            </a>
+          )}
+        </div>
       </div>
 
       <h2 className="mb-4 mt-8 text-lg" style={{ fontWeight: 700 }}>
