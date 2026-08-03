@@ -94,9 +94,10 @@ export default async function ProfilePage({ params }: { params: Promise<{ userna
           <span><b>{counts.following}</b> <span style={{ color: 'var(--color-ash-dim)' }}>フォロー中</span></span>
         </div>
 
-        {profile.is_shop && (profile.shop_area || profile.shop_url) && (
+        {profile.is_shop && (
           <div className="mt-4 flex flex-wrap items-center gap-3 border-t pt-4 text-sm" style={{ borderColor: 'var(--line)' }}>
             {profile.shop_area && <span style={{ color: 'var(--color-ash)' }}>📍 {profile.shop_area}</span>}
+            <Link href={`/s/${profile.username}`} className="btn btn-ember text-sm">🍃 店頭メニューを見る</Link>
             {profile.shop_url && (
               <a href={profile.shop_url} target="_blank" rel="noopener noreferrer" className="btn btn-ghost text-sm">
                 お店のリンク →

@@ -63,6 +63,11 @@ export default async function MyPage() {
           <h1 className="mt-2 text-3xl" style={{ fontWeight: 800 }}>マイページ</h1>
         </div>
         <div className="flex flex-col items-end gap-2">
+          {user.profile?.is_shop && (
+            <Link href="/shop/inventory" className="btn btn-ember text-sm">
+              🏠 在庫棚を管理
+            </Link>
+          )}
           <Link href="/shelf" className="btn btn-ghost text-sm">
             🫙 マイ棚
           </Link>

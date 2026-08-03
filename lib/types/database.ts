@@ -120,6 +120,13 @@ export type Shelf = {
   created_at: string
 }
 
+/** 店舗の在庫棚（公開）。shop_id = 店アカウントの profiles.id */
+export type ShopFlavor = {
+  shop_id: string
+  flavor_id: string
+  created_at: string
+}
+
 // join した表示用
 export type MixAuthor = Pick<
   Profile,
@@ -167,6 +174,7 @@ export type Database = {
       follows: Tbl<Follow>
       pro_applications: Tbl<ProApplication>
       shelf: Tbl<Shelf>
+      shop_flavors: Tbl<ShopFlavor>
     }
     Views: Record<string, never>
     Functions: {

@@ -1,10 +1,17 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
-import { getFlavorById, getMixesUsingFlavor, getLikedMixIds, getMyShelfFlavorIds } from '@/lib/queries'
+import {
+  getFlavorById,
+  getMixesUsingFlavor,
+  getLikedMixIds,
+  getMyShelfFlavorIds,
+  getShopsWithFlavor,
+} from '@/lib/queries'
 import { getCurrentUser } from '@/lib/auth'
 import { MixCard } from '@/components/mix-card'
 import { ShelfButton } from '@/components/shelf-button'
+import { VerifiedBadge } from '@/components/verified-badge'
 import { withAffiliateTag } from '@/lib/affiliate'
 
 export const dynamic = 'force-dynamic'
@@ -28,11 +35,12 @@ export default async function FlavorDetail({ params }: { params: Promise<{ id: s
   const flavor = await getFlavorById(id)
   if (!flavor) notFound()
 
-  const [mixes, likedIds, user, shelfIds] = await Promise.all([
+  const [mixes, likedIds, user, shelfIds, shops] = await Promise.all([
     getMixesUsingFlavor(flavor),
     getLikedMixIds(),
     getCurrentUser(),
     getMyShelfFlavorIds(),
+    getShopsWithFlavor(flavor),
   ])
   const buyUrl = withAffiliateTag(flavor.affiliate_url)
 
@@ -61,6 +69,33 @@ export default async function FlavorDetail({ params }: { params: Promise<{ id: s
           )}
         </div>
       </div>
+
+      {/* ---------- 取り扱い店舗（来店誘導） ---------- */}
+      {shops.length > 0 && (
+        <section className="mt-8">
+          <h2 className="mb-3 text-lg" style={{ fontWeight: 700 }}>
+            🏠 このフレーバーがあるお店（{shops.length}）
+          </h2>
+          <div className="grid gap-3 sm:grid-cols-2">
+            {shops.map((s) => (
+              <Link key={s.id} href={`/s/${s.username}`} className="card card-hover flex items-center justify-between gap-3 p-4">
+                <div className="min-w-0">
+                  <div className="flex items-center gap-1.5">
+                    <span className="truncate text-sm" style={{ fontWeight: 700 }}>
+                      {s.shop_name || s.display_name || `@${s.username}`}
+                    </span>
+                    {s.is_pro && <VerifiedBadge size={13} />}
+                  </div>
+                  {s.shop_area && (
+                    <div className="mt-0.5 text-xs" style={{ color: 'var(--color-ash-dim)' }}>📍 {s.shop_area}</div>
+                  )}
+                </div>
+                <span className="shrink-0 text-xs" style={{ color: 'var(--color-ember-hot)', fontWeight: 600 }}>メニュー →</span>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
 
       <h2 className="mb-4 mt-8 text-lg" style={{ fontWeight: 700 }}>
         このフレーバーを使ったミックス（{mixes.length}）

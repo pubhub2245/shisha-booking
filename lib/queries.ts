@@ -56,6 +56,72 @@ export async function getOwnedFlavorKeys(): Promise<Set<string>> {
   }
 }
 
+// ---------- 店舗の在庫棚（shop_flavors） ----------
+
+/** 店の在庫に入っている flavor_id 集合（在庫編集UIのトグル状態用） */
+export async function getShopFlavorIds(shopId: string): Promise<Set<string>> {
+  try {
+    const supabase = await createClient()
+    const { data } = await supabase.from('shop_flavors').select('flavor_id').eq('shop_id', shopId)
+    return new Set((data ?? []).map((r) => r.flavor_id as string))
+  } catch {
+    return new Set()
+  }
+}
+
+/** 店の在庫フレーバー（メニュー表示用の実データ） */
+export async function getShopFlavors(shopId: string): Promise<Flavor[]> {
+  try {
+    const supabase = await createClient()
+    const { data: sf } = await supabase.from('shop_flavors').select('flavor_id').eq('shop_id', shopId)
+    const ids = (sf ?? []).map((r) => r.flavor_id as string)
+    if (ids.length === 0) return []
+    const { data } = await supabase.from('flavors').select('*').in('id', ids).order('brand').order('name')
+    return (data ?? []) as Flavor[]
+  } catch {
+    return []
+  }
+}
+
+/** 店の在庫フレーバーの正規化キー集合（brand|name）— 作れる判定用 */
+export async function getShopOwnedFlavorKeys(shopId: string): Promise<Set<string>> {
+  const flavors = await getShopFlavors(shopId)
+  return new Set(flavors.map((f) => flavorKey(f.brand, f.name)))
+}
+
+/** 店の在庫だけで作れるミックス（店頭メニュー用） */
+export async function getShopMenuCombos(shopId: string): Promise<ComboSummary[]> {
+  const owned = await getShopOwnedFlavorKeys(shopId)
+  if (owned.size === 0) return []
+  const mixes = await getMixes({})
+  return buildCombos(mixes, { sort: 'detailed' }, owned)
+}
+
+/** そのフレーバーを在庫に持つ店舗一覧（来店誘導用） */
+export async function getShopsWithFlavor(flavor: Flavor): Promise<Profile[]> {
+  try {
+    const supabase = await createClient()
+    // flavor_id 一致、または同じ brand+name の別 flavor_id も拾う
+    const { data: sameFlavors } = await supabase
+      .from('flavors')
+      .select('id')
+      .eq('brand', flavor.brand)
+      .eq('name', flavor.name)
+    const flavorIds = [...new Set([flavor.id, ...((sameFlavors ?? []).map((f) => f.id as string))])]
+    const { data: sf } = await supabase.from('shop_flavors').select('shop_id').in('flavor_id', flavorIds)
+    const shopIds = [...new Set((sf ?? []).map((r) => r.shop_id as string))]
+    if (shopIds.length === 0) return []
+    const { data: shops } = await supabase
+      .from('profiles')
+      .select('*')
+      .in('id', shopIds)
+      .eq('is_shop', true)
+    return (shops ?? []) as Profile[]
+  } catch {
+    return []
+  }
+}
+
 /**
  * mixes 行に mix_flavors / author を手動で結合する。
  * PostgREST の埋め込み（author:profiles(...) 等）はスキーマキャッシュに依存して
@@ -140,12 +206,12 @@ function isMakeable(mix: MixWithRelations, owned: Set<string>): boolean {
   return flavors.every((f) => owned.has(flavorKey(f.brand, f.name)))
 }
 
-/** フィード用：ミックス（作り方）を Combo（組み合わせ）単位にまとめる */
-export async function getCombos(opts: FeedOptions = {}): Promise<ComboSummary[]> {
-  const mixes = await getMixes(opts)
-  // 「作れるものだけ」指定時は所持フレーバー集合を取得
-  const owned = opts.makeableOnly ? await getOwnedFlavorKeys() : null
-
+/** ミックス群を Combo（組み合わせ）単位に束ねる共通処理。owned が渡ると作れるものだけに絞る。 */
+function buildCombos(
+  mixes: MixWithRelations[],
+  opts: FeedOptions,
+  owned: Set<string> | null
+): ComboSummary[] {
   const groups = new Map<string, MixWithRelations[]>()
   for (const m of mixes) {
     const key = m.combo_key || comboKey(m.mix_flavors ?? [])
@@ -187,6 +253,14 @@ export async function getCombos(opts: FeedOptions = {}): Promise<ComboSummary[]>
     return a.latest < b.latest ? 1 : -1
   })
   return combos
+}
+
+/** フィード用：ミックス（作り方）を Combo（組み合わせ）単位にまとめる */
+export async function getCombos(opts: FeedOptions = {}): Promise<ComboSummary[]> {
+  const mixes = await getMixes(opts)
+  // 「作れるものだけ」指定時は所持フレーバー集合を取得
+  const owned = opts.makeableOnly ? await getOwnedFlavorKeys() : null
+  return buildCombos(mixes, opts, owned)
 }
 
 /** Combo 詳細：その組み合わせの全ての作り方（Method） */

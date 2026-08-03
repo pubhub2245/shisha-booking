@@ -22,6 +22,18 @@ const benefits: { icon: string; preset: OrbPreset; title: string; body: string }
     title: 'ノウハウが資産に',
     body: '作り方ノートを蓄積。将来的にはレシピ・ノウハウの販売で新たな収益も。',
   },
+  {
+    icon: '🫙',
+    preset: 'green',
+    title: '在庫棚で来店を生む',
+    body: '今ある（吸える）フレーバーを登録。「このお店ならこれが吸える」で、フレーバー検索から来店につながります。',
+  },
+  {
+    icon: '📱',
+    preset: 'amber',
+    title: '店頭QRがメニュー表に',
+    body: 'QRを置くだけで、お客さんはスマホで今日の在庫を閲覧。更新すればそのまま在庫管理にもなります。',
+  },
 ]
 
 export default function ForShops() {
