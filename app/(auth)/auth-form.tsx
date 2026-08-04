@@ -51,6 +51,14 @@ export function AuthForm({ mode, next }: { mode: 'login' | 'signup'; next?: stri
         {pending ? '処理中…' : mode === 'login' ? 'ログイン' : 'アカウントを作成'}
       </button>
 
+      {mode === 'login' && (
+        <p className="-mt-1 text-center text-sm">
+          <Link href="/forgot" style={{ color: 'var(--color-ash-dim)' }}>
+            パスワードをお忘れですか？
+          </Link>
+        </p>
+      )}
+
       <p className="text-center text-sm" style={{ color: 'var(--color-ash)' }}>
         {mode === 'login' ? (
           <>

@@ -9,9 +9,9 @@ export const metadata = { title: 'ログイン — MixHub' }
 export default async function LoginPage({
   searchParams,
 }: {
-  searchParams: Promise<{ next?: string }>
+  searchParams: Promise<{ next?: string; error?: string }>
 }) {
-  const { next } = await searchParams
+  const { next, error } = await searchParams
   const user = await getCurrentUser()
   if (user) redirect(next && next.startsWith('/') ? next : '/')
 
@@ -26,6 +26,11 @@ export default async function LoginPage({
       <p className="mt-2 text-sm" style={{ color: 'var(--color-ash)' }}>
         ログインして、いいね・投稿を始めましょう。
       </p>
+      {error === 'link' && (
+        <div className="mt-6 rounded-xl border px-4 py-3 text-sm" style={{ borderColor: 'var(--color-ember-deep)', background: 'rgb(224 85 42 / 0.10)', color: 'var(--color-ember-hot)' }}>
+          リンクの有効期限が切れているか、既に使用済みです。もう一度お試しください。
+        </div>
+      )}
       <AuthForm mode="login" next={next} />
     </div>
   )
