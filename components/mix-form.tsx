@@ -4,7 +4,8 @@ import { useActionState, useState } from 'react'
 import { createMix, updateMix, type MixFormState } from '@/actions/mixes'
 import type { Strength, Flavor, HeatPoint, HeatEvent } from '@/lib/types/database'
 import { HeatCurveEditor } from '@/components/heat-curve-editor'
-import { HMS_OPTIONS, CHARCOAL_OPTIONS, BOWL_OPTIONS, PACK_OPTIONS } from '@/lib/heat'
+import { CHARCOAL_OPTIONS, BOWL_OPTIONS, PACK_OPTIONS } from '@/lib/heat'
+import { HmsPicker } from '@/components/hms-picker'
 
 export type MixFormInitial = {
   title: string
@@ -182,16 +183,11 @@ export function MixForm({
       {/* 炭・熱源セットアップ */}
       <div className="card flex flex-col gap-4 p-5">
         <div className="text-sm" style={{ fontWeight: 700 }}>炭・熱源セットアップ</div>
+        <div className="field">
+          <label>ヒートマネジメント（HMS）</label>
+          <HmsPicker name="hms_type" defaultValue={initial?.hmsType ?? ''} />
+        </div>
         <div className="grid gap-4 sm:grid-cols-2">
-          <div className="field">
-            <label>ヒートマネジメント</label>
-            <select name="hms_type" defaultValue={initial?.hmsType ?? ''}>
-              <option value="">未設定</option>
-              {HMS_OPTIONS.map((o) => (
-                <option key={o.v} value={o.v}>{o.l}</option>
-              ))}
-            </select>
-          </div>
           <div className="field">
             <label>炭の種類</label>
             <select name="charcoal_type" defaultValue={initial?.charcoalType ?? ''}>
