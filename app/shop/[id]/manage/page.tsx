@@ -12,6 +12,7 @@ import {
 } from '@/lib/queries'
 import { ShopFlavorChip } from '@/components/shop-flavor-chip'
 import { MemberActions } from '@/components/member-actions'
+import { TransferOwnerButton } from '@/components/transfer-owner-button'
 import { VerifiedBadge } from '@/components/verified-badge'
 import { ShopEditForm } from './shop-edit-form'
 import { SITE_URL } from '@/lib/site'
@@ -115,9 +116,14 @@ export default async function ShopManagePage({ params }: { params: Promise<{ id:
         </section>
       )}
 
-      {/* ---------- スタッフ一覧（オーナーは除名可） ---------- */}
+      {/* ---------- スタッフ一覧（オーナーは譲渡・除名可） ---------- */}
       <section className="card mt-8 p-6">
         <h2 className="text-base" style={{ fontWeight: 700 }}>所属スタッフ（{members.length}）</h2>
+        {isOwner && (
+          <p className="mt-1 text-xs" style={{ color: 'var(--color-ash-dim)' }}>
+            承認・在庫編集の管理権限はオーナー1人だけが持ちます。本来のオーナーが加わったら「👑 オーナーを譲渡」で引き継げます。
+          </p>
+        )}
         <ul className="mt-3 flex flex-col gap-2">
           {members.map((m) => (
             <li key={m.user_id} className="flex items-center justify-between gap-3 rounded-xl border p-3" style={{ borderColor: 'var(--line)' }}>
@@ -126,9 +132,19 @@ export default async function ShopManagePage({ params }: { params: Promise<{ id:
                 <Link href={m.user?.username ? `/u/${m.user.username}` : '#'} className="truncate text-sm" style={{ fontWeight: 600 }}>
                   {m.user?.display_name || (m.user?.username ? `@${m.user.username}` : 'スタッフ')}
                 </Link>
+                {m.role === 'owner' && <span className="text-xs" style={{ color: 'var(--color-ash-dim)' }}>オーナー</span>}
                 {m.user?.is_pro && <VerifiedBadge size={13} />}
               </div>
-              {isOwner && m.role !== 'owner' && <MemberActions shopId={shop.id} userId={m.user_id} mode="staff" />}
+              {isOwner && m.role !== 'owner' && (
+                <div className="flex items-center gap-3">
+                  <TransferOwnerButton
+                    shopId={shop.id}
+                    userId={m.user_id}
+                    name={m.user?.display_name || (m.user?.username ? `@${m.user.username}` : 'このスタッフ')}
+                  />
+                  <MemberActions shopId={shop.id} userId={m.user_id} mode="staff" />
+                </div>
+              )}
             </li>
           ))}
         </ul>

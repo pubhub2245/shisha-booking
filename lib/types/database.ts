@@ -235,6 +235,7 @@ export type Database = {
       increment_view: { Args: { p_mix_id: string }; Returns: undefined }
       is_admin: { Args: Record<string, never>; Returns: boolean }
       review_pro_application: { Args: { p_app_id: string; p_approve: boolean }; Returns: undefined }
+      transfer_shop_ownership: { Args: { p_shop_id: string; p_new_owner: string }; Returns: undefined }
     }
     Enums: Record<string, never>
   }
