@@ -48,6 +48,7 @@ export type Flavor = {
   name: string
   affiliate_url: string | null
   image_url: string | null
+  added_by: string | null
   created_at: string
 }
 

@@ -46,7 +46,13 @@ export default async function EditMixPage({ params }: { params: Promise<{ id: st
       <h1 className="mt-4 text-3xl" style={{ fontWeight: 800 }}>
         ミックスを編集
       </h1>
-      <MixForm mode="edit" mixId={id} initial={initial} flavors={flavors} />
+      <MixForm
+        mode="edit"
+        mixId={id}
+        initial={initial}
+        flavors={flavors}
+        canAddFlavor={!!user.profile?.is_pro || !!user.profile?.is_admin}
+      />
     </div>
   )
 }

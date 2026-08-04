@@ -42,11 +42,14 @@ export function MixForm({
   mixId,
   initial,
   flavors,
+  canAddFlavor = false,
 }: {
   mode: 'create' | 'edit'
   mixId?: string
   initial?: MixFormInitial
   flavors: Flavor[]
+  /** プロ認証者（＋管理者）のみ、新しいフレーバーを図鑑に登録できる */
+  canAddFlavor?: boolean
 }) {
   const action0 = mode === 'edit' ? updateMix : createMix
   const [state, action, pending] = useActionState<MixFormState, FormData>(action0, null)
@@ -129,8 +132,15 @@ export function MixForm({
       <div>
         <div className="mb-2 flex items-center justify-between">
           <label className="text-sm" style={{ color: 'var(--color-ash)', fontWeight: 600 }}>使用フレーバー *</label>
-          <span className="text-xs" style={{ color: 'var(--color-ash-dim)' }}>一覧から選択（無ければ新規追加）</span>
+          <span className="text-xs" style={{ color: 'var(--color-ash-dim)' }}>
+            {canAddFlavor ? '一覧から選択（無ければ新規追加）' : '一覧から選択'}
+          </span>
         </div>
+        {!canAddFlavor && (
+          <p className="mb-2 text-xs" style={{ color: 'var(--color-ash-dim)' }}>
+            💡 新しいフレーバーの<b>図鑑への登録はプロ認証者のみ</b>です。一覧に無い場合は「リストにない」で入力すると、この投稿にのみ使われます（図鑑には追加されません）。
+          </p>
+        )}
         <div className="flex flex-col gap-3">
           {rows.map((row, i) => {
             const isNewBrand = row.brand === NEW

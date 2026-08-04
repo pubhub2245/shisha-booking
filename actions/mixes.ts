@@ -102,18 +102,34 @@ function parseHeatSetup(formData: FormData) {
   }
 }
 
-/** 新規フレーバー（flavor_id 無し）をマスタに追加し、id を紐付ける（誤字防止＆図鑑成長） */
+/** ログインユーザーがフレーバーを図鑑に追加できるか（プロ or 管理者） */
+async function canAddFlavor(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  userId: string
+): Promise<boolean> {
+  const { data } = await supabase.from('profiles').select('is_pro, is_admin').eq('id', userId).maybeSingle()
+  return !!data && ((data as { is_pro?: boolean }).is_pro === true || (data as { is_admin?: boolean }).is_admin === true)
+}
+
+/**
+ * 新規フレーバー（flavor_id 無し）を図鑑マスタに追加し、id を紐付ける。
+ * 追加はプロ認証者（＋管理者）のみ。追加者を added_by に記録する。
+ * 非プロが入力した新規フレーバーはマスタ登録されず、その投稿内の自由入力として保存される。
+ */
 async function growFlavorMaster(
   supabase: Awaited<ReturnType<typeof createClient>>,
-  flavors: FlavorInput[]
+  flavors: FlavorInput[],
+  userId: string
 ): Promise<void> {
   const newOnes = flavors.filter((f) => !f.flavor_id && f.name)
   if (newOnes.length === 0) return
+  // プロ／管理者のみ図鑑に追加できる
+  if (!(await canAddFlavor(supabase, userId))) return
   try {
     await supabase
       .from('flavors')
       .upsert(
-        newOnes.map((f) => ({ brand: f.brand || '', name: f.name })),
+        newOnes.map((f) => ({ brand: f.brand || '', name: f.name, added_by: userId })),
         { onConflict: 'brand,name', ignoreDuplicates: true }
       )
     const { data } = await supabase
@@ -159,7 +175,7 @@ export async function createMix(_prev: MixFormState, formData: FormData): Promis
   if (!title) return { error: 'ミックスのタイトルを入力してください。' }
   if (flavors.length < 1) return { error: 'フレーバーを1つ以上追加してください。' }
 
-  await growFlavorMaster(supabase, flavors)
+  await growFlavorMaster(supabase, flavors, user.id)
 
   const { data: mix, error } = await supabase
     .from('mixes')
@@ -238,7 +254,7 @@ export async function updateMix(_prev: MixFormState, formData: FormData): Promis
   if (!title) return { error: 'ミックスのタイトルを入力してください。' }
   if (flavors.length < 1) return { error: 'フレーバーを1つ以上追加してください。' }
 
-  await growFlavorMaster(supabase, flavors)
+  await growFlavorMaster(supabase, flavors, user.id)
 
   const { error } = await supabase
     .from('mixes')

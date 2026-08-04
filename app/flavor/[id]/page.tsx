@@ -7,10 +7,12 @@ import {
   getLikedMixIds,
   getMyShelfFlavorIds,
   getShopsWithFlavor,
+  getFlavorAdder,
 } from '@/lib/queries'
 import { getCurrentUser } from '@/lib/auth'
 import { MixCard } from '@/components/mix-card'
 import { ShelfButton } from '@/components/shelf-button'
+import { VerifiedBadge } from '@/components/verified-badge'
 import { goHref } from '@/lib/go'
 
 export const dynamic = 'force-dynamic'
@@ -34,12 +36,13 @@ export default async function FlavorDetail({ params }: { params: Promise<{ id: s
   const flavor = await getFlavorById(id)
   if (!flavor) notFound()
 
-  const [mixes, likedIds, user, shelfIds, shops] = await Promise.all([
+  const [mixes, likedIds, user, shelfIds, shops, adder] = await Promise.all([
     getMixesUsingFlavor(flavor),
     getLikedMixIds(),
     getCurrentUser(),
     getMyShelfFlavorIds(),
     getShopsWithFlavor(flavor),
+    flavor.added_by ? getFlavorAdder(flavor.added_by) : Promise.resolve(null),
   ])
   const buyUrl = goHref(flavor.affiliate_url, { f: flavor.id })
 
@@ -53,6 +56,21 @@ export default async function FlavorDetail({ params }: { params: Promise<{ id: s
         <div>
           <div className="text-xs" style={{ color: 'var(--color-ash-dim)' }}>{flavor.brand}</div>
           <h1 className="text-2xl" style={{ fontWeight: 800 }}>{flavor.name}</h1>
+          <div className="mt-1 flex items-center gap-1 text-xs" style={{ color: 'var(--color-ash-dim)' }}>
+            <span>追加:</span>
+            {adder ? (
+              <Link
+                href={adder.username ? `/u/${adder.username}` : '#'}
+                className="inline-flex items-center gap-1"
+                style={{ color: 'var(--color-ember-hot)', fontWeight: 600 }}
+              >
+                {adder.display_name || (adder.username ? `@${adder.username}` : 'ユーザー')}
+                {adder.is_pro && <VerifiedBadge size={11} />}
+              </Link>
+            ) : (
+              <span>MixHub 編集部</span>
+            )}
+          </div>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <ShelfButton

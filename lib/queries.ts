@@ -727,6 +727,21 @@ export async function getFlavorById(id: string): Promise<Flavor | null> {
   }
 }
 
+/** フレーバーを図鑑に追加した人（プロ）。added_by が無ければ null（＝運営/初期データ） */
+export async function getFlavorAdder(userId: string): Promise<MixAuthor | null> {
+  try {
+    const supabase = await createClient()
+    const { data } = await supabase
+      .from('profiles')
+      .select('id, username, display_name, is_shop, is_pro, shop_name')
+      .eq('id', userId)
+      .maybeSingle()
+    return (data as MixAuthor) ?? null
+  } catch {
+    return null
+  }
+}
+
 /** そのフレーバーを使っているミックス（flavor_id 一致、または brand+name 一致） */
 export async function getMixesUsingFlavor(flavor: Flavor): Promise<MixWithRelations[]> {
   try {

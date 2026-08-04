@@ -91,7 +91,12 @@ export default async function PostPage({
       <p className="eyebrow">Post a mix</p>
       <h1 className="mt-2 text-3xl" style={{ fontWeight: 800 }}>{heading}</h1>
       <p className="mt-2 text-sm" style={{ color: 'var(--color-ash)' }}>{lead}</p>
-      <MixForm mode="create" initial={initial} flavors={flavors} />
+      <MixForm
+        mode="create"
+        initial={initial}
+        flavors={flavors}
+        canAddFlavor={!!user.profile?.is_pro || !!user.profile?.is_admin}
+      />
     </div>
   )
 }
