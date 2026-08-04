@@ -25,7 +25,15 @@ export type MixFormInitial = {
   flavors: { flavorId: string; name: string; brand: string; ratio: string; url: string }[]
 }
 
-type Row = { id: number; flavorId: string; newBrand: string; newName: string; ratio: string; url: string }
+type Row = {
+  id: number
+  brand: string // 選択中のブランド（NEW=新しいブランド）
+  flavorId: string // 選択中の味（マスタのid、NEW=新しい味、''=未選択）
+  newBrand: string
+  newName: string
+  ratio: string
+  url: string
+}
 
 const NEW = '__new__'
 
@@ -45,28 +53,52 @@ export function MixForm({
 
   const masterById = new Map(flavors.map((f) => [f.id, f]))
 
+  // ブランド一覧（重複なし・五十音/アルファベット順）と、ブランドごとの味一覧。
+  const brands = Array.from(new Set(flavors.map((f) => f.brand))).sort((a, b) =>
+    a.localeCompare(b, 'ja')
+  )
+  const flavorsByBrand = new Map<string, Flavor[]>()
+  for (const f of flavors) {
+    const arr = flavorsByBrand.get(f.brand) ?? []
+    arr.push(f)
+    flavorsByBrand.set(f.brand, arr)
+  }
+
+  const emptyRow = (id: number): Row => ({
+    id,
+    brand: '',
+    flavorId: '',
+    newBrand: '',
+    newName: '',
+    ratio: '',
+    url: '',
+  })
+
   const seed: Row[] =
     initial && initial.flavors.length > 0
       ? initial.flavors.map((f, i) => {
-          const useMaster = f.flavorId && masterById.has(f.flavorId)
+          const master = f.flavorId ? masterById.get(f.flavorId) : undefined
+          if (master) {
+            return { id: i + 1, brand: master.brand, flavorId: f.flavorId, newBrand: '', newName: '', ratio: f.ratio, url: f.url }
+          }
+          // マスタに無い（旧データ・自由入力）。既知ブランドなら味だけ新規、未知ならブランドも新規。
+          const knownBrand = f.brand && brands.includes(f.brand)
           return {
             id: i + 1,
-            flavorId: useMaster ? f.flavorId : f.name ? NEW : '',
-            newBrand: useMaster ? '' : f.brand,
-            newName: useMaster ? '' : f.name,
+            brand: knownBrand ? f.brand : f.brand || f.name ? NEW : '',
+            flavorId: f.name ? NEW : '',
+            newBrand: knownBrand ? '' : f.brand,
+            newName: f.name,
             ratio: f.ratio,
             url: f.url,
           }
         })
-      : [
-          { id: 1, flavorId: '', newBrand: '', newName: '', ratio: '', url: '' },
-          { id: 2, flavorId: '', newBrand: '', newName: '', ratio: '', url: '' },
-        ]
+      : [emptyRow(1), emptyRow(2)]
   const [rows, setRows] = useState<Row[]>(seed)
   const [nextId, setNextId] = useState(seed.length + 1)
 
   function addRow() {
-    setRows((r) => [...r, { id: nextId, flavorId: '', newBrand: '', newName: '', ratio: '', url: '' }])
+    setRows((r) => [...r, emptyRow(nextId)])
     setNextId((n) => n + 1)
   }
   function removeRow(id: number) {
@@ -101,10 +133,14 @@ export function MixForm({
         </div>
         <div className="flex flex-col gap-3">
           {rows.map((row, i) => {
-            const master = masterById.get(row.flavorId)
-            const isNew = row.flavorId === NEW
-            const brand = isNew ? row.newBrand : master?.brand ?? ''
-            const name = isNew ? row.newName : master?.name ?? ''
+            const isNewBrand = row.brand === NEW
+            const isNewName = row.flavorId === NEW
+            const master = !isNewName && row.flavorId ? masterById.get(row.flavorId) : undefined
+            const brandFlavors = !isNewBrand && row.brand ? flavorsByBrand.get(row.brand) ?? [] : []
+            // submit する実際の値（ブランド／味／マスタid）を決める。
+            const submitBrand = isNewBrand ? row.newBrand : row.brand
+            const submitName = master ? master.name : isNewName ? row.newName : ''
+            const submitId = master ? master.id : ''
             return (
               <div key={row.id} className="card p-4">
                 <div className="mb-2 flex items-center justify-between">
@@ -112,32 +148,71 @@ export function MixForm({
                   <button type="button" onClick={() => removeRow(row.id)} className="text-xs" style={{ color: 'var(--color-ash-dim)' }}>削除</button>
                 </div>
 
-                {/* submit 用の hidden（マスタ由来 or 新規入力を反映） */}
-                <input type="hidden" name="flavor_id" value={isNew ? '' : row.flavorId} />
-                <input type="hidden" name="flavor_brand" value={brand} />
-                <input type="hidden" name="flavor_name" value={name} />
+                {/* submit 用の hidden（メーカー＋味の選択、または新規入力を反映） */}
+                <input type="hidden" name="flavor_id" value={submitId} />
+                <input type="hidden" name="flavor_brand" value={submitBrand} />
+                <input type="hidden" name="flavor_name" value={submitName} />
 
-                <div className="field">
-                  <select
-                    value={row.flavorId}
-                    onChange={(e) => update(row.id, { flavorId: e.target.value })}
-                  >
-                    <option value="">選択してください</option>
-                    {flavors.map((f) => (
-                      <option key={f.id} value={f.id}>{f.brand} ｜ {f.name}</option>
-                    ))}
-                    <option value={NEW}>リストにない（新規追加）</option>
-                  </select>
+                {/* メーカー（ブランド）を先に選ぶ → 味が絞り込まれる（プルダウンが長くなりすぎない） */}
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <div className="field">
+                    <label className="text-xs" style={{ color: 'var(--color-ash-dim)' }}>メーカー</label>
+                    <select
+                      value={row.brand}
+                      onChange={(e) =>
+                        // ブランドを変えたら、味の選択はリセットする。
+                        update(row.id, { brand: e.target.value, flavorId: '', newName: '' })
+                      }
+                    >
+                      <option value="">選択してください</option>
+                      {brands.map((b) => (
+                        <option key={b} value={b}>{b}</option>
+                      ))}
+                      <option value={NEW}>リストにない（新規追加）</option>
+                    </select>
+                  </div>
+
+                  <div className="field">
+                    <label className="text-xs" style={{ color: 'var(--color-ash-dim)' }}>味</label>
+                    {isNewBrand ? (
+                      <input
+                        value={row.newName}
+                        onChange={(e) => update(row.id, { newName: e.target.value })}
+                        placeholder="フレーバー名（例：ダブルアップル）"
+                      />
+                    ) : (
+                      <select
+                        value={row.flavorId}
+                        disabled={!row.brand}
+                        onChange={(e) => update(row.id, { flavorId: e.target.value, newName: '' })}
+                      >
+                        <option value="">{row.brand ? '選択してください' : '先にメーカーを選択'}</option>
+                        {brandFlavors.map((f) => (
+                          <option key={f.id} value={f.id}>{f.name}</option>
+                        ))}
+                        <option value={NEW}>リストにない（新規追加）</option>
+                      </select>
+                    )}
+                  </div>
                 </div>
 
-                {isNew && (
-                  <div className="mt-3 grid gap-3 sm:grid-cols-2">
-                    <div className="field">
-                      <input value={row.newBrand} onChange={(e) => update(row.id, { newBrand: e.target.value })} placeholder="ブランド（例：AL FAKHER）" />
-                    </div>
-                    <div className="field">
-                      <input value={row.newName} onChange={(e) => update(row.id, { newName: e.target.value })} placeholder="フレーバー名（例：ダブルアップル）" />
-                    </div>
+                {/* 新規追加の入力欄（ブランド新規、または既知ブランドで味だけ新規） */}
+                {isNewBrand && (
+                  <div className="mt-3 field">
+                    <input
+                      value={row.newBrand}
+                      onChange={(e) => update(row.id, { newBrand: e.target.value })}
+                      placeholder="メーカー名（例：AL FAKHER）"
+                    />
+                  </div>
+                )}
+                {!isNewBrand && isNewName && (
+                  <div className="mt-3 field">
+                    <input
+                      value={row.newName}
+                      onChange={(e) => update(row.id, { newName: e.target.value })}
+                      placeholder="フレーバー名（例：ダブルアップル）"
+                    />
                   </div>
                 )}
 
