@@ -5,6 +5,7 @@ import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import type { Strength, HeatPoint, HeatEvent } from '@/lib/types/database'
 import { comboKey } from '@/lib/combo'
+import { normalizePrice, LOCKABLE_SECTIONS } from '@/lib/premium'
 
 const HEAT_EVENT_TYPES = ['add', 'remove', 'ash', 'rotate', 'other']
 
@@ -147,6 +148,21 @@ async function growFlavorMaster(
   }
 }
 
+/** 有料ノート設定を解釈（プロ／管理者のみ有効）。 */
+async function parsePremium(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  userId: string,
+  formData: FormData
+): Promise<{ premium: boolean; price: number | null; locked_sections: string[] }> {
+  const validSections = LOCKABLE_SECTIONS.map((s) => s.v) as string[]
+  const requested = formData.get('premium') === 'on'
+  const locked = formData.getAll('locked_sections').map(String).filter((v) => validSections.includes(v))
+  if (!requested || locked.length === 0) return { premium: false, price: null, locked_sections: [] }
+  // プロ／管理者のみ有料化できる
+  if (!(await canAddFlavor(supabase, userId))) return { premium: false, price: null, locked_sections: [] }
+  return { premium: true, price: normalizePrice(formData.get('price')), locked_sections: locked }
+}
+
 export async function createMix(_prev: MixFormState, formData: FormData): Promise<MixFormState> {
   const supabase = await createClient()
   const {
@@ -176,6 +192,7 @@ export async function createMix(_prev: MixFormState, formData: FormData): Promis
   if (flavors.length < 1) return { error: 'フレーバーを1つ以上追加してください。' }
 
   await growFlavorMaster(supabase, flavors, user.id)
+  const premiumFields = await parsePremium(supabase, user.id, formData)
 
   const { data: mix, error } = await supabase
     .from('mixes')
@@ -191,6 +208,7 @@ export async function createMix(_prev: MixFormState, formData: FormData): Promis
       ...heatSetup,
       placement_note: placement,
       combo_key: comboKey(flavors),
+      ...premiumFields,
     })
     .select('id')
     .single()
@@ -255,10 +273,11 @@ export async function updateMix(_prev: MixFormState, formData: FormData): Promis
   if (flavors.length < 1) return { error: 'フレーバーを1つ以上追加してください。' }
 
   await growFlavorMaster(supabase, flavors, user.id)
+  const premiumFields = await parsePremium(supabase, user.id, formData)
 
   const { error } = await supabase
     .from('mixes')
-    .update({ title, description, taste_tags: tasteTags, strength, heat_management: heat, heat_curve: heatCurve, heat_events: heatEvents, ...heatSetup, placement_note: placement, combo_key: comboKey(flavors) })
+    .update({ title, description, taste_tags: tasteTags, strength, heat_management: heat, heat_curve: heatCurve, heat_events: heatEvents, ...heatSetup, placement_note: placement, combo_key: comboKey(flavors), ...premiumFields })
     .eq('id', mixId)
   if (error) {
     console.error('[updateMix]', error.message)

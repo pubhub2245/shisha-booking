@@ -72,6 +72,16 @@ export type Mix = {
   like_count: number
   view_count: number
   combo_key: string
+  premium: boolean
+  price: number | null
+  locked_sections: string[]
+  created_at: string
+}
+
+/** 有料ノートの解錠記録 */
+export type MixUnlock = {
+  mix_id: string
+  user_id: string
   created_at: string
 }
 
@@ -229,6 +239,7 @@ export type Database = {
       shop_members: Tbl<ShopMember>
       shop_flavors: Tbl<ShopFlavor>
       link_clicks: Tbl<LinkClick>
+      mix_unlocks: Tbl<MixUnlock>
     }
     Views: Record<string, never>
     Functions: {

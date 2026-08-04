@@ -5,6 +5,7 @@ import { createMix, updateMix, type MixFormState } from '@/actions/mixes'
 import type { Strength, Flavor, HeatPoint, HeatEvent } from '@/lib/types/database'
 import { HeatCurveEditor } from '@/components/heat-curve-editor'
 import { CHARCOAL_OPTIONS, BOWL_OPTIONS, PACK_OPTIONS } from '@/lib/heat'
+import { LOCKABLE_SECTIONS } from '@/lib/premium'
 import { HmsPicker } from '@/components/hms-picker'
 
 export type MixFormInitial = {
@@ -22,6 +23,9 @@ export type MixFormInitial = {
   bowlType: string
   packStyle: string
   placement: string
+  premium: boolean
+  price: string
+  lockedSections: string[]
   flavors: { flavorId: string; name: string; brand: string; ratio: string; url: string }[]
 }
 
@@ -43,6 +47,7 @@ export function MixForm({
   initial,
   flavors,
   canAddFlavor = false,
+  canSell = false,
 }: {
   mode: 'create' | 'edit'
   mixId?: string
@@ -50,9 +55,12 @@ export function MixForm({
   flavors: Flavor[]
   /** プロ認証者（＋管理者）のみ、新しいフレーバーを図鑑に登録できる */
   canAddFlavor?: boolean
+  /** プロ認証者（＋管理者）のみ、一部を有料ノートにできる */
+  canSell?: boolean
 }) {
   const action0 = mode === 'edit' ? updateMix : createMix
   const [state, action, pending] = useActionState<MixFormState, FormData>(action0, null)
+  const [premium, setPremium] = useState(initial?.premium ?? false)
 
   const masterById = new Map(flavors.map((f) => [f.id, f]))
 
@@ -330,6 +338,54 @@ export function MixForm({
         <label>🍃 フレーバーの置き方</label>
         <textarea name="placement_note" defaultValue={initial?.placement} placeholder="例：ダブルアップルを底に厚め、ミントは表面に薄く散らす。" maxLength={600} />
       </div>
+
+      {/* 有料ノート（プロ認証者のみ） */}
+      {canSell && (
+        <>
+          <div className="divider" />
+          <div className="card flex flex-col gap-3 p-5">
+            <label className="flex cursor-pointer items-center gap-3">
+              <input type="checkbox" name="premium" checked={premium} onChange={(e) => setPremium(e.target.checked)} />
+              <span style={{ fontWeight: 700 }}>💎 一部を有料ノートにする</span>
+            </label>
+            <p className="text-xs" style={{ color: 'var(--color-ash-dim)' }}>
+              こだわりの熱管理などを、購入した人だけが見られるようにできます（プロ認証者のみ）。
+            </p>
+            {premium && (
+              <div className="flex flex-col gap-3">
+                <div className="field" style={{ maxWidth: 200 }}>
+                  <label>価格（円）</label>
+                  <input
+                    name="price"
+                    inputMode="numeric"
+                    defaultValue={initial?.price || '300'}
+                    placeholder="300"
+                  />
+                </div>
+                <div>
+                  <div className="mb-1 text-xs" style={{ color: 'var(--color-ash)', fontWeight: 600 }}>有料にするパーツ</div>
+                  <div className="flex flex-col gap-1.5">
+                    {LOCKABLE_SECTIONS.map((s) => (
+                      <label key={s.v} className="flex cursor-pointer items-center gap-2 text-sm">
+                        <input
+                          type="checkbox"
+                          name="locked_sections"
+                          value={s.v}
+                          defaultChecked={(initial?.lockedSections ?? ['heat_curve']).includes(s.v)}
+                        />
+                        <span>{s.icon} {s.l}</span>
+                      </label>
+                    ))}
+                  </div>
+                  <p className="mt-1 text-xs" style={{ color: 'var(--color-ash-dim)' }}>
+                    ※ 決済機能は近日対応予定。今は「ロック表示」までが有効になります。
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
+        </>
+      )}
 
       <button type="submit" disabled={pending} className="btn btn-ember self-start">
         {pending ? '保存中…' : mode === 'edit' ? '変更を保存する' : 'ミックスを投稿する'}

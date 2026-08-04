@@ -55,6 +55,9 @@ export default async function PostPage({
         bowlType: base.bowl_type ?? '',
         packStyle: base.pack_style ?? '',
         placement: base.placement_note ?? '',
+        premium: false,
+        price: '',
+        lockedSections: [],
         flavors: mapFlavors(base, true),
       }
     }
@@ -81,6 +84,9 @@ export default async function PostPage({
         bowlType: '',
         packStyle: '',
         placement: '',
+        premium: false,
+        price: '',
+        lockedSections: [],
         flavors: mapFlavors(combo.methods[0], false),
       }
     }
@@ -96,6 +102,7 @@ export default async function PostPage({
         initial={initial}
         flavors={flavors}
         canAddFlavor={!!user.profile?.is_pro || !!user.profile?.is_admin}
+        canSell={!!user.profile?.is_pro || !!user.profile?.is_admin}
       />
     </div>
   )

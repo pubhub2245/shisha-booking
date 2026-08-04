@@ -7,6 +7,7 @@ import {
   getBookmarkedMixIds,
   getMixComments,
   getRelatedMixes,
+  isMixUnlocked,
 } from '@/lib/queries'
 import { getCurrentUser } from '@/lib/auth'
 import { LikeButton } from '@/components/like-button'
@@ -22,6 +23,7 @@ import { CompletenessMeter } from '@/components/completeness'
 import { relativeTime } from '@/lib/time'
 import { CommentForm } from '@/components/comment-form'
 import { ViewTracker } from '@/components/view-tracker'
+import { LockedNote } from '@/components/locked-note'
 import { MixCard } from '@/components/mix-card'
 import { deleteMix } from '@/actions/mixes'
 import { deleteComment } from '@/actions/social'
@@ -73,12 +75,13 @@ export async function generateMetadata({
 
 export default async function MixDetail({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
-  const [mix, likedIds, bookmarkedIds, user, comments] = await Promise.all([
+  const [mix, likedIds, bookmarkedIds, user, comments, unlocked] = await Promise.all([
     getMixById(id),
     getLikedMixIds(),
     getBookmarkedMixIds(),
     getCurrentUser(),
     getMixComments(id),
+    isMixUnlocked(id),
   ])
   if (!mix) notFound()
   const related = await getRelatedMixes(mix as MixWithRelations)
@@ -86,6 +89,11 @@ export default async function MixDetail({ params }: { params: Promise<{ id: stri
   const flavors = mix.mix_flavors ?? []
   const isOwner = !!user && user.id === mix.author_id
   const isSample = mix.author_id === null
+
+  // 有料ノート：閲覧権があるか（投稿者本人／管理者／解錠済み）
+  const entitled = isOwner || !!user?.profile?.is_admin || unlocked
+  const locked = (section: string) =>
+    mix.premium && (mix.locked_sections ?? []).includes(section) && !entitled
 
   const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://shisha-booking.vercel.app'
   const flavorLine = flavors.map((f) => f.name).join(' × ')
@@ -135,6 +143,13 @@ export default async function MixDetail({ params }: { params: Promise<{ id: stri
         <h1 className="text-3xl leading-tight sm:text-4xl" style={{ fontWeight: 800 }}>
           {mix.title}
         </h1>
+        {mix.premium && (mix.locked_sections ?? []).length > 0 && (
+          <div className="mt-2 inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs"
+            style={{ background: 'var(--accent-tint)', color: 'var(--color-ember-hot)', fontWeight: 700 }}>
+            💎 有料ノート{mix.price != null ? ` ¥${mix.price}` : ''}
+            {entitled && <span style={{ color: 'var(--color-ash-dim)', fontWeight: 400 }}>・解錠済み</span>}
+          </div>
+        )}
 
         <Link
           href={`/combo/${comboSlug(mix.combo_key || comboKey(flavors))}`}
@@ -247,7 +262,12 @@ export default async function MixDetail({ params }: { params: Promise<{ id: stri
         <section className="mt-8">
           <h2 className="mb-3 text-sm eyebrow">How to make — 作り方ノート</h2>
 
-          {(mix.hms_type || mix.charcoal_type || mix.charcoal_count != null || mix.wind_cover != null || mix.bowl_type || mix.pack_style) && (
+          {(mix.hms_type || mix.charcoal_type || mix.charcoal_count != null || mix.wind_cover != null || mix.bowl_type || mix.pack_style) &&
+            (locked('setup') ? (
+              <div className="mb-4">
+                <LockedNote mixId={mix.id} title="セットアップ" icon="🪨" price={mix.price} isAuthed={!!user} />
+              </div>
+            ) : (
             <div className="card mb-4 p-5">
               <div className="mb-3 text-sm" style={{ fontWeight: 700 }}>🪨 セットアップ</div>
               {hmsOption(mix.hms_type) && (
@@ -286,9 +306,14 @@ export default async function MixDetail({ params }: { params: Promise<{ id: stri
                   ))}
               </dl>
             </div>
-          )}
+            ))}
 
-          {((mix.heat_curve && mix.heat_curve.length >= 2) || mix.heat_events) && (
+          {((mix.heat_curve && mix.heat_curve.length >= 2) || mix.heat_events) &&
+            (locked('heat_curve') ? (
+              <div className="mb-4">
+                <LockedNote mixId={mix.id} title="熱管理カーブ" icon="🔥" price={mix.price} isAuthed={!!user} />
+              </div>
+            ) : (
             <div className="card mb-4 p-5">
               <div className="mb-1 text-sm" style={{ fontWeight: 700 }}>🔥 熱管理カーブ</div>
               <p className="mb-3 text-xs" style={{ color: 'var(--color-ash-dim)' }}>
@@ -296,8 +321,12 @@ export default async function MixDetail({ params }: { params: Promise<{ id: stri
               </p>
               <HeatCurveChart points={mix.heat_curve ?? undefined} events={mix.heat_events ?? undefined} />
             </div>
-          )}
+            ))}
 
+          {(mix.heat_management || mix.placement_note) &&
+            (locked('heat_notes') ? (
+              <LockedNote mixId={mix.id} title="熱管理の補足・置き方" icon="📝" price={mix.price} isAuthed={!!user} />
+            ) : (
           <div className="grid gap-4 sm:grid-cols-2">
             {mix.heat_management && (
               <div className="card p-5">
@@ -316,6 +345,7 @@ export default async function MixDetail({ params }: { params: Promise<{ id: stri
               </div>
             )}
           </div>
+            ))}
         </section>
       )}
 

@@ -29,6 +29,9 @@ export default async function EditMixPage({ params }: { params: Promise<{ id: st
     bowlType: mix.bowl_type ?? '',
     packStyle: mix.pack_style ?? '',
     placement: mix.placement_note ?? '',
+    premium: mix.premium,
+    price: mix.price != null ? String(mix.price) : '',
+    lockedSections: mix.locked_sections ?? [],
     flavors: (mix.mix_flavors ?? []).map((f) => ({
       flavorId: f.flavor_id ?? '',
       name: f.name,
@@ -52,6 +55,7 @@ export default async function EditMixPage({ params }: { params: Promise<{ id: st
         initial={initial}
         flavors={flavors}
         canAddFlavor={!!user.profile?.is_pro || !!user.profile?.is_admin}
+        canSell={!!user.profile?.is_pro || !!user.profile?.is_admin}
       />
     </div>
   )
