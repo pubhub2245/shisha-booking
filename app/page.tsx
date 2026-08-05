@@ -3,7 +3,6 @@ import { getCombos, getTasteTags, getFlavors } from '@/lib/queries'
 import { getCurrentUser } from '@/lib/auth'
 import { ComboCard } from '@/components/combo-card'
 import { IconOrb } from '@/components/icon-orb'
-import { OnboardingHint } from '@/components/onboarding-hint'
 
 export const dynamic = 'force-dynamic'
 
@@ -65,68 +64,72 @@ export default async function Home({
     href({ tags: activeTags.includes(t) ? activeTags.filter((x) => x !== t) : [...activeTags, t] })
   const toggleStrength = (v: Strength) => href({ strength: strength === v ? undefined : v })
   const otherTags = allTags.filter((t) => !MOOD_TASTE.includes(t) && !MOOD_TYPE.includes(t))
+  // 系統・強さ・タグのいずれかが選択中なら「もっと絞り込む」を開いた状態にする
+  const advancedActive = !!strength || activeTags.some((t) => !MOOD_TASTE.includes(t))
 
   return (
-    <div className="wrap py-10 sm:py-14">
-      <OnboardingHint isAuthed={!!user} />
-      {/* ---------- HERO ---------- */}
-      <section className="glow-bg fade-up mx-auto max-w-3xl text-center">
-        {/* 浮遊するフレーバーオーブ（遊び心） */}
-        <div className="mb-5 flex flex-wrap justify-center gap-2.5 sm:gap-3">
-          <span className="float d1"><IconOrb preset="green" size={40}>🍏</IconOrb></span>
-          <span className="float d2"><IconOrb preset="amber" size={40}>🍊</IconOrb></span>
-          <span className="float d3"><IconOrb preset="blue" size={40}>🫐</IconOrb></span>
-          <span className="float d4"><IconOrb preset="violet" size={40}>🍇</IconOrb></span>
-          <span className="float d5"><IconOrb preset="green" size={40}>🍃</IconOrb></span>
+    <div className="wrap py-8 sm:py-12">
+      {/* ---------- HERO（コンパクト） ---------- */}
+      <section className="glow-bg fade-up mx-auto max-w-2xl text-center">
+        <div className="mb-3 flex flex-wrap justify-center gap-2">
+          <span className="float d1"><IconOrb preset="green" size={30}>🍏</IconOrb></span>
+          <span className="float d2"><IconOrb preset="amber" size={30}>🍊</IconOrb></span>
+          <span className="float d3"><IconOrb preset="blue" size={30}>🫐</IconOrb></span>
+          <span className="float d4"><IconOrb preset="violet" size={30}>🍇</IconOrb></span>
+          <span className="float d5"><IconOrb preset="green" size={30}>🍃</IconOrb></span>
         </div>
-        <p className="eyebrow">Shisha Mix Encyclopedia</p>
-        <h1 className="mt-3 text-4xl leading-tight sm:text-5xl" style={{ fontWeight: 800, letterSpacing: '-0.01em' }}>
+        <h1 className="text-3xl leading-tight sm:text-4xl" style={{ fontWeight: 800, letterSpacing: '-0.01em' }}>
           今日のミックス、<span className="text-grad-anim">もう迷わない。</span>
         </h1>
-        <p className="mx-auto mt-4 max-w-xl text-base" style={{ color: 'var(--color-ash)' }}>
-          気分をタップするだけ。日本中の「美味しい」組み合わせと作り方が集まる図鑑から、
-          いま吸いたい一台が見つかる。
-        </p>
-        <p className="mt-3 text-xs" style={{ color: 'var(--color-ash-dim)' }}>
-          {combos.length} 通りの組み合わせ ・ {flavors.length} 種のフレーバー
+        <p className="mt-2 text-sm" style={{ color: 'var(--color-ash-dim)' }}>
+          気分で探す図鑑 ・ {combos.length}通りの組み合わせ ・ {flavors.length}種のフレーバー
         </p>
       </section>
 
-      {/* ---------- 気分で探す ---------- */}
-      <section id="mood" className="card mx-auto mt-8 max-w-2xl p-5 sm:p-6">
+      {/* ---------- 気分で探す（デフォルトは味わい＋検索、詳細は折りたたみ） ---------- */}
+      <section id="mood" className="card mx-auto mt-6 max-w-2xl p-5 sm:p-6">
         <div className="mb-3 flex items-center justify-between">
           <h2 className="text-sm" style={{ fontWeight: 700 }}>気分で探す</h2>
           <span className="text-xs" style={{ color: 'var(--color-ash-dim)' }}>複数選べます</span>
         </div>
 
-        <div className="flex flex-col gap-3">
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="w-12 shrink-0 text-xs" style={{ color: 'var(--color-ash-dim)' }}>味わい</span>
-            {MOOD_TASTE.map((t) => (
-              <Link key={t} href={toggleTag(t)} className={`chip ${activeTags.includes(t) ? 'chip-active' : ''}`}>{t}</Link>
-            ))}
-          </div>
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="w-12 shrink-0 text-xs" style={{ color: 'var(--color-ash-dim)' }}>系統</span>
-            {MOOD_TYPE.map((t) => (
-              <Link key={t} href={toggleTag(t)} className={`chip ${activeTags.includes(t) ? 'chip-active' : ''}`}>{t}</Link>
-            ))}
-          </div>
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="w-12 shrink-0 text-xs" style={{ color: 'var(--color-ash-dim)' }}>強さ</span>
-            {STRENGTHS.map((s) => (
-              <Link key={s.v} href={toggleStrength(s.v)} className={`chip ${strength === s.v ? 'chip-active' : ''}`}>{s.l}</Link>
-            ))}
-          </div>
-          {otherTags.length > 0 && (
+        <div className="flex flex-wrap items-center gap-2">
+          {MOOD_TASTE.map((t) => (
+            <Link key={t} href={toggleTag(t)} className={`chip ${activeTags.includes(t) ? 'chip-active' : ''}`}>{t}</Link>
+          ))}
+        </div>
+
+        {/* もっと絞り込む（系統・強さ・タグ） */}
+        <details className="mt-3" open={advancedActive}>
+          <summary
+            className="cursor-pointer list-none text-xs [&::-webkit-details-marker]:hidden"
+            style={{ color: 'var(--color-ember-hot)', fontWeight: 600 }}
+          >
+            もっと絞り込む（系統・強さ・タグ）
+          </summary>
+          <div className="mt-3 flex flex-col gap-3">
             <div className="flex flex-wrap items-center gap-2">
-              <span className="w-12 shrink-0 text-xs" style={{ color: 'var(--color-ash-dim)' }}>タグ</span>
-              {otherTags.slice(0, 12).map((t) => (
-                <Link key={t} href={toggleTag(t)} className={`chip ${activeTags.includes(t) ? 'chip-active' : ''}`}>#{t}</Link>
+              <span className="w-12 shrink-0 text-xs" style={{ color: 'var(--color-ash-dim)' }}>系統</span>
+              {MOOD_TYPE.map((t) => (
+                <Link key={t} href={toggleTag(t)} className={`chip ${activeTags.includes(t) ? 'chip-active' : ''}`}>{t}</Link>
               ))}
             </div>
-          )}
-        </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="w-12 shrink-0 text-xs" style={{ color: 'var(--color-ash-dim)' }}>強さ</span>
+              {STRENGTHS.map((s) => (
+                <Link key={s.v} href={toggleStrength(s.v)} className={`chip ${strength === s.v ? 'chip-active' : ''}`}>{s.l}</Link>
+              ))}
+            </div>
+            {otherTags.length > 0 && (
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="w-12 shrink-0 text-xs" style={{ color: 'var(--color-ash-dim)' }}>タグ</span>
+                {otherTags.slice(0, 12).map((t) => (
+                  <Link key={t} href={toggleTag(t)} className={`chip ${activeTags.includes(t) ? 'chip-active' : ''}`}>#{t}</Link>
+                ))}
+              </div>
+            )}
+          </div>
+        </details>
 
         {/* キーワード検索 */}
         <form action="/" method="get" className="mt-4 flex gap-2">
