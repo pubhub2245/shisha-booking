@@ -56,9 +56,13 @@ export default async function FlavorsPage() {
           <div className="mt-8 flex flex-col gap-8">
             {brands.map((brand) => (
               <section key={brand}>
-                <h2 className="mb-3 text-sm" style={{ fontWeight: 700, color: 'var(--color-ash)' }}>
-                  {brand}
-                </h2>
+                <Link
+                  href={`/brand/${encodeURIComponent(brand)}`}
+                  className="mb-3 inline-block text-sm transition-colors hover:text-[var(--color-ember-hot)]"
+                  style={{ fontWeight: 700, color: 'var(--color-ash)' }}
+                >
+                  {brand} <span style={{ color: 'var(--color-ember-hot)' }}>›</span>
+                </Link>
                 <div className="flex flex-wrap gap-2">
                   {byBrand.get(brand)!.map((f) => (
                     <Link key={f.id} href={`/flavor/${f.id}`} className="chip">

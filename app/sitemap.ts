@@ -13,11 +13,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   try {
     const supabase = await createClient()
-    const [{ data: mixes }, { data: flavors }, { data: combos }, { data: shops }] = await Promise.all([
+    const [{ data: mixes }, { data: flavors }, { data: combos }, { data: shops }, { data: brandRows }] = await Promise.all([
       supabase.from('mixes').select('id, created_at, combo_key').order('created_at', { ascending: false }).limit(1000),
       supabase.from('flavors').select('id').limit(1000),
       supabase.from('mixes').select('combo_key').limit(1000),
       supabase.from('shops').select('id').limit(1000),
+      supabase.from('flavors').select('brand').limit(2000),
     ])
     const mixRoutes: MetadataRoute.Sitemap = (mixes ?? []).map((m) => ({
       url: `${SITE_URL}/mix/${m.id}`,
@@ -41,7 +42,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: 'weekly',
       priority: 0.5,
     }))
-    return [...staticRoutes, ...mixRoutes, ...flavorRoutes, ...comboRoutes, ...shopRoutes]
+    const brands = [...new Set((brandRows ?? []).map((b) => b.brand as string).filter(Boolean))]
+    const brandRoutes: MetadataRoute.Sitemap = brands.map((b) => ({
+      url: `${SITE_URL}/brand/${encodeURIComponent(b)}`,
+      changeFrequency: 'weekly',
+      priority: 0.5,
+    }))
+    return [...staticRoutes, ...mixRoutes, ...flavorRoutes, ...comboRoutes, ...shopRoutes, ...brandRoutes]
   } catch {
     return staticRoutes
   }

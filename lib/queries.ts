@@ -737,6 +737,59 @@ export async function getFlavorsWithUsage(): Promise<(Flavor & { count: number }
   }
 }
 
+/** ブランドの全フレーバー（使用回数つき・多い順） */
+export async function getFlavorsByBrand(brand: string): Promise<(Flavor & { count: number })[]> {
+  try {
+    const supabase = await createClient()
+    const [{ data: flavors }, { data: mf }] = await Promise.all([
+      supabase.from('flavors').select('*').eq('brand', brand).order('name'),
+      supabase.from('mix_flavors').select('flavor_id, name').eq('brand', brand),
+    ])
+    const byId = new Map<string, number>()
+    const byName = new Map<string, number>()
+    for (const r of mf ?? []) {
+      const fid = r.flavor_id as string | null
+      if (fid) byId.set(fid, (byId.get(fid) ?? 0) + 1)
+      else if (r.name) byName.set((r.name as string).toLowerCase(), (byName.get((r.name as string).toLowerCase()) ?? 0) + 1)
+    }
+    return ((flavors ?? []) as Flavor[])
+      .map((f) => ({ ...f, count: (byId.get(f.id) ?? 0) + (byName.get(f.name.toLowerCase()) ?? 0) }))
+      .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name, 'ja'))
+  } catch {
+    return []
+  }
+}
+
+/** そのブランドのフレーバーを使っているミックス */
+export async function getMixesUsingBrand(brand: string): Promise<MixWithRelations[]> {
+  try {
+    const supabase = await createClient()
+    const { data: mf } = await supabase.from('mix_flavors').select('mix_id').eq('brand', brand)
+    const ids = [...new Set((mf ?? []).map((r) => r.mix_id as string))]
+    if (ids.length === 0) return []
+    const { data } = await supabase
+      .from('mixes')
+      .select('*')
+      .in('id', ids)
+      .order('like_count', { ascending: false })
+      .limit(30)
+    return attachRelations(supabase, (data ?? []) as Mix[])
+  } catch {
+    return []
+  }
+}
+
+/** 全ブランド名（ディレクトリ・sitemap用） */
+export async function getBrands(): Promise<string[]> {
+  try {
+    const supabase = await createClient()
+    const { data } = await supabase.from('flavors').select('brand').limit(2000)
+    return [...new Set((data ?? []).map((r) => r.brand as string).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'ja'))
+  } catch {
+    return []
+  }
+}
+
 export async function getFlavorById(id: string): Promise<Flavor | null> {
   try {
     const supabase = await createClient()
