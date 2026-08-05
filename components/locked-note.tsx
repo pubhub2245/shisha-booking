@@ -31,6 +31,7 @@ export function LockedNote({
     startTransition(async () => {
       const res = await unlockMix(mixId)
       if ('error' in res) setMsg(res.error)
+      else if ('url' in res) window.location.href = res.url // Stripe Checkout へ
       else router.refresh()
     })
   }
