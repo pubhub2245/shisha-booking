@@ -33,7 +33,7 @@ export default async function TimelinePage() {
           <p className="mt-2 text-sm" style={{ color: 'var(--color-ash)' }}>
             気になる投稿者や店舗をフォローすると、ここに新着が集まります。
           </p>
-          <div className="mt-5 flex justify-center gap-3">
+          <div className="mt-5 flex flex-wrap justify-center gap-3">
             <Link href="/" className="btn btn-ember">図鑑で探す</Link>
             <Link href="/ranking" className="btn btn-ghost">人気から探す</Link>
           </div>

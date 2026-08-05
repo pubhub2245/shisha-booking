@@ -196,7 +196,7 @@ export default async function MixDetail({ params }: { params: Promise<{ id: stri
           <ShareButton title={mix.title} />
           <StrengthMeter strength={mix.strength} />
         </div>
-        <div className="mt-3 flex items-center gap-2 text-sm" style={{ color: 'var(--color-ash)' }}>
+        <div className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm" style={{ color: 'var(--color-ash)' }}>
           {mix.author && <Avatar name={mix.author.display_name || mix.author.username} seed={mix.author.id} size={24} />}
           <span>by <AuthorLink author={mix.author} /></span>
           <span style={{ color: 'var(--color-ash-dim)' }}>・ {relativeTime(mix.created_at)} ・ 👁 {mix.view_count}</span>

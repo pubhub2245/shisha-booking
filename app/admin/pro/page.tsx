@@ -84,7 +84,7 @@ export default async function AdminProPage() {
                 )}
               </dl>
 
-              <div className="mt-4 flex gap-2">
+              <div className="mt-4 flex flex-wrap gap-2">
                 <form action={reviewProApplication}>
                   <input type="hidden" name="id" value={app.id} />
                   <input type="hidden" name="approve" value="true" />

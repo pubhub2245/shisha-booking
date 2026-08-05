@@ -200,7 +200,7 @@ export default async function Home({
               ? 'マイ棚に持っているフレーバーを追加すると、作れるミックスが増えます。'
               : `${hasFilters ? '条件をゆるめるか、' : ''}この組み合わせの作り方を、あなたが最初に投稿しませんか？`}
           </p>
-          <div className="mt-5 flex justify-center gap-3">
+          <div className="mt-5 flex flex-wrap justify-center gap-3">
             {makeableOnly && <Link href="/shelf" className="btn btn-ghost">🫙 マイ棚を編集</Link>}
             {hasFilters && <Link href="/" className="btn btn-ghost">条件をクリア</Link>}
             <Link href="/post" className="btn btn-ember">＋ ミックスを投稿</Link>
