@@ -4,7 +4,7 @@ import { HMS_OPTIONS, hmsBowls } from '@/lib/heat'
 import { HmsIcon } from '@/components/hms-icon'
 import { BowlIcon } from '@/components/bowl-icon'
 import { SourceLine } from '@/components/source-line'
-import { HMS_BOWL_SOURCES, GUIDE_SOURCES } from '@/lib/sources'
+import { HMS_BOWL_SOURCES, GUIDE_SOURCES, STEEP_SOURCES, type Source } from '@/lib/sources'
 
 export const metadata = {
   title: '美味しいシーシャの作り方ガイド',
@@ -26,6 +26,7 @@ type Section = {
   title: string
   lead?: string
   points: { h: string; body: string }[]
+  sources?: Source[]
 }
 
 const sections: Section[] = [
@@ -76,9 +77,12 @@ const sections: Section[] = [
     title: '熱入れ・むらし',
     lead: 'ここで味の8割が決まる。',
     points: [
-      { h: 'むらしは7分が目安', body: '炭を乗せてからのむらしは7分程度。忙しいときは「トップ（アルミ／HMSの表面）を2〜3秒触れなくなるくらい」を目安にすると速い。' },
+      { h: '「蒸らし（むらし）」とは', body: '炭を置いてから吸い始めるまで、フタ（アルミ／HMS）をして熱をフレーバー全体に通す立ち上げの工程。ここで香りと煙の土台が決まる。' },
+      { h: '目安は3〜7分', body: '一般的には3〜7分。短すぎると香り・煙が立たず、長すぎると焦げて味が落ちる。タイマーで計るのが確実。使う炭・HMS・盛り方で最適時間は変わる。' },
+      { h: '忙しいときの目安', body: '「トップ（アルミ／HMSの表面）を2〜3秒触れなくなるくらい」を目安にすると速い。' },
       { h: '吸い方は「細く長く」', body: '最初は細く長く吸って、下までしっかり熱を通す。細く“短く”はNG。一定の強さで吸い、強弱をつけない（＝一般的なお客さんの吸い方を再現する）。' },
     ],
+    sources: STEEP_SOURCES,
   },
   {
     id: 'serve',
@@ -189,6 +193,7 @@ export default function GuidePage() {
                 </li>
               ))}
             </ul>
+            {s.sources && <SourceLine sources={s.sources} className="mt-3" />}
           </section>
         ))}
 

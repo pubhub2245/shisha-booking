@@ -14,9 +14,11 @@ const padB = 26
 export function HeatCurveEditor({
   initialCurve,
   initialEvents,
+  steepMinutes,
 }: {
   initialCurve?: HeatPoint[]
   initialEvents?: HeatEvent[]
+  steepMinutes?: number
 }) {
   const [points, setPoints] = useState<HeatPoint[]>(
     initialCurve && initialCurve.length >= 2
@@ -123,6 +125,14 @@ export function HeatCurveEditor({
             fill="transparent"
             onPointerDown={addAt}
           />
+          {/* 蒸らし区間 */}
+          {steepMinutes && steepMinutes > 0 && (
+            <g style={{ pointerEvents: 'none' }}>
+              <rect x={padL} y={padT} width={Math.max(0, x(Math.min(steepMinutes, maxT)) - padL)} height={H - padT - padB} fill="rgb(31 138 118 / 0.10)" />
+              <line x1={x(Math.min(steepMinutes, maxT))} x2={x(Math.min(steepMinutes, maxT))} y1={padT} y2={H - padB} stroke="var(--color-coal)" strokeWidth="1" strokeDasharray="2 2" opacity="0.6" />
+              <text x={padL + 3} y={padT + 9} fontSize="8" fill="var(--color-coal)" style={{ fontWeight: 700 }}>♨️蒸らし</text>
+            </g>
+          )}
           {/* event markers */}
           {events.map((e, i) => (
             <g key={i}>

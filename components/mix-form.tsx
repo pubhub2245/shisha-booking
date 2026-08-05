@@ -9,6 +9,8 @@ import { LOCKABLE_SECTIONS } from '@/lib/premium'
 import { HmsPicker } from '@/components/hms-picker'
 import { BowlPicker } from '@/components/bowl-picker'
 import { PackPicker } from '@/components/pack-picker'
+import { SourceLine } from '@/components/source-line'
+import { STEEP_SOURCES } from '@/lib/sources'
 import { TagPicker } from '@/components/tag-picker'
 
 export type MixFormInitial = {
@@ -23,6 +25,7 @@ export type MixFormInitial = {
   charcoalType: string
   charcoalOrientation: string
   charcoalCount: string
+  steepMinutes: string
   windCover: string
   bowlType: string
   packStyle: string
@@ -66,6 +69,7 @@ export function MixForm({
   const [state, action, pending] = useActionState<MixFormState, FormData>(action0, null)
   const [premium, setPremium] = useState(initial?.premium ?? false)
   const [charcoalType, setCharcoalType] = useState(initial?.charcoalType ?? '')
+  const [steepMin, setSteepMin] = useState(initial?.steepMinutes ?? '')
 
   const masterById = new Map(flavors.map((f) => [f.id, f]))
 
@@ -334,10 +338,30 @@ export function MixForm({
         </div>
       </div>
 
+      {/* 蒸らし時間 */}
+      <div className="field">
+        <label>♨️ 蒸らし時間（分）</label>
+        <input
+          name="steep_minutes"
+          value={steepMin}
+          onChange={(e) => setSteepMin(e.target.value)}
+          inputMode="decimal"
+          placeholder="例：7"
+          style={{ maxWidth: 160 }}
+        />
+        <p className="mt-1 text-xs" style={{ color: 'var(--color-ash-dim)' }}>
+          炭を置いてから吸い始めるまで、フタをして熱を通す時間。目安は3〜7分（短いと煙・香りが弱く、長いと焦げやすい）。
+        </p>
+        <SourceLine sources={STEEP_SOURCES} className="mt-1" />
+      </div>
+
       {/* 熱管理カーブ */}
       <div>
         <label className="mb-2 block text-sm" style={{ color: 'var(--color-ash)', fontWeight: 600 }}>🔥 熱管理カーブ（経過時間 × 火力 1〜100）＋ 炭イベント</label>
-        <HeatCurveEditor initialCurve={initial?.heatCurve ?? undefined} initialEvents={initial?.heatEvents ?? undefined} />
+        <p className="mb-2 text-xs" style={{ color: 'var(--color-ash-dim)' }}>
+          最初の緩やかな立ち上がりが「蒸らし」の区間です。
+        </p>
+        <HeatCurveEditor initialCurve={initial?.heatCurve ?? undefined} initialEvents={initial?.heatEvents ?? undefined} steepMinutes={Number(steepMin) || undefined} />
       </div>
 
       <div className="field">

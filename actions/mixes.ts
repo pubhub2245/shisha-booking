@@ -113,10 +113,14 @@ function parseHeatSetup(formData: FormData) {
   const charRaw = String(formData.get('charcoal_type') ?? '')
   const orientRaw = String(formData.get('charcoal_orientation') ?? '')
   const countRaw = String(formData.get('charcoal_count') ?? '').trim()
+  const steepRaw = String(formData.get('steep_minutes') ?? '').trim()
   const windRaw = String(formData.get('wind_cover') ?? '')
   const bowlRaw = String(formData.get('bowl_type') ?? '')
   const packRaw = String(formData.get('pack_style') ?? '')
   const count = countRaw ? Math.max(0, Math.min(20, Number(countRaw) || 0)) : null
+  // 蒸らし時間（分）。0〜30、0.5刻みを許容。
+  const steepNum = steepRaw ? Number(steepRaw) : NaN
+  const steep_minutes = steepRaw && Number.isFinite(steepNum) ? Math.max(0, Math.min(30, Math.round(steepNum * 2) / 2)) : null
   const hms_type = HMS_VALUES.includes(hmsRaw) ? hmsRaw : null
   const charcoal_type = CHARCOAL_VALUES.includes(charRaw) ? charRaw : null
   return {
@@ -126,6 +130,7 @@ function parseHeatSetup(formData: FormData) {
     // 縦置き/横置きはフラット炭のときだけ有効
     charcoal_orientation: charcoal_type === 'flat' && ORIENTATION_VALUES.includes(orientRaw) ? orientRaw : null,
     charcoal_count: count,
+    steep_minutes,
     wind_cover: windRaw === 'true' ? true : windRaw === 'false' ? false : null,
     bowl_type: BOWL_VALUES.includes(bowlRaw) ? bowlRaw : null,
     pack_style: PACK_VALUES.includes(packRaw) ? packRaw : null,

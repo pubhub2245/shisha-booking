@@ -11,10 +11,12 @@ export function HeatCurveChart({
   points,
   events,
   series,
+  steepMinutes,
 }: {
   points?: HeatPoint[]
   events?: HeatEvent[]
   series?: CurveSeries[]
+  steepMinutes?: number
 }) {
   const allSeries: CurveSeries[] =
     series && series.length > 0
@@ -76,6 +78,15 @@ export function HeatCurveChart({
         {xTicks.map((t, i) => (
           <text key={i} x={x(t)} y={H - 8} textAnchor="middle" fontSize="9" fill="var(--color-ash-dim)">{t}分</text>
         ))}
+
+        {/* 蒸らし区間 */}
+        {steepMinutes && steepMinutes > 0 && (
+          <g>
+            <rect x={padL} y={padT} width={Math.max(0, x(Math.min(steepMinutes, maxT)) - padL)} height={H - padT - padB} fill="rgb(31 138 118 / 0.10)" />
+            <line x1={x(Math.min(steepMinutes, maxT))} x2={x(Math.min(steepMinutes, maxT))} y1={padT} y2={H - padB} stroke="var(--color-coal)" strokeWidth="1" strokeDasharray="2 2" opacity="0.6" />
+            <text x={padL + 3} y={padT + 9} fontSize="8" fill="var(--color-coal)" style={{ fontWeight: 700 }}>♨️蒸らし{steepMinutes}分</text>
+          </g>
+        )}
 
         {/* イベントマーカー */}
         {evts.map((e, i) => (
