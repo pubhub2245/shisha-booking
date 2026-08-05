@@ -20,8 +20,8 @@ export const HMS_OPTIONS: readonly HmsOption[] = [
   },
   {
     v: 'provost',
-    l: 'プロヴォスト',
-    en: 'Provost',
+    l: 'アマボースト',
+    en: 'Amborst',
     desc: 'ボウルに被せて密閉性を高めるタイプ。熱がこもりやすく立ち上がりが速い。アルミと併用。',
     icon: 'provost',
   },
