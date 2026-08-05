@@ -4,6 +4,8 @@ import { HMS_OPTIONS, hmsOption, hmsBowls } from '@/lib/heat'
 import { HmsIcon } from '@/components/hms-icon'
 import { BowlIcon } from '@/components/bowl-icon'
 import { CardPicker } from '@/components/card-picker'
+import { SourceLine } from '@/components/source-line'
+import { HMS_SOURCES } from '@/lib/sources'
 
 /** HMS を写真的なカードで選ぶピッカー。選んだら他は畳まれる。「その他」で自由入力欄が出る。 */
 export function HmsPicker({
@@ -18,6 +20,7 @@ export function HmsPicker({
   otherDefault?: string
 }) {
   return (
+    <>
     <CardPicker
       name={name}
       options={HMS_OPTIONS}
@@ -59,5 +62,7 @@ export function HmsPicker({
         )
       }}
     />
+    <SourceLine sources={HMS_SOURCES} className="mt-2" />
+    </>
   )
 }

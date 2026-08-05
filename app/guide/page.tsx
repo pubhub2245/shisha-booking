@@ -3,6 +3,8 @@ import { IconOrb, type OrbPreset } from '@/components/icon-orb'
 import { HMS_OPTIONS, hmsBowls } from '@/lib/heat'
 import { HmsIcon } from '@/components/hms-icon'
 import { BowlIcon } from '@/components/bowl-icon'
+import { SourceLine } from '@/components/source-line'
+import { HMS_BOWL_SOURCES, GUIDE_SOURCES } from '@/lib/sources'
 
 export const metadata = {
   title: '美味しいシーシャの作り方ガイド',
@@ -283,6 +285,7 @@ export default function GuidePage() {
             <p className="text-xs leading-relaxed" style={{ color: 'var(--color-ash-dim)' }}>
               ※ 相性はあくまで目安。ボウルの穴の形状（1穴／多穴）やフレーバーの水分量でも最適解は変わる。
             </p>
+            <SourceLine sources={HMS_BOWL_SOURCES} className="mt-1" />
           </div>
         </section>
       </div>
@@ -297,6 +300,15 @@ export default function GuidePage() {
           <Link href="/post" className="btn btn-ember">ミックスを投稿</Link>
           <Link href="/" className="btn btn-ghost">図鑑を見る</Link>
         </div>
+      </div>
+
+      {/* 参考リンク */}
+      <div className="mt-8 rounded-xl border p-4" style={{ borderColor: 'var(--line)' }}>
+        <p className="text-xs" style={{ color: 'var(--color-ash)', fontWeight: 700 }}>参考にした情報源</p>
+        <p className="mt-1 text-xs leading-relaxed" style={{ color: 'var(--color-ash-dim)' }}>
+          道具・相性の解説は下記の一般的なシーシャ情報サイトに沿って記載しています。作り方の要点は現場のノウハウも参考にしています。
+        </p>
+        <SourceLine sources={GUIDE_SOURCES} prefix="参考" className="mt-2" />
       </div>
     </div>
   )

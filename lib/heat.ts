@@ -20,7 +20,7 @@ export const HMS_OPTIONS: readonly HmsOption[] = [
     desc: 'アルミ不要で炭を直置き。フタの開閉で火力を細かく調整できる万能な定番。初心者にも◎',
     icon: 'lotus',
     bowls: ['funnel', 'phunnel', 'silicone', 'vortex'],
-    bowlNote: '中央1穴のファンネル系と好相性。シリコンファンネルなら安価で扱いやすい。',
+    bowlNote: '基本的にどんなボウルにも対応する万能タイプ。ファンネル系やシリコンファンネルが扱いやすい。',
   },
   {
     v: 'provost',
