@@ -22,8 +22,15 @@ export function SiteFooter() {
           <Link href="/about" className="hover:text-[var(--color-cream)]">MixHubとは</Link>
         </nav>
       </div>
-      <div className="wrap pb-8 text-xs" style={{ color: 'var(--color-ash-dim)' }}>
-        © {new Date().getFullYear()} MixHub. リンクにはアフィリエイトを含む場合があります。
+      <div className="wrap flex flex-col gap-3 pb-8 sm:flex-row sm:items-center sm:justify-between">
+        <nav className="flex flex-wrap gap-x-5 gap-y-1 text-xs" style={{ color: 'var(--color-ash-dim)' }}>
+          <Link href="/legal/terms" className="hover:text-[var(--color-cream)]">利用規約</Link>
+          <Link href="/legal/privacy" className="hover:text-[var(--color-cream)]">プライバシーポリシー</Link>
+          <Link href="/legal/tokushoho" className="hover:text-[var(--color-cream)]">特定商取引法に基づく表記</Link>
+        </nav>
+        <div className="text-xs" style={{ color: 'var(--color-ash-dim)' }}>
+          © {new Date().getFullYear()} MixHub. リンクにはアフィリエイトを含む場合があります。
+        </div>
       </div>
     </footer>
   )
