@@ -3,7 +3,7 @@ import type { Source } from '@/lib/sources'
 /** 説明文の出典を小さく表示する（外部リンク）。 */
 export function SourceLine({
   sources,
-  prefix = '出典',
+  prefix = '参考',
   className = '',
 }: {
   sources: Source[]

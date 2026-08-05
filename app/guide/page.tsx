@@ -306,9 +306,11 @@ export default function GuidePage() {
       <div className="mt-8 rounded-xl border p-4" style={{ borderColor: 'var(--line)' }}>
         <p className="text-xs" style={{ color: 'var(--color-ash)', fontWeight: 700 }}>参考にした情報源</p>
         <p className="mt-1 text-xs leading-relaxed" style={{ color: 'var(--color-ash-dim)' }}>
-          道具・相性の解説は下記の一般的なシーシャ情報サイトに沿って記載しています。作り方の要点は現場のノウハウも参考にしています。
+          道具・相性の解説は下記の一般的なシーシャ情報サイトを参考に、当サイトが独自に記載しています。作り方の要点は現場のノウハウも参考にしています。
+          <br />
+          ※ 各サイト・店舗との提携・監修関係はありません。リンク先は参考情報です。
         </p>
-        <SourceLine sources={GUIDE_SOURCES} prefix="参考" className="mt-2" />
+        <SourceLine sources={GUIDE_SOURCES} className="mt-2" />
       </div>
     </div>
   )

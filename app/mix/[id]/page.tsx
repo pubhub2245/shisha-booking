@@ -368,7 +368,7 @@ export default async function MixDetail({ params }: { params: Promise<{ id: stri
                   ))}
               </dl>
               <p className="mt-3 text-[0.68rem]" style={{ color: 'var(--color-ash-dim)' }}>
-                HMS・ボウル・盛り方の解説と出典は{' '}
+                HMS・ボウル・盛り方の解説と参考リンクは{' '}
                 <Link href="/guide#hms-bowl" className="underline underline-offset-2" style={{ color: 'var(--color-ash)' }}>
                   作り方ガイド
                 </Link>
