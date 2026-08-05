@@ -16,13 +16,21 @@ export function HmsIcon({ type, size = 44 }: { type: string; size?: number }) {
 
   switch (type) {
     case 'lotus':
+      // 丸いキャップ＋花びら状の可変ベント＋横向きの持ち手（KALOUD Lotus の形に寄せた線画）
       return (
         <svg {...common}>
-          <path d="M6 29h7" />
-          <path d="M13 27c0-5 5-8 11-8s11 3 11 8" />
-          <path d="M11 28c0 3 6 6 13 6s13-3 13-6" />
-          <path d="M13 27c0 3 5 5 11 5s11-2 11-5" />
-          <path d="M24 20l3 3-3 3-3-3z" />
+          {/* 持ち手（黒いグリップ） */}
+          <path d="M32 23h9" strokeWidth={3} />
+          {/* 本体（丸いキャップ） */}
+          <circle cx="21" cy="23" r="11" />
+          {/* 上面プレート */}
+          <circle cx="21" cy="23" r="7.5" opacity="0.5" />
+          {/* 花びら状ベント（ロータスの特徴） */}
+          <ellipse cx="21" cy="19.4" rx="1.5" ry="3.1" fill="currentColor" stroke="none" />
+          <ellipse cx="21" cy="26.6" rx="1.5" ry="3.1" fill="currentColor" stroke="none" />
+          <ellipse cx="17.4" cy="23" rx="3.1" ry="1.5" fill="currentColor" stroke="none" />
+          <ellipse cx="24.6" cy="23" rx="3.1" ry="1.5" fill="currentColor" stroke="none" />
+          <circle cx="21" cy="23" r="1.4" fill="currentColor" stroke="none" />
         </svg>
       )
     case 'provost':
