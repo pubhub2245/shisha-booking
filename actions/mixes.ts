@@ -104,7 +104,7 @@ const HMS_VALUES = ['lotus', 'provost', 'turkish', 'steamulation', 'nagrani', 'a
 const CHARCOAL_VALUES = ['cube', 'flat', 'ogatan', 'other']
 const ORIENTATION_VALUES = ['vertical', 'horizontal']
 const BOWL_VALUES = ['clay', 'funnel', 'vortex', 'phunnel', 'silicone', 'other']
-const PACK_VALUES = ['fluff', 'flat', 'dense', 'overpack', 'other']
+const PACK_VALUES = ['fluff', 'layered', 'flat', 'dense', 'overpack', 'other']
 
 /** 炭・熱源・ボウルセットアップをパース */
 function parseHeatSetup(formData: FormData) {

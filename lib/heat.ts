@@ -127,13 +127,21 @@ export function bowlOption(v: string | null | undefined): BowlOption | null {
   return BOWL_OPTIONS.find((o) => o.v === v) ?? null
 }
 
-export const PACK_OPTIONS = [
-  { v: 'fluff', l: 'ふんわり（フラッフ）' },
-  { v: 'flat', l: 'フラット' },
-  { v: 'dense', l: '密盛り（デンス）' },
-  { v: 'overpack', l: 'オーバーパック' },
-  { v: 'other', l: 'その他' },
-] as const
+// フレーバーの盛り方（HMS/ボウルと同様にイラスト付きで選ばせる）
+export type PackOption = { v: string; l: string; en: string; desc: string; icon: string }
+export const PACK_OPTIONS: readonly PackOption[] = [
+  { v: 'fluff', l: 'ふんわり', en: 'Fluff', desc: '空気を含ませてふわっと盛る。軽く吸えて煙も出やすい。焦げにくい定番。', icon: 'fluff' },
+  { v: 'layered', l: 'ミルフィーユ', en: 'Layered', desc: '葉を平らに重ねて層状にする。火が均一に入り、味が安定しやすい。', icon: 'layered' },
+  { v: 'dense', l: 'ぎっしり', en: 'Dense', desc: 'ギチギチに密に詰める。濃厚で長持ちするが、しっかり火力が要る。', icon: 'dense' },
+  { v: 'flat', l: 'フラット', en: 'Flat', desc: 'ふちと同じ高さに平らにならす。オールラウンドで扱いやすい。', icon: 'flat' },
+  { v: 'overpack', l: 'オーバーパック', en: 'Overpack', desc: 'ふちより高く山盛りにする。HMS／アルミとの間隔に注意。', icon: 'overpack' },
+  { v: 'other', l: 'その他', en: '', desc: 'その他の盛り方。', icon: 'other' },
+]
+
+export function packOption(v: string | null | undefined): PackOption | null {
+  if (!v) return null
+  return PACK_OPTIONS.find((o) => o.v === v) ?? null
+}
 
 export function bowlLabel(v: string | null | undefined): string | null {
   return bowlOption(v)?.l ?? null

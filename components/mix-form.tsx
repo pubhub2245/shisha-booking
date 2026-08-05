@@ -4,10 +4,11 @@ import { useActionState, useState } from 'react'
 import { createMix, updateMix, type MixFormState } from '@/actions/mixes'
 import type { Flavor, HeatPoint, HeatEvent } from '@/lib/types/database'
 import { HeatCurveEditor } from '@/components/heat-curve-editor'
-import { CHARCOAL_OPTIONS, CHARCOAL_ORIENTATION_OPTIONS, PACK_OPTIONS } from '@/lib/heat'
+import { CHARCOAL_OPTIONS, CHARCOAL_ORIENTATION_OPTIONS } from '@/lib/heat'
 import { LOCKABLE_SECTIONS } from '@/lib/premium'
 import { HmsPicker } from '@/components/hms-picker'
 import { BowlPicker } from '@/components/bowl-picker'
+import { PackPicker } from '@/components/pack-picker'
 import { TagPicker } from '@/components/tag-picker'
 
 export type MixFormInitial = {
@@ -325,15 +326,11 @@ export function MixForm({
               <option value="false">被せない</option>
             </select>
           </div>
-          <div className="field">
-            <label>盛り方</label>
-            <select name="pack_style" defaultValue={initial?.packStyle ?? ''}>
-              <option value="">未設定</option>
-              {PACK_OPTIONS.map((o) => (
-                <option key={o.v} value={o.v}>{o.l}</option>
-              ))}
-            </select>
-          </div>
+        </div>
+
+        <div className="field">
+          <label>🍶 フレーバーの盛り方</label>
+          <PackPicker name="pack_style" defaultValue={initial?.packStyle ?? ''} />
         </div>
       </div>
 

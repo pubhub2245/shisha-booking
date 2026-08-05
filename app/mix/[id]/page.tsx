@@ -15,9 +15,10 @@ import { BookmarkButton } from '@/components/bookmark-button'
 import { ShareButton } from '@/components/share-button'
 import { VerifiedBadge } from '@/components/verified-badge'
 import { HeatCurveChart } from '@/components/heat-curve-chart'
-import { hmsOption, hmsBowls, charcoalLabel, windCoverLabel, packLabel, bowlOption, orientationLabel } from '@/lib/heat'
+import { hmsOption, hmsBowls, charcoalLabel, windCoverLabel, bowlOption, packOption, orientationLabel } from '@/lib/heat'
 import { HmsIcon } from '@/components/hms-icon'
 import { BowlIcon } from '@/components/bowl-icon'
+import { PackIcon } from '@/components/pack-icon'
 import { Avatar } from '@/components/avatar'
 import { CompletenessMeter } from '@/components/completeness'
 import { relativeTime } from '@/lib/time'
@@ -332,13 +333,31 @@ export default async function MixDetail({ params }: { params: Promise<{ id: stri
                   </div>
                 </div>
               )}
+              {packOption(mix.pack_style) && (
+                <div
+                  className="mb-3 flex items-center gap-3 rounded-xl border p-3"
+                  style={{ borderColor: 'var(--line)', background: 'var(--accent-tint)', color: 'var(--color-ember-hot)' }}
+                >
+                  <PackIcon type={packOption(mix.pack_style)!.icon} size={38} />
+                  <div className="min-w-0">
+                    <div className="text-sm" style={{ fontWeight: 700, color: 'var(--color-cream)' }}>
+                      盛り方：{packOption(mix.pack_style)!.l}
+                      {packOption(mix.pack_style)!.en && (
+                        <span className="ml-1 text-xs" style={{ color: 'var(--color-ash-dim)', fontWeight: 400 }}>
+                          {packOption(mix.pack_style)!.en}
+                        </span>
+                      )}
+                    </div>
+                    <div className="text-xs" style={{ color: 'var(--color-ash)' }}>{packOption(mix.pack_style)!.desc}</div>
+                  </div>
+                </div>
+              )}
               <dl className="grid grid-cols-2 gap-x-4 gap-y-3 text-sm sm:grid-cols-3">
                 {[
                   { k: '炭の種類', v: charcoalLabel(mix.charcoal_type) },
                   { k: '置き方', v: orientationLabel(mix.charcoal_orientation) },
                   { k: '個数', v: mix.charcoal_count != null ? `${mix.charcoal_count}個` : null },
                   { k: '風防', v: windCoverLabel(mix.wind_cover) },
-                  { k: '盛り方', v: packLabel(mix.pack_style) },
                 ]
                   .filter((x) => x.v)
                   .map((x) => (
