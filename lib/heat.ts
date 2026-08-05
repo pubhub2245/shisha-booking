@@ -34,7 +34,7 @@ export const HMS_OPTIONS: readonly HmsOption[] = [
   },
   {
     v: 'steamulation',
-    l: 'スチームレーション',
+    l: 'スチームレーション（高さ調節式）',
     en: 'Steamulation',
     desc: 'エアフロー調整を備えたハイエンドHMS。精密な熱・煙管理ができる上級者向け。',
     icon: 'steamulation',
