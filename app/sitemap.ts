@@ -1,5 +1,6 @@
 import type { MetadataRoute } from 'next'
 import { createClient } from '@/lib/supabase/server'
+import { comboSlug } from '@/lib/combo'
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://shisha-booking.vercel.app'
 
@@ -7,14 +8,16 @@ export const dynamic = 'force-dynamic'
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const staticRoutes: MetadataRoute.Sitemap = [
-    '', '/flavors', '/ranking', '/about', '/for-shops', '/signup',
+    '', '/flavors', '/ranking', '/about', '/for-shops', '/shops', '/signup',
   ].map((path) => ({ url: `${SITE_URL}${path}`, changeFrequency: 'daily', priority: path === '' ? 1 : 0.6 }))
 
   try {
     const supabase = await createClient()
-    const [{ data: mixes }, { data: flavors }] = await Promise.all([
-      supabase.from('mixes').select('id, created_at').order('created_at', { ascending: false }).limit(1000),
+    const [{ data: mixes }, { data: flavors }, { data: combos }, { data: shops }] = await Promise.all([
+      supabase.from('mixes').select('id, created_at, combo_key').order('created_at', { ascending: false }).limit(1000),
       supabase.from('flavors').select('id').limit(1000),
+      supabase.from('mixes').select('combo_key').limit(1000),
+      supabase.from('shops').select('id').limit(1000),
     ])
     const mixRoutes: MetadataRoute.Sitemap = (mixes ?? []).map((m) => ({
       url: `${SITE_URL}/mix/${m.id}`,
@@ -27,7 +30,18 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: 'weekly',
       priority: 0.5,
     }))
-    return [...staticRoutes, ...mixRoutes, ...flavorRoutes]
+    const comboKeys = [...new Set((combos ?? []).map((c) => c.combo_key as string).filter(Boolean))]
+    const comboRoutes: MetadataRoute.Sitemap = comboKeys.map((key) => ({
+      url: `${SITE_URL}/combo/${comboSlug(key)}`,
+      changeFrequency: 'weekly',
+      priority: 0.6,
+    }))
+    const shopRoutes: MetadataRoute.Sitemap = (shops ?? []).map((s) => ({
+      url: `${SITE_URL}/shop/${s.id}`,
+      changeFrequency: 'weekly',
+      priority: 0.5,
+    }))
+    return [...staticRoutes, ...mixRoutes, ...flavorRoutes, ...comboRoutes, ...shopRoutes]
   } catch {
     return staticRoutes
   }

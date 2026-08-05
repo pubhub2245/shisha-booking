@@ -801,6 +801,70 @@ export async function getRelatedMixes(mix: Mix, limit = 4): Promise<MixWithRelat
   }
 }
 
+// ---------- 送客クリックの集計（管理者向け） ----------
+export type ClickStats = {
+  total: number
+  last7: number
+  last30: number
+  byFlavor: { id: string | null; label: string; count: number }[]
+  byDay: { day: string; count: number }[]
+}
+
+/** link_clicks を集計。RLS で管理者のみ閲覧可。件数が少ない前提でJS集計。 */
+export async function getClickStats(): Promise<ClickStats> {
+  const empty: ClickStats = { total: 0, last7: 0, last30: 0, byFlavor: [], byDay: [] }
+  try {
+    const supabase = await createClient()
+    const { data } = await supabase
+      .from('link_clicks')
+      .select('flavor_id, created_at')
+      .order('created_at', { ascending: false })
+      .limit(5000)
+    const rows = (data ?? []) as { flavor_id: string | null; created_at: string }[]
+    if (rows.length === 0) return empty
+
+    const now = Date.now()
+    const DAY = 86400000
+    let last7 = 0
+    let last30 = 0
+    const flavorCount = new Map<string, number>()
+    const dayCount = new Map<string, number>()
+    const flavorIds = new Set<string>()
+    for (const r of rows) {
+      const t = new Date(r.created_at).getTime()
+      if (now - t <= 7 * DAY) last7++
+      if (now - t <= 30 * DAY) last30++
+      if (r.flavor_id) {
+        flavorCount.set(r.flavor_id, (flavorCount.get(r.flavor_id) ?? 0) + 1)
+        flavorIds.add(r.flavor_id)
+      }
+      const day = r.created_at.slice(0, 10)
+      dayCount.set(day, (dayCount.get(day) ?? 0) + 1)
+    }
+
+    // フレーバー名を解決
+    const nameById = new Map<string, string>()
+    if (flavorIds.size > 0) {
+      const { data: fl } = await supabase.from('flavors').select('id, brand, name').in('id', [...flavorIds])
+      for (const f of fl ?? []) nameById.set(f.id as string, `${f.brand} ${f.name}`)
+    }
+
+    const byFlavor = [...flavorCount.entries()]
+      .map(([id, count]) => ({ id, label: nameById.get(id) ?? '（不明なフレーバー）', count }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 15)
+
+    const byDay = [...dayCount.entries()]
+      .sort((a, b) => (a[0] < b[0] ? 1 : -1))
+      .slice(0, 14)
+      .map(([day, count]) => ({ day, count }))
+
+    return { total: rows.length, last7, last30, byFlavor, byDay }
+  } catch {
+    return empty
+  }
+}
+
 /** 図鑑で使われている味わいタグ一覧（フィルタ用） */
 export async function getTasteTags(): Promise<string[]> {
   try {

@@ -74,9 +74,14 @@ export default async function MyPage() {
             </Link>
           )}
           {user.profile?.is_admin && (
-            <Link href="/admin/pro" className="text-xs" style={{ color: 'var(--color-ember-hot)', fontWeight: 600 }}>
-              🛡 プロ認証の審査へ
-            </Link>
+            <div className="flex flex-col items-end gap-1">
+              <Link href="/admin/pro" className="text-xs" style={{ color: 'var(--color-ember-hot)', fontWeight: 600 }}>
+                🛡 プロ認証の審査へ
+              </Link>
+              <Link href="/admin/clicks" className="text-xs" style={{ color: 'var(--color-ember-hot)', fontWeight: 600 }}>
+                📊 送客クリック集計
+              </Link>
+            </div>
           )}
         </div>
       </div>

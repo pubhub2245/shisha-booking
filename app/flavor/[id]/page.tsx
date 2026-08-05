@@ -14,6 +14,7 @@ import { MixCard } from '@/components/mix-card'
 import { ShelfButton } from '@/components/shelf-button'
 import { VerifiedBadge } from '@/components/verified-badge'
 import { goHref } from '@/lib/go'
+import { flavorKey } from '@/lib/combo'
 
 export const dynamic = 'force-dynamic'
 
@@ -45,6 +46,21 @@ export default async function FlavorDetail({ params }: { params: Promise<{ id: s
     flavor.added_by ? getFlavorAdder(flavor.added_by) : Promise.resolve(null),
   ])
   const buyUrl = goHref(flavor.affiliate_url, { f: flavor.id })
+
+  // よく一緒に使われるフレーバー（共起）
+  const selfKey = flavorKey(flavor.brand, flavor.name)
+  const coMap = new Map<string, { count: number; name: string; brand: string | null; fid: string | null }>()
+  for (const m of mixes) {
+    for (const f of m.mix_flavors ?? []) {
+      const k = flavorKey(f.brand, f.name)
+      if (k === selfKey) continue
+      const e = coMap.get(k) ?? { count: 0, name: f.name, brand: f.brand, fid: f.flavor_id ?? null }
+      e.count++
+      if (!e.fid && f.flavor_id) e.fid = f.flavor_id
+      coMap.set(k, e)
+    }
+  }
+  const coUsed = [...coMap.values()].sort((a, b) => b.count - a.count).slice(0, 8)
 
   return (
     <div className="wrap max-w-3xl py-10">
@@ -105,6 +121,25 @@ export default async function FlavorDetail({ params }: { params: Promise<{ id: s
                 <span className="shrink-0 text-xs" style={{ color: 'var(--color-ember-hot)', fontWeight: 600 }}>メニュー →</span>
               </Link>
             ))}
+          </div>
+        </section>
+      )}
+
+      {coUsed.length > 0 && (
+        <section className="mt-8">
+          <h2 className="mb-3 text-lg" style={{ fontWeight: 700 }}>🤝 よく一緒に使われるフレーバー</h2>
+          <div className="flex flex-wrap gap-2">
+            {coUsed.map((c) =>
+              c.fid ? (
+                <Link key={c.fid} href={`/flavor/${c.fid}`} className="chip">
+                  {c.name} <span style={{ color: 'var(--color-ash-dim)' }}>×{c.count}</span>
+                </Link>
+              ) : (
+                <span key={c.name} className="chip">
+                  {c.name} <span style={{ color: 'var(--color-ash-dim)' }}>×{c.count}</span>
+                </span>
+              )
+            )}
           </div>
         </section>
       )}

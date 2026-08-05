@@ -3,6 +3,7 @@ import { getCombos, getTasteTags, getFlavors } from '@/lib/queries'
 import { getCurrentUser } from '@/lib/auth'
 import { ComboCard } from '@/components/combo-card'
 import { IconOrb } from '@/components/icon-orb'
+import { OnboardingHint } from '@/components/onboarding-hint'
 
 export const dynamic = 'force-dynamic'
 
@@ -66,6 +67,7 @@ export default async function Home({
 
   return (
     <div className="wrap py-10 sm:py-14">
+      <OnboardingHint isAuthed={!!user} />
       {/* ---------- HERO ---------- */}
       <section className="glow-bg fade-up mx-auto max-w-3xl text-center">
         {/* 浮遊するフレーバーオーブ（遊び心） */}
@@ -90,7 +92,7 @@ export default async function Home({
       </section>
 
       {/* ---------- 気分で探す ---------- */}
-      <section className="card mx-auto mt-8 max-w-2xl p-5 sm:p-6">
+      <section id="mood" className="card mx-auto mt-8 max-w-2xl p-5 sm:p-6">
         <div className="mb-3 flex items-center justify-between">
           <h2 className="text-sm" style={{ fontWeight: 700 }}>気分で探す</h2>
           <span className="text-xs" style={{ color: 'var(--color-ash-dim)' }}>複数選べます</span>

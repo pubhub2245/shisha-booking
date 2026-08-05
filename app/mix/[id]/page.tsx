@@ -100,8 +100,24 @@ export default async function MixDetail({ params }: { params: Promise<{ id: stri
   const tweetText = `${mix.title}${flavorLine ? `｜${flavorLine}` : ''}\n#シーシャ #MixHub`
   const xShareUrl = `https://x.com/intent/tweet?text=${encodeURIComponent(tweetText)}&url=${encodeURIComponent(`${SITE_URL}/mix/${mix.id}`)}`
 
+  // 構造化データ（有料・非公開の熱管理データは含めない）
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'Recipe',
+    name: mix.title,
+    description: mix.description ?? flavorLine,
+    recipeIngredient: flavors.map((f) => `${f.brand ? `${f.brand} ` : ''}${f.name}`),
+    recipeCategory: 'Shisha Mix',
+    keywords: ['シーシャ', 'MixHub', ...mix.taste_tags].join(', '),
+    url: `${SITE_URL}/mix/${mix.id}`,
+    ...(mix.author?.display_name || mix.author?.username
+      ? { author: { '@type': 'Person', name: mix.author.display_name || `@${mix.author.username}` } }
+      : {}),
+  }
+
   return (
     <div className="wrap max-w-3xl py-10">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       <ViewTracker mixId={mix.id} />
       <div className="flex items-center justify-between">
         <Link href="/" className="text-sm" style={{ color: 'var(--color-ash-dim)' }}>
