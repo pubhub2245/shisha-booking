@@ -3,6 +3,7 @@
 import { useActionState } from 'react'
 import Link from 'next/link'
 import { signIn, signUp, type AuthState } from '@/actions/auth'
+import { EMAIL_ENABLED } from '@/lib/site'
 
 export function AuthForm({ mode, next }: { mode: 'login' | 'signup'; next?: string }) {
   const fn = mode === 'login' ? signIn : signUp
@@ -51,7 +52,7 @@ export function AuthForm({ mode, next }: { mode: 'login' | 'signup'; next?: stri
         {pending ? '処理中…' : mode === 'login' ? 'ログイン' : 'アカウントを作成'}
       </button>
 
-      {mode === 'login' && (
+      {mode === 'login' && EMAIL_ENABLED && (
         <p className="-mt-1 text-center text-sm">
           <Link href="/forgot" style={{ color: 'var(--color-ash-dim)' }}>
             パスワードをお忘れですか？
