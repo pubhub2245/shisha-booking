@@ -1,5 +1,8 @@
 import Link from 'next/link'
 import { IconOrb, type OrbPreset } from '@/components/icon-orb'
+import { HMS_OPTIONS, hmsBowls } from '@/lib/heat'
+import { HmsIcon } from '@/components/hms-icon'
+import { BowlIcon } from '@/components/bowl-icon'
 
 export const metadata = {
   title: '美味しいシーシャの作り方ガイド',
@@ -152,6 +155,9 @@ export default function GuidePage() {
           <li>
             <a href="#profiles" className="hover:underline">{sections.length + 1}. 🌡️ 温度で変わる味</a>
           </li>
+          <li>
+            <a href="#hms-bowl" className="hover:underline">{sections.length + 2}. 🪨 HMD × ボウルの相性</a>
+          </li>
         </ol>
       </nav>
 
@@ -227,6 +233,55 @@ export default function GuidePage() {
             <p className="text-xs leading-relaxed" style={{ color: 'var(--color-ash-dim)' }}>
               補足：ペアチル系は、ゴールデンデリシャスアップルに“別会社のラフランス”を合わせるなど、
               銘柄を掛け合わせて狙いの香りを作る手法もある。
+            </p>
+          </div>
+        </section>
+
+        {/* HMD × ボウルの相性 */}
+        <section id="hms-bowl" className="card p-6" style={{ scrollMarginTop: 80 }}>
+          <div className="flex items-baseline gap-2">
+            <span
+              className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs"
+              style={{ background: 'var(--accent-tint)', color: 'var(--color-ember-hot)', fontWeight: 700 }}
+            >
+              {sections.length + 2}
+            </span>
+            <h2 className="text-lg" style={{ fontWeight: 700 }}>
+              <span aria-hidden className="mr-1.5">🪨</span>HMD × ボウルの相性
+            </h2>
+          </div>
+          <p className="mt-2 text-sm" style={{ color: 'var(--color-ash-dim)' }}>
+            熱源（HMD）とボウルには相性がある。ファンネル系は中央の穴が詰まりにくくエアフローが安定し、味変化がゆるやかで少量でも煙が出やすい。以下は選ぶときの目安。
+          </p>
+          <div className="mt-4 flex flex-col gap-3">
+            {HMS_OPTIONS.filter((o) => o.v !== 'other' && (hmsBowls(o.v).length > 0 || o.bowlNote)).map((o) => (
+              <div key={o.v} className="rounded-lg border p-4" style={{ borderColor: 'var(--line)' }}>
+                <div className="flex items-center gap-2.5">
+                  <span style={{ color: 'var(--color-ember-hot)' }}><HmsIcon type={o.icon} size={30} /></span>
+                  <span className="text-sm" style={{ fontWeight: 700 }}>{o.l}</span>
+                  {o.en && <span className="text-xs" style={{ color: 'var(--color-ash-dim)' }}>{o.en}</span>}
+                </div>
+                {hmsBowls(o.v).length > 0 && (
+                  <div className="mt-2 flex flex-wrap gap-1.5">
+                    {hmsBowls(o.v).map((b) => (
+                      <span
+                        key={b.v}
+                        className="inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs"
+                        style={{ borderColor: 'var(--line-strong)', color: 'var(--color-cream)' }}
+                      >
+                        <span style={{ color: 'var(--color-ember-hot)' }}><BowlIcon type={b.icon} size={16} /></span>
+                        {b.l}
+                      </span>
+                    ))}
+                  </div>
+                )}
+                {o.bowlNote && (
+                  <p className="mt-2 text-xs leading-relaxed" style={{ color: 'var(--color-ash)' }}>{o.bowlNote}</p>
+                )}
+              </div>
+            ))}
+            <p className="text-xs leading-relaxed" style={{ color: 'var(--color-ash-dim)' }}>
+              ※ 相性はあくまで目安。ボウルの穴の形状（1穴／多穴）やフレーバーの水分量でも最適解は変わる。
             </p>
           </div>
         </section>

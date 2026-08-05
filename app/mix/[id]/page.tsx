@@ -15,7 +15,7 @@ import { BookmarkButton } from '@/components/bookmark-button'
 import { ShareButton } from '@/components/share-button'
 import { VerifiedBadge } from '@/components/verified-badge'
 import { HeatCurveChart } from '@/components/heat-curve-chart'
-import { hmsOption, charcoalLabel, windCoverLabel, packLabel, bowlOption, orientationLabel } from '@/lib/heat'
+import { hmsOption, hmsBowls, charcoalLabel, windCoverLabel, packLabel, bowlOption, orientationLabel } from '@/lib/heat'
 import { HmsIcon } from '@/components/hms-icon'
 import { BowlIcon } from '@/components/bowl-icon'
 import { Avatar } from '@/components/avatar'
@@ -304,6 +304,11 @@ export default async function MixDetail({ params }: { params: Promise<{ id: stri
                     </div>
                     {mix.hms_type !== 'other' && (
                       <div className="text-xs" style={{ color: 'var(--color-ash)' }}>{hmsOption(mix.hms_type)!.desc}</div>
+                    )}
+                    {hmsBowls(mix.hms_type).length > 0 && (
+                      <div className="mt-1 text-xs" style={{ color: 'var(--color-ash-dim)' }}>
+                        相性の良いボウル：{hmsBowls(mix.hms_type).map((b) => b.l).join('・')}
+                      </div>
                     )}
                   </div>
                 </div>

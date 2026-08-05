@@ -1,8 +1,9 @@
 'use client'
 
 import { useState } from 'react'
-import { HMS_OPTIONS } from '@/lib/heat'
+import { HMS_OPTIONS, hmsOption, hmsBowls } from '@/lib/heat'
 import { HmsIcon } from '@/components/hms-icon'
+import { BowlIcon } from '@/components/bowl-icon'
 
 /** HMS を写真的なカードで選ぶピッカー。選択値は hidden input で送信。「その他」で自由入力欄が出る。 */
 export function HmsPicker({
@@ -58,9 +59,38 @@ export function HmsPicker({
         />
       )}
       {selected && selected !== 'other' && (
-        <p className="mt-2 text-xs" style={{ color: 'var(--color-ash)' }}>
-          {HMS_OPTIONS.find((o) => o.v === selected)?.desc}
-        </p>
+        <div className="mt-2">
+          <p className="text-xs" style={{ color: 'var(--color-ash)' }}>
+            {hmsOption(selected)?.desc}
+          </p>
+          {(() => {
+            const bowls = hmsBowls(selected)
+            const note = hmsOption(selected)?.bowlNote
+            if (bowls.length === 0 && !note) return null
+            return (
+              <div className="mt-2 rounded-lg border p-2.5" style={{ borderColor: 'var(--line)', background: 'var(--accent-tint)' }}>
+                <p className="text-[0.68rem]" style={{ color: 'var(--color-ember-hot)', fontWeight: 700 }}>相性の良いボウル</p>
+                {bowls.length > 0 && (
+                  <div className="mt-1 flex flex-wrap gap-1.5">
+                    {bowls.map((b) => (
+                      <span
+                        key={b.v}
+                        className="inline-flex items-center gap-1 rounded-full border bg-white px-2 py-0.5 text-[0.68rem]"
+                        style={{ borderColor: 'var(--line-strong)', color: 'var(--color-cream)' }}
+                      >
+                        <span style={{ color: 'var(--color-ember-hot)' }}><BowlIcon type={b.icon} size={16} /></span>
+                        {b.l}
+                      </span>
+                    ))}
+                  </div>
+                )}
+                {note && (
+                  <p className="mt-1.5 text-[0.68rem] leading-snug" style={{ color: 'var(--color-ash)' }}>{note}</p>
+                )}
+              </div>
+            )
+          })()}
+        </div>
       )}
     </div>
   )

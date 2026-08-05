@@ -66,6 +66,21 @@ export function HmsIcon({ type, size = 44 }: { type: string; size?: number }) {
           )}
         </svg>
       )
+    case 'nagrani':
+      // カゴ状（縦バーのケージ）のHMD。ステンレスの籠に炭を入れて乗せるイメージ。
+      return (
+        <svg {...common}>
+          {/* 上下のリング */}
+          <ellipse cx="24" cy="15" rx="11" ry="3.2" />
+          <path d="M13 15v18" />
+          <path d="M35 15v18" />
+          <path d="M13 33q11 5 22 0" />
+          {/* 縦バー（ケージ） */}
+          <path d="M19 15.6v18" opacity="0.85" />
+          <path d="M24 16v18" opacity="0.85" />
+          <path d="M29 15.6v18" opacity="0.85" />
+        </svg>
+      )
     case 'steamulation':
       return (
         <svg {...common}>

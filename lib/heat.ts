@@ -8,6 +8,8 @@ export type HmsOption = {
   en: string // ブランド/英語名
   desc: string // 特徴（1文）
   icon: string
+  bowls?: readonly string[] // 相性の良いボウルの v（おすすめ順）
+  bowlNote?: string // ボウル相性の補足（任意）
 }
 
 export const HMS_OPTIONS: readonly HmsOption[] = [
@@ -17,27 +19,44 @@ export const HMS_OPTIONS: readonly HmsOption[] = [
     en: 'KALOUD Lotus',
     desc: 'アルミ不要で炭を直置き。フタの開閉で火力を細かく調整できる万能な定番。初心者にも◎',
     icon: 'lotus',
+    bowls: ['funnel', 'phunnel', 'silicone', 'vortex'],
+    bowlNote: '中央1穴のファンネル系と好相性。シリコンファンネルなら安価で扱いやすい。',
   },
   {
     v: 'provost',
     l: 'アマボースト',
-    en: 'Amborst',
-    desc: 'ボウルに被せて密閉性を高めるタイプ。熱がこもりやすく立ち上がりが速い。アルミと併用。',
+    en: 'Amavost',
+    desc: 'ボウルに被せて密閉性を高めるタイプ。装甲が薄く直置きに近い熱。立ち上がりが速く濃いめ・煙量重視向け。',
     icon: 'provost',
+    bowls: ['funnel', 'phunnel', 'clay'],
+    bowlNote: '陶器ファンネルとの組み合わせが定番。シロップ多めのフレーバーに向く。',
   },
   {
     v: 'turkish',
     l: 'ターキッシュリッド',
     en: 'Turkish Lid',
-    desc: '穴あきの金属フタを炭の上に被せる伝統的な方法。安価だが火力調整は大まかめ。',
+    desc: '穴あきの金属カップを炭に被せる伝統的な方法。安価だが火力調整は大まかめ。',
     icon: 'turkish',
+    bowls: ['funnel', 'phunnel', 'clay'],
+    bowlNote: '陶器ファンネル×ターキッシュは人気の組み合わせ。シロップ多めにも◎',
   },
   {
     v: 'steamulation',
     l: 'スチームレーション（高さ調節式）',
     en: 'Steamulation',
-    desc: 'エアフロー調整を備えたハイエンドHMS。精密な熱・煙管理ができる上級者向け。',
+    desc: '炭とフレーバーの距離を多段階で調整できるハイエンドHMS。精密な熱・煙管理ができる上級者向け。',
     icon: 'steamulation',
+    bowls: ['phunnel', 'funnel'],
+    bowlNote: '底の段差で各種ボウルに対応。フェニックス/ファンネル系と好相性。',
+  },
+  {
+    v: 'nagrani',
+    l: 'ナグラニ',
+    en: 'Na Grani',
+    desc: 'ロシアンスタイル由来のカゴ状HMD。ステンレス製でストレート／ファンネルボウルに乗せて使う。',
+    icon: 'nagrani',
+    bowls: ['funnel', 'phunnel'],
+    bowlNote: 'ファンネルボウル向け。ロータス用の溝があるハーモニー系ボウルは滑りやすく不向き。',
   },
   {
     v: 'aot',
@@ -52,6 +71,7 @@ export const HMS_OPTIONS: readonly HmsOption[] = [
     en: 'Foil',
     desc: 'HMSを使わずアルミに穴を開けて炭を乗せる基本の方法。手軽で道具いらず。',
     icon: 'foil',
+    bowlNote: 'クレイ・ファンネルなど、ほぼ全てのボウルで使える。',
   },
   { v: 'other', l: 'その他', en: '', desc: 'その他のヒートマネジメント。', icon: 'other' },
 ]
@@ -63,6 +83,15 @@ export function hmsOption(v: string | null | undefined): HmsOption | null {
   if (!v) return null
   const key = HMS_ALIASES[v] ?? v
   return HMS_OPTIONS.find((o) => o.v === key) ?? null
+}
+
+/** そのHMSに相性の良いボウルの一覧（BowlOption[]）を返す */
+export function hmsBowls(v: string | null | undefined): BowlOption[] {
+  const opt = hmsOption(v)
+  if (!opt?.bowls) return []
+  return opt.bowls
+    .map((b) => bowlOption(b))
+    .filter((b): b is BowlOption => b != null)
 }
 
 export const CHARCOAL_OPTIONS = [

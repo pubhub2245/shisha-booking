@@ -100,7 +100,7 @@ function parseHeatEvents(formData: FormData): HeatEvent[] | null {
   }
 }
 
-const HMS_VALUES = ['lotus', 'provost', 'turkish', 'steamulation', 'aot', 'foil', 'other', 'kaloud']
+const HMS_VALUES = ['lotus', 'provost', 'turkish', 'steamulation', 'nagrani', 'aot', 'foil', 'other', 'kaloud']
 const CHARCOAL_VALUES = ['cube', 'flat', 'ogatan', 'other']
 const ORIENTATION_VALUES = ['vertical', 'horizontal']
 const BOWL_VALUES = ['clay', 'funnel', 'vortex', 'phunnel', 'silicone', 'other']
