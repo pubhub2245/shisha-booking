@@ -29,7 +29,7 @@ export const HMS_OPTIONS: readonly HmsOption[] = [
     desc: 'ボウルに被せて密閉性を高めるタイプ。装甲が薄く直置きに近い熱。立ち上がりが速く濃いめ・煙量重視向け。',
     icon: 'provost',
     bowls: ['funnel', 'phunnel', 'clay'],
-    bowlNote: '陶器ファンネルとの組み合わせが定番。シロップ多めのフレーバーに向く。',
+    bowlNote: 'ファンネル系と好相性。装甲が薄く直置きに近いので、火力はやや慎重に管理を。',
   },
   {
     v: 'turkish',
@@ -38,7 +38,7 @@ export const HMS_OPTIONS: readonly HmsOption[] = [
     desc: '穴あきの金属カップを炭に被せる伝統的な方法。安価だが火力調整は大まかめ。',
     icon: 'turkish',
     bowls: ['funnel', 'phunnel', 'clay'],
-    bowlNote: '陶器ファンネル×ターキッシュは人気の組み合わせ。シロップ多めにも◎',
+    bowlNote: 'ファンネル系・クレイと幅広く使える定番のフタ。',
   },
   {
     v: 'steamulation',
@@ -114,10 +114,10 @@ export function orientationLabel(v: string | null | undefined): string | null {
 // ボウルの種類（HMSと同様にイラスト付きで選ばせる）
 export type BowlOption = { v: string; l: string; en: string; desc: string; icon: string }
 export const BOWL_OPTIONS: readonly BowlOption[] = [
-  { v: 'clay', l: 'クレイ', en: 'Clay / Egyptian', desc: '素焼きの定番。底に複数の穴。オーソドックスで扱いやすい。', icon: 'clay' },
-  { v: 'funnel', l: 'ファンネル', en: 'Funnel', desc: '中央に大きな穴＋高いふち。ジュースが落ちにくく甘さを保ちやすい。', icon: 'funnel' },
-  { v: 'vortex', l: 'ハリカ/ボルテックス', en: 'Vortex', desc: '中央の突起の周りに穴。煙が渦を巻き、ジュース漏れも防ぐ。', icon: 'vortex' },
-  { v: 'phunnel', l: 'ファンネル（フェニックス系）', en: 'Phunnel', desc: '中央1穴タイプ。濃いフレーバーやシロップ多めに向く。', icon: 'funnel' },
+  { v: 'clay', l: 'クレイ', en: 'Clay / Egyptian', desc: '素焼き（陶器）の定番。底の穴からシロップが下に落ちやすいため、シロップ少なめの中東系フレーバーと好相性。', icon: 'clay' },
+  { v: 'funnel', l: 'ファンネル', en: 'Funnel', desc: '中央に大きな穴＋高いふち。シロップが落ちにくく甘さを保ちやすい。シロップ多めのフレーバー向け。', icon: 'funnel' },
+  { v: 'vortex', l: 'ハリカ/ボルテックス', en: 'Vortex', desc: '中央の突起の周りに穴。煙が渦を巻き、シロップ漏れも防ぐ。', icon: 'vortex' },
+  { v: 'phunnel', l: 'ファンネル（フェニックス系）', en: 'Phunnel', desc: '中央1穴タイプ。シロップが溜まりやすく、濃いフレーバーやシロップ多めに向く。', icon: 'funnel' },
   { v: 'silicone', l: 'シリコン', en: 'Silicone', desc: '熱に強く割れにくい。手入れが簡単で初心者向け。', icon: 'silicone' },
   { v: 'other', l: 'その他', en: '', desc: 'その他のボウル。', icon: 'other' },
 ]
