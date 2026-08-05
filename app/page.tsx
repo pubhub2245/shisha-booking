@@ -46,6 +46,7 @@ export default async function Home({
     getFlavors(),
   ])
   const flavorShortcuts = flavors.slice(0, 12)
+  const topBrands = [...new Set(flavors.map((f) => f.brand))].sort((a, b) => a.localeCompare(b, 'ja')).slice(0, 12)
 
   // URL 構築（tag は複数 append）
   const href = (o: { tags?: string[]; strength?: Strength; sort?: Sort; q?: string; makeable?: boolean }) => {
@@ -220,6 +221,19 @@ export default async function Home({
               </Link>
             ))}
           </div>
+
+          {topBrands.length > 0 && (
+            <div className="mt-6">
+              <h3 className="mb-2 text-sm" style={{ fontWeight: 700, color: 'var(--color-ash)' }}>ブランドから探す</h3>
+              <div className="flex flex-wrap gap-2">
+                {topBrands.map((b) => (
+                  <Link key={b} href={`/brand/${encodeURIComponent(b)}`} className="chip">
+                    {b}
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
         </section>
       )}
 
