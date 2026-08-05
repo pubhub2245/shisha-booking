@@ -68,18 +68,35 @@ export function hmsOption(v: string | null | undefined): HmsOption | null {
 export const CHARCOAL_OPTIONS = [
   { v: 'cube', l: 'キューブ' },
   { v: 'flat', l: 'フラット' },
-  { v: 'coconut', l: 'ココナッツ' },
   { v: 'ogatan', l: 'オガ炭' },
   { v: 'other', l: 'その他' },
 ] as const
 
-export const BOWL_OPTIONS = [
-  { v: 'clay', l: 'クレイ' },
-  { v: 'funnel', l: 'ファンネル' },
-  { v: 'vortex', l: 'ハリカ/ボルテックス' },
-  { v: 'silicone', l: 'シリコン' },
-  { v: 'other', l: 'その他' },
+// フラット炭の置き方（縦置き/横置きで味が変わる）
+export const CHARCOAL_ORIENTATION_OPTIONS = [
+  { v: 'vertical', l: '縦置き' },
+  { v: 'horizontal', l: '横置き' },
 ] as const
+
+export function orientationLabel(v: string | null | undefined): string | null {
+  return CHARCOAL_ORIENTATION_OPTIONS.find((o) => o.v === v)?.l ?? null
+}
+
+// ボウルの種類（HMSと同様にイラスト付きで選ばせる）
+export type BowlOption = { v: string; l: string; en: string; desc: string; icon: string }
+export const BOWL_OPTIONS: readonly BowlOption[] = [
+  { v: 'clay', l: 'クレイ', en: 'Clay / Egyptian', desc: '素焼きの定番。底に複数の穴。オーソドックスで扱いやすい。', icon: 'clay' },
+  { v: 'funnel', l: 'ファンネル', en: 'Funnel', desc: '中央に大きな穴＋高いふち。ジュースが落ちにくく甘さを保ちやすい。', icon: 'funnel' },
+  { v: 'vortex', l: 'ハリカ/ボルテックス', en: 'Vortex', desc: '中央の突起の周りに穴。煙が渦を巻き、ジュース漏れも防ぐ。', icon: 'vortex' },
+  { v: 'phunnel', l: 'ファンネル（フェニックス系）', en: 'Phunnel', desc: '中央1穴タイプ。濃いフレーバーやシロップ多めに向く。', icon: 'funnel' },
+  { v: 'silicone', l: 'シリコン', en: 'Silicone', desc: '熱に強く割れにくい。手入れが簡単で初心者向け。', icon: 'silicone' },
+  { v: 'other', l: 'その他', en: '', desc: 'その他のボウル。', icon: 'other' },
+]
+
+export function bowlOption(v: string | null | undefined): BowlOption | null {
+  if (!v) return null
+  return BOWL_OPTIONS.find((o) => o.v === v) ?? null
+}
 
 export const PACK_OPTIONS = [
   { v: 'fluff', l: 'ふんわり（フラッフ）' },
@@ -90,7 +107,7 @@ export const PACK_OPTIONS = [
 ] as const
 
 export function bowlLabel(v: string | null | undefined): string | null {
-  return BOWL_OPTIONS.find((o) => o.v === v)?.l ?? null
+  return bowlOption(v)?.l ?? null
 }
 export function packLabel(v: string | null | undefined): string | null {
   return PACK_OPTIONS.find((o) => o.v === v)?.l ?? null

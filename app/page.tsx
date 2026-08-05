@@ -6,13 +6,6 @@ import { IconOrb } from '@/components/icon-orb'
 
 export const dynamic = 'force-dynamic'
 
-type Strength = 'light' | 'medium' | 'strong'
-const STRENGTHS: { v: Strength; l: string }[] = [
-  { v: 'light', l: '軽め' },
-  { v: 'medium', l: 'ふつう' },
-  { v: 'strong', l: '濃いめ' },
-]
-const STRENGTH_LABEL: Record<Strength, string> = { light: '軽め', medium: 'ふつう', strong: '濃いめ' }
 type Sort = 'new' | 'popular' | 'detailed'
 // 気分（キュレーション）
 const MOOD_TASTE = ['甘い', 'スッキリ', '濃厚', 'さっぱり', '爽快']
@@ -26,21 +19,18 @@ function toArray(v: string | string[] | undefined): string[] {
 export default async function Home({
   searchParams,
 }: {
-  searchParams: Promise<{ sort?: string; tag?: string | string[]; strength?: string; q?: string; makeable?: string }>
+  searchParams: Promise<{ sort?: string; tag?: string | string[]; q?: string; makeable?: string }>
 }) {
   const sp = await searchParams
   const sort: Sort = sp.sort === 'popular' ? 'popular' : sp.sort === 'detailed' ? 'detailed' : 'new'
   const activeTags = toArray(sp.tag)
-  const strength = (['light', 'medium', 'strong'] as const).includes(sp.strength as Strength)
-    ? (sp.strength as Strength)
-    : undefined
   const q = sp.q
   const user = await getCurrentUser()
   const makeableOnly = !!user && sp.makeable === '1'
-  const hasFilters = activeTags.length > 0 || !!strength || !!q || makeableOnly
+  const hasFilters = activeTags.length > 0 || !!q || makeableOnly
 
   const [combos, allTags, flavors] = await Promise.all([
-    getCombos({ sort, tags: activeTags, strength, q, makeableOnly }),
+    getCombos({ sort, tags: activeTags, q, makeableOnly }),
     getTasteTags(),
     getFlavors(),
   ])
@@ -48,13 +38,11 @@ export default async function Home({
   const topBrands = [...new Set(flavors.map((f) => f.brand))].sort((a, b) => a.localeCompare(b, 'ja')).slice(0, 12)
 
   // URL 構築（tag は複数 append）
-  const href = (o: { tags?: string[]; strength?: Strength; sort?: Sort; q?: string; makeable?: boolean }) => {
+  const href = (o: { tags?: string[]; sort?: Sort; q?: string; makeable?: boolean }) => {
     const p = new URLSearchParams()
     const s = o.sort ?? sort
     if (s && s !== 'new') p.set('sort', s)
     if (o.q ?? q) p.set('q', (o.q ?? q) as string)
-    const st = 'strength' in o ? o.strength : strength
-    if (st) p.set('strength', st)
     for (const t of o.tags ?? activeTags) p.append('tag', t)
     if ('makeable' in o ? o.makeable : makeableOnly) p.set('makeable', '1')
     const str = p.toString()
@@ -62,10 +50,9 @@ export default async function Home({
   }
   const toggleTag = (t: string) =>
     href({ tags: activeTags.includes(t) ? activeTags.filter((x) => x !== t) : [...activeTags, t] })
-  const toggleStrength = (v: Strength) => href({ strength: strength === v ? undefined : v })
   const otherTags = allTags.filter((t) => !MOOD_TASTE.includes(t) && !MOOD_TYPE.includes(t))
-  // 系統・強さ・タグのいずれかが選択中なら「もっと絞り込む」を開いた状態にする
-  const advancedActive = !!strength || activeTags.some((t) => !MOOD_TASTE.includes(t))
+  // 系統・タグのいずれかが選択中なら「もっと絞り込む」を開いた状態にする
+  const advancedActive = activeTags.some((t) => !MOOD_TASTE.includes(t))
 
   return (
     <div className="wrap py-8 sm:py-12">
@@ -99,25 +86,19 @@ export default async function Home({
           ))}
         </div>
 
-        {/* もっと絞り込む（系統・強さ・タグ） */}
+        {/* もっと絞り込む（系統・タグ） */}
         <details className="mt-3" open={advancedActive}>
           <summary
             className="cursor-pointer list-none text-xs [&::-webkit-details-marker]:hidden"
             style={{ color: 'var(--color-ember-hot)', fontWeight: 600 }}
           >
-            もっと絞り込む（系統・強さ・タグ）
+            もっと絞り込む（系統・タグ）
           </summary>
           <div className="mt-3 flex flex-col gap-3">
             <div className="flex flex-wrap items-center gap-2">
               <span className="w-12 shrink-0 text-xs" style={{ color: 'var(--color-ash-dim)' }}>系統</span>
               {MOOD_TYPE.map((t) => (
                 <Link key={t} href={toggleTag(t)} className={`chip ${activeTags.includes(t) ? 'chip-active' : ''}`}>{t}</Link>
-              ))}
-            </div>
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="w-12 shrink-0 text-xs" style={{ color: 'var(--color-ash-dim)' }}>強さ</span>
-              {STRENGTHS.map((s) => (
-                <Link key={s.v} href={toggleStrength(s.v)} className={`chip ${strength === s.v ? 'chip-active' : ''}`}>{s.l}</Link>
               ))}
             </div>
             {otherTags.length > 0 && (
@@ -134,7 +115,6 @@ export default async function Home({
         {/* キーワード検索 */}
         <form action="/" method="get" className="mt-4 flex gap-2">
           {activeTags.map((t) => <input key={t} type="hidden" name="tag" value={t} />)}
-          {strength && <input type="hidden" name="strength" value={strength} />}
           {sort !== 'new' && <input type="hidden" name="sort" value={sort} />}
           <input
             name="q"
@@ -173,9 +153,6 @@ export default async function Home({
           {activeTags.map((t) => (
             <Link key={t} href={toggleTag(t)} className="chip chip-active">{t} ✕</Link>
           ))}
-          {strength && (
-            <Link href={toggleStrength(strength)} className="chip chip-active">{STRENGTH_LABEL[strength]} ✕</Link>
-          )}
           {makeableOnly && (
             <Link href={href({ makeable: false })} className="chip chip-active">🫙 棚で作れる ✕</Link>
           )}
@@ -248,7 +225,7 @@ export default async function Home({
         </div>
         <div className="grid gap-4 sm:grid-cols-3">
           {[
-            { preset: 'green' as const, icon: '🔍', n: 1, t: '気分で探す', d: '甘い・スッキリ・強さから、いま吸いたい組み合わせを見つける。' },
+            { preset: 'green' as const, icon: '🔍', n: 1, t: '気分で探す', d: '甘い・スッキリ・系統から、いま吸いたい組み合わせを見つける。' },
             { preset: 'amber' as const, icon: '🔥', n: 2, t: '作り方を極める', d: '熱管理カーブや炭のセットアップまで、詳しい作り方が見られる。' },
             { preset: 'violet' as const, icon: '🛒', n: 3, t: '買って・投稿する', d: '材料をそのまま購入。自分の一台も図鑑に投稿しよう。' },
           ].map((s) => (

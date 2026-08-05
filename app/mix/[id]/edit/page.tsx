@@ -17,13 +17,14 @@ export default async function EditMixPage({ params }: { params: Promise<{ id: st
   const initial: MixFormInitial = {
     title: mix.title,
     description: mix.description ?? '',
-    strength: mix.strength,
-    tasteTags: mix.taste_tags.join(', '),
+    tasteTags: mix.taste_tags ?? [],
     heat: mix.heat_management ?? '',
     heatCurve: mix.heat_curve,
     heatEvents: mix.heat_events,
     hmsType: mix.hms_type ?? '',
+    hmsOther: mix.hms_other ?? '',
     charcoalType: mix.charcoal_type ?? '',
+    charcoalOrientation: mix.charcoal_orientation ?? '',
     charcoalCount: mix.charcoal_count != null ? String(mix.charcoal_count) : '',
     windCover: mix.wind_cover === true ? 'true' : mix.wind_cover === false ? 'false' : '',
     bowlType: mix.bowl_type ?? '',
@@ -54,7 +55,7 @@ export default async function EditMixPage({ params }: { params: Promise<{ id: st
         mixId={id}
         initial={initial}
         flavors={flavors}
-        canAddFlavor={!!user.profile?.is_pro || !!user.profile?.is_admin}
+        canAddFlavor={!!user.profile?.is_admin}
         canSell={!!user.profile?.is_pro || !!user.profile?.is_admin}
       />
     </div>

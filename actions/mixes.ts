@@ -3,9 +3,19 @@
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
-import type { Strength, HeatPoint, HeatEvent } from '@/lib/types/database'
+import type { HeatPoint, HeatEvent } from '@/lib/types/database'
 import { comboKey } from '@/lib/combo'
 import { normalizePrice, LOCKABLE_SECTIONS } from '@/lib/premium'
+import { ALL_TASTE_TAGS } from '@/lib/tags'
+
+/** 味わいタグ（選択式）をマスタに照合してパース */
+function parseTasteTags(formData: FormData): string[] {
+  return formData
+    .getAll('taste_tags')
+    .map((v) => String(v))
+    .filter((t) => ALL_TASTE_TAGS.includes(t))
+    .slice(0, 12)
+}
 
 const HEAT_EVENT_TYPES = ['add', 'remove', 'ash', 'rotate', 'other']
 
@@ -79,23 +89,31 @@ function parseHeatEvents(formData: FormData): HeatEvent[] | null {
   }
 }
 
-const HMS_VALUES = ['foil', 'kaloud', 'provost', 'other']
-const CHARCOAL_VALUES = ['cube', 'flat', 'coconut', 'ogatan', 'other']
-const BOWL_VALUES = ['clay', 'funnel', 'vortex', 'silicone', 'other']
+const HMS_VALUES = ['lotus', 'provost', 'turkish', 'steamulation', 'aot', 'foil', 'other', 'kaloud']
+const CHARCOAL_VALUES = ['cube', 'flat', 'ogatan', 'other']
+const ORIENTATION_VALUES = ['vertical', 'horizontal']
+const BOWL_VALUES = ['clay', 'funnel', 'vortex', 'phunnel', 'silicone', 'other']
 const PACK_VALUES = ['fluff', 'flat', 'dense', 'overpack', 'other']
 
 /** 炭・熱源・ボウルセットアップをパース */
 function parseHeatSetup(formData: FormData) {
   const hmsRaw = String(formData.get('hms_type') ?? '')
+  const hmsOther = String(formData.get('hms_other') ?? '').trim().slice(0, 60) || null
   const charRaw = String(formData.get('charcoal_type') ?? '')
+  const orientRaw = String(formData.get('charcoal_orientation') ?? '')
   const countRaw = String(formData.get('charcoal_count') ?? '').trim()
   const windRaw = String(formData.get('wind_cover') ?? '')
   const bowlRaw = String(formData.get('bowl_type') ?? '')
   const packRaw = String(formData.get('pack_style') ?? '')
   const count = countRaw ? Math.max(0, Math.min(20, Number(countRaw) || 0)) : null
+  const hms_type = HMS_VALUES.includes(hmsRaw) ? hmsRaw : null
+  const charcoal_type = CHARCOAL_VALUES.includes(charRaw) ? charRaw : null
   return {
-    hms_type: HMS_VALUES.includes(hmsRaw) ? hmsRaw : null,
-    charcoal_type: CHARCOAL_VALUES.includes(charRaw) ? charRaw : null,
+    hms_type,
+    hms_other: hms_type === 'other' ? hmsOther : null,
+    charcoal_type,
+    // 縦置き/横置きはフラット炭のときだけ有効
+    charcoal_orientation: charcoal_type === 'flat' && ORIENTATION_VALUES.includes(orientRaw) ? orientRaw : null,
     charcoal_count: count,
     wind_cover: windRaw === 'true' ? true : windRaw === 'false' ? false : null,
     bowl_type: BOWL_VALUES.includes(bowlRaw) ? bowlRaw : null,
@@ -103,8 +121,17 @@ function parseHeatSetup(formData: FormData) {
   }
 }
 
-/** ログインユーザーがフレーバーを図鑑に追加できるか（プロ or 管理者） */
-async function canAddFlavor(
+/** ログインユーザーが管理者か（フレーバー追加・購入リンク設定用） */
+async function isAdmin(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  userId: string
+): Promise<boolean> {
+  const { data } = await supabase.from('profiles').select('is_admin').eq('id', userId).maybeSingle()
+  return !!data && (data as { is_admin?: boolean }).is_admin === true
+}
+
+/** プロ認証者 or 管理者か（有料ノートの出品用） */
+async function isProOrAdmin(
   supabase: Awaited<ReturnType<typeof createClient>>,
   userId: string
 ): Promise<boolean> {
@@ -124,8 +151,8 @@ async function growFlavorMaster(
 ): Promise<void> {
   const newOnes = flavors.filter((f) => !f.flavor_id && f.name)
   if (newOnes.length === 0) return
-  // プロ／管理者のみ図鑑に追加できる
-  if (!(await canAddFlavor(supabase, userId))) return
+  // フレーバー図鑑への追加は管理者のみ
+  if (!(await isAdmin(supabase, userId))) return
   try {
     await supabase
       .from('flavors')
@@ -159,7 +186,7 @@ async function parsePremium(
   const locked = formData.getAll('locked_sections').map(String).filter((v) => validSections.includes(v))
   if (!requested || locked.length === 0) return { premium: false, price: null, locked_sections: [] }
   // プロ／管理者のみ有料化できる
-  if (!(await canAddFlavor(supabase, userId))) return { premium: false, price: null, locked_sections: [] }
+  if (!(await isProOrAdmin(supabase, userId))) return { premium: false, price: null, locked_sections: [] }
   return { premium: true, price: normalizePrice(formData.get('price')), locked_sections: locked }
 }
 
@@ -172,16 +199,9 @@ export async function createMix(_prev: MixFormState, formData: FormData): Promis
 
   const title = String(formData.get('title') ?? '').trim()
   const description = String(formData.get('description') ?? '').trim() || null
-  const strengthRaw = String(formData.get('strength') ?? '').trim()
-  const strength: Strength | null =
-    strengthRaw === 'light' || strengthRaw === 'medium' || strengthRaw === 'strong' ? strengthRaw : null
   const heat = String(formData.get('heat_management') ?? '').trim() || null
   const placement = String(formData.get('placement_note') ?? '').trim() || null
-  const tasteTags = String(formData.get('taste_tags') ?? '')
-    .split(/[,、\s]+/)
-    .map((t) => t.trim())
-    .filter(Boolean)
-    .slice(0, 8)
+  const tasteTags = parseTasteTags(formData)
 
   const flavors = parseFlavors(formData)
   const heatCurve = parseHeatCurve(formData)
@@ -193,6 +213,8 @@ export async function createMix(_prev: MixFormState, formData: FormData): Promis
 
   await growFlavorMaster(supabase, flavors, user.id)
   const premiumFields = await parsePremium(supabase, user.id, formData)
+  // 購入リンクは管理者のみ設定可
+  if (!(await isAdmin(supabase, user.id))) for (const f of flavors) f.affiliate_url = null
 
   const { data: mix, error } = await supabase
     .from('mixes')
@@ -201,7 +223,6 @@ export async function createMix(_prev: MixFormState, formData: FormData): Promis
       title,
       description,
       taste_tags: tasteTags,
-      strength,
       heat_management: heat,
       heat_curve: heatCurve,
       heat_events: heatEvents,
@@ -237,17 +258,10 @@ export async function createMix(_prev: MixFormState, formData: FormData): Promis
 function parseMixFields(formData: FormData) {
   const title = String(formData.get('title') ?? '').trim()
   const description = String(formData.get('description') ?? '').trim() || null
-  const strengthRaw = String(formData.get('strength') ?? '').trim()
-  const strength: Strength | null =
-    strengthRaw === 'light' || strengthRaw === 'medium' || strengthRaw === 'strong' ? strengthRaw : null
   const heat = String(formData.get('heat_management') ?? '').trim() || null
   const placement = String(formData.get('placement_note') ?? '').trim() || null
-  const tasteTags = String(formData.get('taste_tags') ?? '')
-    .split(/[,、\s]+/)
-    .map((t) => t.trim())
-    .filter(Boolean)
-    .slice(0, 8)
-  return { title, description, strength, heat, placement, tasteTags }
+  const tasteTags = parseTasteTags(formData)
+  return { title, description, heat, placement, tasteTags }
 }
 
 export async function updateMix(_prev: MixFormState, formData: FormData): Promise<MixFormState> {
@@ -264,7 +278,7 @@ export async function updateMix(_prev: MixFormState, formData: FormData): Promis
   const { data: owned } = await supabase.from('mixes').select('author_id').eq('id', mixId).maybeSingle()
   if (!owned || owned.author_id !== user.id) return { error: 'このミックスを編集する権限がありません。' }
 
-  const { title, description, strength, heat, placement, tasteTags } = parseMixFields(formData)
+  const { title, description, heat, placement, tasteTags } = parseMixFields(formData)
   const flavors = parseFlavors(formData)
   const heatCurve = parseHeatCurve(formData)
   const heatEvents = parseHeatEvents(formData)
@@ -274,10 +288,11 @@ export async function updateMix(_prev: MixFormState, formData: FormData): Promis
 
   await growFlavorMaster(supabase, flavors, user.id)
   const premiumFields = await parsePremium(supabase, user.id, formData)
+  if (!(await isAdmin(supabase, user.id))) for (const f of flavors) f.affiliate_url = null
 
   const { error } = await supabase
     .from('mixes')
-    .update({ title, description, taste_tags: tasteTags, strength, heat_management: heat, heat_curve: heatCurve, heat_events: heatEvents, ...heatSetup, placement_note: placement, combo_key: comboKey(flavors), ...premiumFields })
+    .update({ title, description, taste_tags: tasteTags, heat_management: heat, heat_curve: heatCurve, heat_events: heatEvents, ...heatSetup, placement_note: placement, combo_key: comboKey(flavors), ...premiumFields })
     .eq('id', mixId)
   if (error) {
     console.error('[updateMix]', error.message)

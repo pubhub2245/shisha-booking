@@ -1,7 +1,6 @@
 import Link from 'next/link'
 import type { MixWithRelations } from '@/lib/types/database'
 import { LikeButton } from '@/components/like-button'
-import { StrengthMeter } from '@/components/strength-meter'
 import { VerifiedBadge } from '@/components/verified-badge'
 import { CompletenessBadge } from '@/components/completeness'
 
@@ -75,7 +74,6 @@ export function MixCard({
             {authorLabel(mix)}
             {mix.author?.is_pro && <VerifiedBadge size={13} />}
           </span>
-          <StrengthMeter strength={mix.strength} />
         </div>
       </Link>
 

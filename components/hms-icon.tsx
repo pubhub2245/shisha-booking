@@ -36,15 +36,18 @@ export function HmsIcon({ type, size = 44 }: { type: string; size?: number }) {
         </svg>
       )
     case 'turkish':
+      // 穴あきの浅いドーム型カバー＋頂点のつまみ（プロヴォストの滑らかなキャップと区別）
       return (
         <svg {...common}>
-          <path d="M7 25h6" />
-          <ellipse cx="26" cy="27" rx="12" ry="5" />
+          <path d="M9 33h30" />
+          <path d="M12 33c0-8 5-11 12-11s12 3 12 11" />
+          <path d="M24 22v-3" />
+          <circle cx="24" cy="17.5" r="1.6" />
+          <circle cx="18" cy="29" r="0.9" fill="currentColor" stroke="none" />
+          <circle cx="24" cy="30" r="0.9" fill="currentColor" stroke="none" />
+          <circle cx="30" cy="29" r="0.9" fill="currentColor" stroke="none" />
           <circle cx="21" cy="26" r="0.9" fill="currentColor" stroke="none" />
-          <circle cx="26" cy="27" r="0.9" fill="currentColor" stroke="none" />
-          <circle cx="31" cy="26" r="0.9" fill="currentColor" stroke="none" />
-          <circle cx="23.5" cy="24.5" r="0.9" fill="currentColor" stroke="none" />
-          <circle cx="28.5" cy="24.5" r="0.9" fill="currentColor" stroke="none" />
+          <circle cx="27" cy="26" r="0.9" fill="currentColor" stroke="none" />
         </svg>
       )
     case 'steamulation':

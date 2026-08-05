@@ -43,13 +43,14 @@ export default async function PostPage({
       initial = {
         title: `${base.title}（アレンジ）`,
         description: base.description ?? '',
-        strength: base.strength,
-        tasteTags: base.taste_tags.join(', '),
+        tasteTags: base.taste_tags ?? [],
         heat: base.heat_management ?? '',
         heatCurve: base.heat_curve,
         heatEvents: base.heat_events,
         hmsType: base.hms_type ?? '',
+        hmsOther: base.hms_other ?? '',
         charcoalType: base.charcoal_type ?? '',
+        charcoalOrientation: base.charcoal_orientation ?? '',
         charcoalCount: base.charcoal_count != null ? String(base.charcoal_count) : '',
         windCover: base.wind_cover === true ? 'true' : base.wind_cover === false ? 'false' : '',
         bowlType: base.bowl_type ?? '',
@@ -72,13 +73,14 @@ export default async function PostPage({
       initial = {
         title: '',
         description: '',
-        strength: null,
-        tasteTags: '',
+        tasteTags: [],
         heat: '',
         heatCurve: null,
         heatEvents: null,
         hmsType: '',
+        hmsOther: '',
         charcoalType: '',
+        charcoalOrientation: '',
         charcoalCount: '',
         windCover: '',
         bowlType: '',
@@ -101,7 +103,7 @@ export default async function PostPage({
         mode="create"
         initial={initial}
         flavors={flavors}
-        canAddFlavor={!!user.profile?.is_pro || !!user.profile?.is_admin}
+        canAddFlavor={!!user.profile?.is_admin}
         canSell={!!user.profile?.is_pro || !!user.profile?.is_admin}
       />
     </div>

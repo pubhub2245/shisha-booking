@@ -2,22 +2,25 @@
 
 import { useActionState, useState } from 'react'
 import { createMix, updateMix, type MixFormState } from '@/actions/mixes'
-import type { Strength, Flavor, HeatPoint, HeatEvent } from '@/lib/types/database'
+import type { Flavor, HeatPoint, HeatEvent } from '@/lib/types/database'
 import { HeatCurveEditor } from '@/components/heat-curve-editor'
-import { CHARCOAL_OPTIONS, BOWL_OPTIONS, PACK_OPTIONS } from '@/lib/heat'
+import { CHARCOAL_OPTIONS, CHARCOAL_ORIENTATION_OPTIONS, PACK_OPTIONS } from '@/lib/heat'
 import { LOCKABLE_SECTIONS } from '@/lib/premium'
 import { HmsPicker } from '@/components/hms-picker'
+import { BowlPicker } from '@/components/bowl-picker'
+import { TagPicker } from '@/components/tag-picker'
 
 export type MixFormInitial = {
   title: string
   description: string
-  strength: Strength | null
-  tasteTags: string
+  tasteTags: string[]
   heat: string
   heatCurve: HeatPoint[] | null
   heatEvents: HeatEvent[] | null
   hmsType: string
+  hmsOther: string
   charcoalType: string
+  charcoalOrientation: string
   charcoalCount: string
   windCover: string
   bowlType: string
@@ -53,7 +56,7 @@ export function MixForm({
   mixId?: string
   initial?: MixFormInitial
   flavors: Flavor[]
-  /** プロ認証者（＋管理者）のみ、新しいフレーバーを図鑑に登録できる */
+  /** 管理者のみ、新しいフレーバーの追加・購入リンクの設定ができる */
   canAddFlavor?: boolean
   /** プロ認証者（＋管理者）のみ、一部を有料ノートにできる */
   canSell?: boolean
@@ -61,6 +64,7 @@ export function MixForm({
   const action0 = mode === 'edit' ? updateMix : createMix
   const [state, action, pending] = useActionState<MixFormState, FormData>(action0, null)
   const [premium, setPremium] = useState(initial?.premium ?? false)
+  const [charcoalType, setCharcoalType] = useState(initial?.charcoalType ?? '')
 
   const masterById = new Map(flavors.map((f) => [f.id, f]))
 
@@ -146,7 +150,7 @@ export function MixForm({
         </div>
         {!canAddFlavor && (
           <p className="mb-2 text-xs" style={{ color: 'var(--color-ash-dim)' }}>
-            💡 新しいフレーバーの<b>図鑑への登録はプロ認証者のみ</b>です。一覧に無い場合は「リストにない」で入力すると、この投稿にのみ使われます（図鑑には追加されません）。
+            💡 一覧から選択してください。新しいフレーバーの追加は運営（管理者）のみが行えます。見つからないフレーバーは運営までご連絡ください。
           </p>
         )}
         <div className="flex flex-col gap-3">
@@ -186,7 +190,7 @@ export function MixForm({
                       {brands.map((b) => (
                         <option key={b} value={b}>{b}</option>
                       ))}
-                      <option value={NEW}>リストにない（新規追加）</option>
+                      {canAddFlavor && <option value={NEW}>リストにない（新規追加）</option>}
                     </select>
                   </div>
 
@@ -208,14 +212,14 @@ export function MixForm({
                         {brandFlavors.map((f) => (
                           <option key={f.id} value={f.id}>{f.name}</option>
                         ))}
-                        <option value={NEW}>リストにない（新規追加）</option>
+                        {canAddFlavor && <option value={NEW}>リストにない（新規追加）</option>}
                       </select>
                     )}
                   </div>
                 </div>
 
-                {/* 新規追加の入力欄（ブランド新規、または既知ブランドで味だけ新規） */}
-                {isNewBrand && (
+                {/* 新規追加の入力欄（管理者のみ） */}
+                {canAddFlavor && isNewBrand && (
                   <div className="mt-3 field">
                     <input
                       value={row.newBrand}
@@ -224,7 +228,7 @@ export function MixForm({
                     />
                   </div>
                 )}
-                {!isNewBrand && isNewName && (
+                {canAddFlavor && !isNewBrand && isNewName && (
                   <div className="mt-3 field">
                     <input
                       value={row.newName}
@@ -238,9 +242,14 @@ export function MixForm({
                   <div className="field">
                     <input name="flavor_ratio" defaultValue={row.ratio} inputMode="numeric" placeholder="割合%" />
                   </div>
-                  <div className="field">
-                    <input name="flavor_url" defaultValue={row.url} placeholder="購入リンク（任意 / アフィリエイトURL）" />
-                  </div>
+                  {/* 購入リンクは管理者のみ設定可。非管理者は既存値をそのまま保持（編集不可）。 */}
+                  {canAddFlavor ? (
+                    <div className="field">
+                      <input name="flavor_url" defaultValue={row.url} placeholder="購入リンク（任意 / アフィリエイトURL）" />
+                    </div>
+                  ) : (
+                    <input type="hidden" name="flavor_url" value={row.url} />
+                  )}
                 </div>
               </div>
             )
@@ -250,17 +259,8 @@ export function MixForm({
       </div>
 
       <div className="field">
-        <label>味わいタグ（カンマ区切り）</label>
-        <input name="taste_tags" defaultValue={initial?.tasteTags} placeholder="甘い, スッキリ, フルーツ" />
-      </div>
-
-      <div className="field">
-        <label>濃さ</label>
-        <select name="strength" defaultValue={initial?.strength ?? 'medium'}>
-          <option value="light">軽め</option>
-          <option value="medium">ふつう</option>
-          <option value="strong">濃いめ</option>
-        </select>
+        <label>味わいタグ（選択式・複数可）</label>
+        <TagPicker name="taste_tags" defaultValue={initial?.tasteTags ?? []} />
       </div>
 
       <div className="field">
@@ -278,18 +278,40 @@ export function MixForm({
         <div className="text-sm" style={{ fontWeight: 700 }}>炭・熱源セットアップ</div>
         <div className="field">
           <label>ヒートマネジメント（HMS）</label>
-          <HmsPicker name="hms_type" defaultValue={initial?.hmsType ?? ''} />
+          <HmsPicker name="hms_type" defaultValue={initial?.hmsType ?? ''} otherDefault={initial?.hmsOther ?? ''} />
         </div>
+
+        <div className="field">
+          <label>ボウル</label>
+          <BowlPicker name="bowl_type" defaultValue={initial?.bowlType ?? ''} />
+        </div>
+
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="field">
             <label>炭の種類</label>
-            <select name="charcoal_type" defaultValue={initial?.charcoalType ?? ''}>
+            <select
+              name="charcoal_type"
+              value={charcoalType}
+              onChange={(e) => setCharcoalType(e.target.value)}
+            >
               <option value="">未設定</option>
               {CHARCOAL_OPTIONS.map((o) => (
                 <option key={o.v} value={o.v}>{o.l}</option>
               ))}
             </select>
           </div>
+          {/* フラット炭は縦置き/横置きで味が変わる */}
+          {charcoalType === 'flat' && (
+            <div className="field">
+              <label>フラット炭の置き方</label>
+              <select name="charcoal_orientation" defaultValue={initial?.charcoalOrientation ?? ''}>
+                <option value="">未設定</option>
+                {CHARCOAL_ORIENTATION_OPTIONS.map((o) => (
+                  <option key={o.v} value={o.v}>{o.l}</option>
+                ))}
+              </select>
+            </div>
+          )}
           <div className="field">
             <label>炭の個数</label>
             <input name="charcoal_count" defaultValue={initial?.charcoalCount} inputMode="numeric" placeholder="例：3" />
@@ -300,15 +322,6 @@ export function MixForm({
               <option value="">未設定</option>
               <option value="true">被せる</option>
               <option value="false">被せない</option>
-            </select>
-          </div>
-          <div className="field">
-            <label>ボウル</label>
-            <select name="bowl_type" defaultValue={initial?.bowlType ?? ''}>
-              <option value="">未設定</option>
-              {BOWL_OPTIONS.map((o) => (
-                <option key={o.v} value={o.v}>{o.l}</option>
-              ))}
             </select>
           </div>
           <div className="field">

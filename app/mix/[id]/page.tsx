@@ -14,10 +14,10 @@ import { LikeButton } from '@/components/like-button'
 import { BookmarkButton } from '@/components/bookmark-button'
 import { ShareButton } from '@/components/share-button'
 import { VerifiedBadge } from '@/components/verified-badge'
-import { StrengthMeter } from '@/components/strength-meter'
 import { HeatCurveChart } from '@/components/heat-curve-chart'
-import { hmsOption, charcoalLabel, windCoverLabel, bowlLabel, packLabel } from '@/lib/heat'
+import { hmsOption, charcoalLabel, windCoverLabel, packLabel, bowlOption, orientationLabel } from '@/lib/heat'
 import { HmsIcon } from '@/components/hms-icon'
+import { BowlIcon } from '@/components/bowl-icon'
 import { Avatar } from '@/components/avatar'
 import { CompletenessMeter } from '@/components/completeness'
 import { relativeTime } from '@/lib/time'
@@ -194,7 +194,6 @@ export default async function MixDetail({ params }: { params: Promise<{ id: stri
             𝕏 でシェア
           </a>
           <ShareButton title={mix.title} />
-          <StrengthMeter strength={mix.strength} />
         </div>
         <div className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm" style={{ color: 'var(--color-ash)' }}>
           {mix.author && <Avatar name={mix.author.display_name || mix.author.username} seed={mix.author.id} size={24} />}
@@ -274,7 +273,9 @@ export default async function MixDetail({ params }: { params: Promise<{ id: stri
         mix.hms_type ||
         mix.charcoal_type ||
         mix.charcoal_count != null ||
-        mix.wind_cover != null) && (
+        mix.wind_cover != null ||
+        mix.bowl_type ||
+        mix.pack_style) && (
         <section className="mt-8">
           <h2 className="mb-3 text-sm eyebrow">How to make — 作り方ノート</h2>
 
@@ -294,23 +295,44 @@ export default async function MixDetail({ params }: { params: Promise<{ id: stri
                   <HmsIcon type={hmsOption(mix.hms_type)!.icon} size={40} />
                   <div className="min-w-0">
                     <div className="text-sm" style={{ fontWeight: 700, color: 'var(--color-cream)' }}>
-                      {hmsOption(mix.hms_type)!.l}
-                      {hmsOption(mix.hms_type)!.en && (
+                      {mix.hms_type === 'other' && mix.hms_other ? mix.hms_other : hmsOption(mix.hms_type)!.l}
+                      {mix.hms_type !== 'other' && hmsOption(mix.hms_type)!.en && (
                         <span className="ml-1 text-xs" style={{ color: 'var(--color-ash-dim)', fontWeight: 400 }}>
                           {hmsOption(mix.hms_type)!.en}
                         </span>
                       )}
                     </div>
-                    <div className="text-xs" style={{ color: 'var(--color-ash)' }}>{hmsOption(mix.hms_type)!.desc}</div>
+                    {mix.hms_type !== 'other' && (
+                      <div className="text-xs" style={{ color: 'var(--color-ash)' }}>{hmsOption(mix.hms_type)!.desc}</div>
+                    )}
+                  </div>
+                </div>
+              )}
+              {bowlOption(mix.bowl_type) && (
+                <div
+                  className="mb-3 flex items-center gap-3 rounded-xl border p-3"
+                  style={{ borderColor: 'var(--line)', background: 'var(--accent-tint)', color: 'var(--color-ember-hot)' }}
+                >
+                  <BowlIcon type={bowlOption(mix.bowl_type)!.icon} size={38} />
+                  <div className="min-w-0">
+                    <div className="text-sm" style={{ fontWeight: 700, color: 'var(--color-cream)' }}>
+                      ボウル：{bowlOption(mix.bowl_type)!.l}
+                      {bowlOption(mix.bowl_type)!.en && (
+                        <span className="ml-1 text-xs" style={{ color: 'var(--color-ash-dim)', fontWeight: 400 }}>
+                          {bowlOption(mix.bowl_type)!.en}
+                        </span>
+                      )}
+                    </div>
+                    <div className="text-xs" style={{ color: 'var(--color-ash)' }}>{bowlOption(mix.bowl_type)!.desc}</div>
                   </div>
                 </div>
               )}
               <dl className="grid grid-cols-2 gap-x-4 gap-y-3 text-sm sm:grid-cols-3">
                 {[
                   { k: '炭の種類', v: charcoalLabel(mix.charcoal_type) },
+                  { k: '置き方', v: orientationLabel(mix.charcoal_orientation) },
                   { k: '個数', v: mix.charcoal_count != null ? `${mix.charcoal_count}個` : null },
                   { k: '風防', v: windCoverLabel(mix.wind_cover) },
-                  { k: 'ボウル', v: bowlLabel(mix.bowl_type) },
                   { k: '盛り方', v: packLabel(mix.pack_style) },
                 ]
                   .filter((x) => x.v)

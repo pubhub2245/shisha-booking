@@ -4,11 +4,22 @@ import { useState } from 'react'
 import { HMS_OPTIONS } from '@/lib/heat'
 import { HmsIcon } from '@/components/hms-icon'
 
-/** HMS を写真的なカードで選ぶピッカー。選択値は hidden input で送信。 */
-export function HmsPicker({ name = 'hms_type', defaultValue = '' }: { name?: string; defaultValue?: string }) {
+/** HMS を写真的なカードで選ぶピッカー。選択値は hidden input で送信。「その他」で自由入力欄が出る。 */
+export function HmsPicker({
+  name = 'hms_type',
+  defaultValue = '',
+  otherName = 'hms_other',
+  otherDefault = '',
+}: {
+  name?: string
+  defaultValue?: string
+  otherName?: string
+  otherDefault?: string
+}) {
   // 旧値 kaloud を lotus に寄せる
   const normalized = defaultValue === 'kaloud' ? 'lotus' : defaultValue
   const [selected, setSelected] = useState(normalized)
+  const [other, setOther] = useState(otherDefault)
 
   return (
     <div>
@@ -36,7 +47,17 @@ export function HmsPicker({ name = 'hms_type', defaultValue = '' }: { name?: str
           )
         })}
       </div>
-      {selected && (
+      {selected === 'other' && (
+        <input
+          name={otherName}
+          value={other}
+          onChange={(e) => setOther(e.target.value)}
+          placeholder="HMSの名称を入力（例：〇〇 ヒートマネジメント）"
+          className="mt-2 w-full rounded-xl border px-4 py-2.5 text-sm outline-none"
+          style={{ background: '#fff', borderColor: 'var(--line-strong)', color: 'var(--color-cream)' }}
+        />
+      )}
+      {selected && selected !== 'other' && (
         <p className="mt-2 text-xs" style={{ color: 'var(--color-ash)' }}>
           {HMS_OPTIONS.find((o) => o.v === selected)?.desc}
         </p>
