@@ -26,6 +26,7 @@ export type MixFormInitial = {
   charcoalOrientation: string
   charcoalCount: string
   steepMinutes: string
+  steepHeat: string
   windCover: string
   bowlType: string
   packStyle: string
@@ -70,6 +71,7 @@ export function MixForm({
   const [premium, setPremium] = useState(initial?.premium ?? false)
   const [charcoalType, setCharcoalType] = useState(initial?.charcoalType ?? '')
   const [steepMin, setSteepMin] = useState(initial?.steepMinutes ?? '')
+  const [steepHeat, setSteepHeat] = useState(initial?.steepHeat ?? '')
 
   const masterById = new Map(flavors.map((f) => [f.id, f]))
 
@@ -338,19 +340,44 @@ export function MixForm({
         </div>
       </div>
 
-      {/* 蒸らし時間 */}
+      {/* 蒸らし */}
       <div className="field">
-        <label>♨️ 蒸らし時間（分）</label>
-        <input
-          name="steep_minutes"
-          value={steepMin}
-          onChange={(e) => setSteepMin(e.target.value)}
-          inputMode="decimal"
-          placeholder="例：7"
-          style={{ maxWidth: 160 }}
-        />
-        <p className="mt-1 text-xs" style={{ color: 'var(--color-ash-dim)' }}>
-          炭を置いてから吸い始めるまで、フタをして熱を通す時間。目安は3〜7分（短いと煙・香りが弱く、長いと焦げやすい）。
+        <label>♨️ 蒸らし</label>
+        <div className="grid gap-3 sm:grid-cols-2">
+          <div>
+            <span className="text-xs" style={{ color: 'var(--color-ash-dim)' }}>時間（分）</span>
+            <input
+              name="steep_minutes"
+              value={steepMin}
+              onChange={(e) => setSteepMin(e.target.value)}
+              inputMode="decimal"
+              placeholder="例：7"
+              className="mt-1 w-full"
+            />
+          </div>
+          <div>
+            <span className="text-xs" style={{ color: 'var(--color-ash-dim)' }}>到達火力（1〜100）</span>
+            <div className="mt-1 flex items-center gap-2">
+              <input
+                type="range" min={0} max={100}
+                value={Number(steepHeat) || 0}
+                onChange={(e) => setSteepHeat(e.target.value === '0' ? '' : e.target.value)}
+                className="min-w-0 flex-1" style={{ accentColor: 'var(--color-ember)' }}
+                aria-label="蒸らしの到達火力"
+              />
+              <input
+                name="steep_heat"
+                value={steepHeat}
+                onChange={(e) => setSteepHeat(e.target.value)}
+                inputMode="numeric"
+                placeholder="例：70"
+                className="w-16"
+              />
+            </div>
+          </div>
+        </div>
+        <p className="mt-2 text-xs" style={{ color: 'var(--color-ash-dim)' }}>
+          蒸らし＝炭を置いてから吸い始めるまで、フタをして熱を通す工程。時間の目安は3〜7分（短いと煙・香りが弱く、長いと焦げやすい）。到達火力は「蒸らし終わりにどこまで火を入れるか」の目安です。
         </p>
         <SourceLine sources={STEEP_SOURCES} className="mt-1" />
       </div>
@@ -361,7 +388,7 @@ export function MixForm({
         <p className="mb-2 text-xs" style={{ color: 'var(--color-ash-dim)' }}>
           最初の緩やかな立ち上がりが「蒸らし」の区間です。
         </p>
-        <HeatCurveEditor initialCurve={initial?.heatCurve ?? undefined} initialEvents={initial?.heatEvents ?? undefined} steepMinutes={Number(steepMin) || undefined} />
+        <HeatCurveEditor initialCurve={initial?.heatCurve ?? undefined} initialEvents={initial?.heatEvents ?? undefined} steepMinutes={Number(steepMin) || undefined} steepHeat={Number(steepHeat) || undefined} />
       </div>
 
       <div className="field">

@@ -275,13 +275,14 @@ export default async function MixDetail({ params }: { params: Promise<{ id: stri
         mix.charcoal_type ||
         mix.charcoal_count != null ||
         mix.steep_minutes != null ||
+        mix.steep_heat != null ||
         mix.wind_cover != null ||
         mix.bowl_type ||
         mix.pack_style) && (
         <section className="mt-8">
           <h2 className="mb-3 text-sm eyebrow">How to make — 作り方ノート</h2>
 
-          {(mix.hms_type || mix.charcoal_type || mix.charcoal_count != null || mix.steep_minutes != null || mix.wind_cover != null || mix.bowl_type || mix.pack_style) &&
+          {(mix.hms_type || mix.charcoal_type || mix.charcoal_count != null || mix.steep_minutes != null || mix.steep_heat != null || mix.wind_cover != null || mix.bowl_type || mix.pack_style) &&
             (locked('setup') ? (
               <div className="mb-4">
                 <LockedNote mixId={mix.id} title="セットアップ" icon="🪨" price={mix.price} isAuthed={!!user} />
@@ -359,6 +360,7 @@ export default async function MixDetail({ params }: { params: Promise<{ id: stri
                   { k: '置き方', v: orientationLabel(mix.charcoal_orientation) },
                   { k: '個数', v: mix.charcoal_count != null ? `${mix.charcoal_count}個` : null },
                   { k: '蒸らし', v: mix.steep_minutes != null ? `${mix.steep_minutes}分` : null },
+                  { k: '蒸らし到達火力', v: mix.steep_heat != null ? `${mix.steep_heat}` : null },
                   { k: '風防', v: windCoverLabel(mix.wind_cover) },
                 ]
                   .filter((x) => x.v)
@@ -390,7 +392,7 @@ export default async function MixDetail({ params }: { params: Promise<{ id: stri
               <p className="mb-3 text-xs" style={{ color: 'var(--color-ash-dim)' }}>
                 横軸＝経過時間（分）、縦軸＝火力（0〜100）／点線＝炭イベント
               </p>
-              <HeatCurveChart points={mix.heat_curve ?? undefined} events={mix.heat_events ?? undefined} steepMinutes={mix.steep_minutes ?? undefined} />
+              <HeatCurveChart points={mix.heat_curve ?? undefined} events={mix.heat_events ?? undefined} steepMinutes={mix.steep_minutes ?? undefined} steepHeat={mix.steep_heat ?? undefined} />
             </div>
             ))}
 

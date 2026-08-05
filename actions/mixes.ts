@@ -114,6 +114,7 @@ function parseHeatSetup(formData: FormData) {
   const orientRaw = String(formData.get('charcoal_orientation') ?? '')
   const countRaw = String(formData.get('charcoal_count') ?? '').trim()
   const steepRaw = String(formData.get('steep_minutes') ?? '').trim()
+  const steepHeatRaw = String(formData.get('steep_heat') ?? '').trim()
   const windRaw = String(formData.get('wind_cover') ?? '')
   const bowlRaw = String(formData.get('bowl_type') ?? '')
   const packRaw = String(formData.get('pack_style') ?? '')
@@ -121,6 +122,9 @@ function parseHeatSetup(formData: FormData) {
   // 蒸らし時間（分）。0〜30、0.5刻みを許容。
   const steepNum = steepRaw ? Number(steepRaw) : NaN
   const steep_minutes = steepRaw && Number.isFinite(steepNum) ? Math.max(0, Math.min(30, Math.round(steepNum * 2) / 2)) : null
+  // 蒸らし到達火力（1〜100の整数）
+  const steepHeatNum = steepHeatRaw ? Number(steepHeatRaw) : NaN
+  const steep_heat = steepHeatRaw && Number.isFinite(steepHeatNum) ? Math.max(1, Math.min(100, Math.round(steepHeatNum))) : null
   const hms_type = HMS_VALUES.includes(hmsRaw) ? hmsRaw : null
   const charcoal_type = CHARCOAL_VALUES.includes(charRaw) ? charRaw : null
   return {
@@ -131,6 +135,7 @@ function parseHeatSetup(formData: FormData) {
     charcoal_orientation: charcoal_type === 'flat' && ORIENTATION_VALUES.includes(orientRaw) ? orientRaw : null,
     charcoal_count: count,
     steep_minutes,
+    steep_heat,
     wind_cover: windRaw === 'true' ? true : windRaw === 'false' ? false : null,
     bowl_type: BOWL_VALUES.includes(bowlRaw) ? bowlRaw : null,
     pack_style: PACK_VALUES.includes(packRaw) ? packRaw : null,

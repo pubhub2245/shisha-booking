@@ -68,6 +68,7 @@ export type Mix = {
   charcoal_orientation: string | null
   charcoal_count: number | null
   steep_minutes: number | null
+  steep_heat: number | null
   wind_cover: boolean | null
   bowl_type: string | null
   pack_style: string | null
