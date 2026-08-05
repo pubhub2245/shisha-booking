@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
-import { getComboBySlug, getLikedMixIds } from '@/lib/queries'
+import { getComboBySlug, getLikedMixIds, getMyUnlockedMixIds } from '@/lib/queries'
 import { getCurrentUser } from '@/lib/auth'
 import { MixCard } from '@/components/mix-card'
 import { HeatCurveChart, type CurveSeries } from '@/components/heat-curve-chart'
@@ -26,19 +26,27 @@ export async function generateMetadata({
 
 export default async function ComboPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
-  const [combo, likedIds, user] = await Promise.all([
+  const [combo, likedIds, user, unlockedIds] = await Promise.all([
     getComboBySlug(slug),
     getLikedMixIds(),
     getCurrentUser(),
+    getMyUnlockedMixIds(),
   ])
   if (!combo) notFound()
 
   const [top, ...rest] = combo.methods
   const totalLikes = combo.methods.reduce((s, m) => s + m.like_count, 0)
 
+  // 有料ノートで熱カーブがロックされている作り方は、権利のない閲覧者には比較に含めない（漏洩防止）
+  const canSeeCurve = (m: (typeof combo.methods)[number]) => {
+    const locked = m.premium && (m.locked_sections ?? []).includes('heat_curve')
+    if (!locked) return true
+    return m.author_id === user?.id || !!user?.profile?.is_admin || unlockedIds.has(m.id)
+  }
+
   // 熱カーブ比較（2件以上に曲線があるとき）
   const curveSeries: CurveSeries[] = combo.methods
-    .filter((m) => Array.isArray(m.heat_curve) && m.heat_curve.length >= 2)
+    .filter((m) => canSeeCurve(m) && Array.isArray(m.heat_curve) && m.heat_curve.length >= 2)
     .slice(0, 6)
     .map((m, i) => ({
       label: m.title.length > 16 ? m.title.slice(0, 16) + '…' : m.title,

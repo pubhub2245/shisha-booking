@@ -467,6 +467,21 @@ export async function getMixesByAuthor(authorId: string): Promise<MixWithRelatio
   }
 }
 
+/** 現在のユーザーが解錠済みの mix_id 集合（複数ミックスの判定用） */
+export async function getMyUnlockedMixIds(): Promise<Set<string>> {
+  try {
+    const supabase = await createClient()
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+    if (!user) return new Set()
+    const { data } = await supabase.from('mix_unlocks').select('mix_id').eq('user_id', user.id)
+    return new Set((data ?? []).map((r) => r.mix_id as string))
+  } catch {
+    return new Set()
+  }
+}
+
 /** 現在のユーザーがこのミックスの有料ノートを解錠済みか */
 export async function isMixUnlocked(mixId: string): Promise<boolean> {
   try {
