@@ -21,10 +21,15 @@ export function HeatCurveEditor({
   const [points, setPoints] = useState<HeatPoint[]>(
     initialCurve && initialCurve.length >= 2
       ? [...initialCurve].sort((a, b) => a.t - b.t)
-      : [
-          { t: 0, v: 40 },
-          { t: 10, v: 80 },
-          { t: 20, v: 60 },
+      : // 初期値：約2時間（120分）想定の平均的な熱カーブ
+        // むらしで立ち上げ→序盤ピーク→中盤の管理→終盤ゆるやかに下降
+        [
+          { t: 0, v: 30 },
+          { t: 10, v: 70 },
+          { t: 30, v: 75 },
+          { t: 60, v: 65 },
+          { t: 90, v: 55 },
+          { t: 120, v: 40 },
         ]
   )
   const [events, setEvents] = useState<HeatEvent[]>(initialEvents ?? [])
