@@ -16,6 +16,7 @@ export function SiteFooter() {
           <Link href="/" className="hover:text-[var(--color-cream)]">図鑑</Link>
           <Link href="/flavors" className="hover:text-[var(--color-cream)]">フレーバー</Link>
           <Link href="/ranking" className="hover:text-[var(--color-cream)]">ランキング</Link>
+          <Link href="/guide" className="hover:text-[var(--color-cream)]">作り方ガイド</Link>
           <Link href="/post" className="hover:text-[var(--color-cream)]">投稿する</Link>
           <Link href="/shops" className="hover:text-[var(--color-cream)]">店舗一覧</Link>
           <Link href="/for-shops" className="hover:text-[var(--color-cream)]">店舗の方へ</Link>

@@ -106,6 +106,23 @@ export function HeatCurveChart({
               {s.points.map((p, i) => (
                 <circle key={i} cx={x(p.t)} cy={y(p.v)} r="3" fill={s.color} stroke="#fff" strokeWidth="1.3" />
               ))}
+              {/* キューブ炭の個数（単一カーブ表示のときのみ、玄人向け） */}
+              {allSeries.length === 1 &&
+                s.points.map((p, i) =>
+                  typeof p.coals === 'number' && p.coals > 0 ? (
+                    <text
+                      key={`c${i}`}
+                      x={x(p.t)}
+                      y={y(p.v) - 8}
+                      textAnchor="middle"
+                      fontSize="8.5"
+                      fill="var(--color-ember-hot)"
+                      style={{ fontWeight: 700 }}
+                    >
+                      🔥{p.coals}
+                    </text>
+                  ) : null
+                )}
             </g>
           ) : null
         )}

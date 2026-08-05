@@ -140,7 +140,7 @@ export function HeatCurveEditor({
           ))}
         </svg>
         <p className="mt-1 text-xs" style={{ color: 'var(--color-ash-dim)' }}>
-          点をドラッグで火力・時間を調整／グラフ内をタップで点を追加
+          点をドラッグで火力・時間を調整／グラフ内をタップで点を追加／各時点の「🔥炭」にキューブ炭の個数を記録できます（任意）
         </p>
       </div>
 
@@ -149,7 +149,7 @@ export function HeatCurveEditor({
         {sorted.map((p) => {
           const idx = points.indexOf(p)
           return (
-            <div key={idx} className="flex items-center gap-2">
+            <div key={idx} className="flex flex-wrap items-center gap-2">
               <div className="field flex items-center gap-1">
                 <input
                   type="number" inputMode="decimal" min={0} max={180} step={0.5} value={p.t}
@@ -158,7 +158,7 @@ export function HeatCurveEditor({
                 />
                 <span className="text-xs" style={{ color: 'var(--color-ash-dim)' }}>分</span>
               </div>
-              <div className="flex min-w-0 flex-1 items-center gap-2">
+              <div className="flex min-w-0 flex-1 items-center gap-2" style={{ minWidth: 150 }}>
                 <input
                   type="range" min={1} max={100} value={p.v}
                   onChange={(e) => setPoints((ps) => ps.map((q, i) => (i === idx ? { ...q, v: Number(e.target.value) } : q)))}
@@ -171,6 +171,23 @@ export function HeatCurveEditor({
                     style={{ padding: '8px 8px' }} aria-label="火力の数値"
                   />
                 </div>
+              </div>
+              {/* キューブ炭の個数（任意・玄人向け） */}
+              <div className="field flex items-center gap-1" title="この時点のキューブ炭の個数（任意）">
+                <span className="text-xs" style={{ color: 'var(--color-ash-dim)' }}>🔥炭</span>
+                <input
+                  type="number" inputMode="numeric" min={0} max={20} step={1}
+                  value={p.coals ?? ''} placeholder="—"
+                  onChange={(e) => {
+                    const raw = e.target.value
+                    setPoints((ps) => ps.map((q, i) => {
+                      if (i !== idx) return q
+                      if (raw === '') return { t: q.t, v: q.v }
+                      return { ...q, coals: Math.max(0, Math.min(20, Number(raw) || 0)) }
+                    }))
+                  }}
+                  className="w-12" style={{ padding: '8px 6px' }} aria-label="キューブ炭の個数"
+                />
               </div>
               <button type="button" onClick={() => setPoints((ps) => (ps.length > 2 ? ps.filter((_, i) => i !== idx) : ps))} className="text-xs" style={{ color: 'var(--color-ash-dim)' }}>削除</button>
             </div>

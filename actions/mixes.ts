@@ -60,7 +60,18 @@ function parseHeatCurve(formData: FormData): HeatPoint[] | null {
     if (!Array.isArray(arr)) return null
     const pts = arr
       .filter((p) => p && typeof p.t === 'number' && typeof p.v === 'number')
-      .map((p) => ({ t: Math.max(0, Math.min(180, Math.round(p.t * 2) / 2)), v: Math.max(1, Math.min(100, Math.round(p.v))) }))
+      .map((p) => {
+        const pt: HeatPoint = {
+          t: Math.max(0, Math.min(180, Math.round(p.t * 2) / 2)),
+          v: Math.max(1, Math.min(100, Math.round(p.v))),
+        }
+        // キューブ炭の個数（任意・玄人向け）。0-20 の整数のみ。未指定は省略。
+        if (typeof p.coals === 'number' && Number.isFinite(p.coals)) {
+          const c = Math.max(0, Math.min(20, Math.round(p.coals)))
+          if (c > 0) pt.coals = c
+        }
+        return pt
+      })
       .slice(0, 40)
     return pts.length >= 2 ? pts : null
   } catch {

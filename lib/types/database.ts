@@ -2,8 +2,8 @@
 
 export type Strength = 'light' | 'medium' | 'strong'
 
-/** 熱管理カーブの1点: t=経過分, v=火力(1-100) */
-export type HeatPoint = { t: number; v: number }
+/** 熱管理カーブの1点: t=経過分, v=火力(1-100), coals=その時点のキューブ炭の個数(任意・玄人向け) */
+export type HeatPoint = { t: number; v: number; coals?: number }
 
 /** 炭イベント: t=経過分, type=種別, note=任意メモ */
 export type HeatEvent = { t: number; type: string; note?: string }
