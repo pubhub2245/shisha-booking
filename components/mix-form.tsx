@@ -239,8 +239,9 @@ export function MixForm({
                 )}
 
                 <div className="mt-3 grid gap-3 sm:grid-cols-[110px_1fr]">
-                  <div className="field">
-                    <input name="flavor_ratio" defaultValue={row.ratio} inputMode="numeric" placeholder="割合%" />
+                  <div className="field flex items-center gap-1" title="このフレーバーの使用量（グラム）">
+                    <input name="flavor_ratio" defaultValue={row.ratio} inputMode="decimal" placeholder="使用量" className="min-w-0 flex-1" />
+                    <span className="shrink-0 text-sm" style={{ color: 'var(--color-ash-dim)' }}>g</span>
                   </div>
                   {/* 購入リンクは管理者のみ設定可。非管理者は既存値をそのまま保持（編集不可）。 */}
                   {canAddFlavor ? (

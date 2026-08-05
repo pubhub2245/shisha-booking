@@ -10,7 +10,7 @@ export function mixCompleteness(m: Partial<Mix> & { mix_flavors?: { ratio: numbe
   if (m.taste_tags && m.taste_tags.length > 0) s += 5
   if (m.strength) s += 5
 
-  // フレーバーに割合が入っているか
+  // フレーバーに使用量（g）が入っているか
   const flavors = m.mix_flavors ?? []
   if (flavors.length > 0 && flavors.every((f) => f.ratio != null)) s += 10
 

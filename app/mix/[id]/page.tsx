@@ -232,7 +232,7 @@ export default async function MixDetail({ params }: { params: Promise<{ id: stri
                   <span style={{ fontWeight: 700 }}>{f.name}</span>
                   {f.ratio != null && (
                     <span className="text-xs" style={{ color: 'var(--color-ember-hot)', fontWeight: 600 }}>
-                      {f.ratio}%
+                      {f.ratio}g
                     </span>
                   )}
                 </div>
