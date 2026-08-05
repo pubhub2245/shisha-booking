@@ -30,6 +30,9 @@ export function HeatCurveEditor({
   const [events, setEvents] = useState<HeatEvent[]>(initialEvents ?? [])
   const [drag, setDrag] = useState<number | null>(null)
   const svgRef = useRef<SVGSVGElement>(null)
+  // 数値入力の一時バッファ。入力中は空文字も許容し、確定時（blur）に補完する。
+  const [buf, setBuf] = useState<{ key: string; val: string } | null>(null)
+  const bufVal = (key: string, fallback: number) => (buf && buf.key === key ? buf.val : String(fallback))
 
   const sorted = [...points].sort((a, b) => a.t - b.t)
   const maxT = Math.max(30, ...points.map((p) => p.t), ...events.map((e) => e.t))
@@ -152,8 +155,20 @@ export function HeatCurveEditor({
             <div key={idx} className="flex flex-wrap items-center gap-2">
               <div className="field flex items-center gap-1">
                 <input
-                  type="number" inputMode="decimal" min={0} max={180} step={0.5} value={p.t}
-                  onChange={(e) => setPoints((ps) => ps.map((q, i) => (i === idx ? { ...q, t: Number(e.target.value) || 0 } : q)))}
+                  type="number" inputMode="decimal" min={0} max={180} step={0.5}
+                  value={bufVal('t' + idx, p.t)}
+                  onChange={(e) => {
+                    const raw = e.target.value
+                    setBuf({ key: 't' + idx, val: raw })
+                    if (raw !== '') {
+                      const n = Number(raw)
+                      if (!Number.isNaN(n)) setPoints((ps) => ps.map((q, i) => (i === idx ? { ...q, t: Math.max(0, Math.min(180, n)) } : q)))
+                    }
+                  }}
+                  onBlur={(e) => {
+                    if (e.target.value === '') setPoints((ps) => ps.map((q, i) => (i === idx ? { ...q, t: 0 } : q)))
+                    setBuf(null)
+                  }}
                   className="w-14" style={{ padding: '8px 8px' }} aria-label="経過分"
                 />
                 <span className="text-xs" style={{ color: 'var(--color-ash-dim)' }}>分</span>
@@ -166,8 +181,20 @@ export function HeatCurveEditor({
                 />
                 <div className="field" style={{ width: 64 }}>
                   <input
-                    type="number" inputMode="numeric" min={1} max={100} value={p.v}
-                    onChange={(e) => setPoints((ps) => ps.map((q, i) => (i === idx ? { ...q, v: Math.min(100, Math.max(1, Number(e.target.value) || 1)) } : q)))}
+                    type="number" inputMode="numeric" min={1} max={100}
+                    value={bufVal('v' + idx, p.v)}
+                    onChange={(e) => {
+                      const raw = e.target.value
+                      setBuf({ key: 'v' + idx, val: raw })
+                      if (raw !== '') {
+                        const n = Number(raw)
+                        if (!Number.isNaN(n)) setPoints((ps) => ps.map((q, i) => (i === idx ? { ...q, v: Math.min(100, Math.max(1, n)) } : q)))
+                      }
+                    }}
+                    onBlur={(e) => {
+                      if (e.target.value === '') setPoints((ps) => ps.map((q, i) => (i === idx ? { ...q, v: 1 } : q)))
+                      setBuf(null)
+                    }}
                     style={{ padding: '8px 8px' }} aria-label="火力の数値"
                   />
                 </div>
@@ -204,8 +231,20 @@ export function HeatCurveEditor({
           <div key={i} className="flex flex-wrap items-center gap-2">
             <div className="field flex items-center gap-1">
               <input
-                type="number" inputMode="decimal" min={0} max={180} step={0.5} value={ev.t}
-                onChange={(e) => setEvents((es) => es.map((q, idx) => (idx === i ? { ...q, t: Number(e.target.value) || 0 } : q)))}
+                type="number" inputMode="decimal" min={0} max={180} step={0.5}
+                value={bufVal('et' + i, ev.t)}
+                onChange={(e) => {
+                  const raw = e.target.value
+                  setBuf({ key: 'et' + i, val: raw })
+                  if (raw !== '') {
+                    const n = Number(raw)
+                    if (!Number.isNaN(n)) setEvents((es) => es.map((q, idx) => (idx === i ? { ...q, t: Math.max(0, Math.min(180, n)) } : q)))
+                  }
+                }}
+                onBlur={(e) => {
+                  if (e.target.value === '') setEvents((es) => es.map((q, idx) => (idx === i ? { ...q, t: 0 } : q)))
+                  setBuf(null)
+                }}
                 className="w-14" style={{ padding: '8px 8px' }} aria-label="経過分"
               />
               <span className="text-xs" style={{ color: 'var(--color-ash-dim)' }}>分</span>
