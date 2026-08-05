@@ -36,18 +36,26 @@ export function HmsIcon({ type, size = 44 }: { type: string; size?: number }) {
         </svg>
       )
     case 'turkish':
-      // 穴あきの浅いドーム型カバー＋頂点のつまみ（プロヴォストの滑らかなキャップと区別）
+      // 穴あきの金属円筒カップ＋側面の穴＋黒い持ち手（実機の形に寄せた線画）
       return (
         <svg {...common}>
-          <path d="M9 33h30" />
-          <path d="M12 33c0-8 5-11 12-11s12 3 12 11" />
-          <path d="M24 22v-3" />
-          <circle cx="24" cy="17.5" r="1.6" />
-          <circle cx="18" cy="29" r="0.9" fill="currentColor" stroke="none" />
-          <circle cx="24" cy="30" r="0.9" fill="currentColor" stroke="none" />
-          <circle cx="30" cy="29" r="0.9" fill="currentColor" stroke="none" />
-          <circle cx="21" cy="26" r="0.9" fill="currentColor" stroke="none" />
-          <circle cx="27" cy="26" r="0.9" fill="currentColor" stroke="none" />
+          {/* 持ち手（黒いグリップ） */}
+          <path d="M33 25h9" strokeWidth={3} />
+          {/* 円筒の側面 */}
+          <path d="M11 15v18" />
+          <path d="M33 15v18" />
+          {/* 底（手前側のカーブ） */}
+          <path d="M11 33q11 5 22 0" />
+          {/* 開口部のリム */}
+          <ellipse cx="22" cy="15" rx="11" ry="3.4" />
+          {/* 内部中央のチューブ */}
+          <circle cx="22" cy="15" r="1.3" fill="currentColor" stroke="none" />
+          {/* 側面の穴（2列） */}
+          {[23, 28].map((cy) =>
+            [15, 20, 25, 30].map((cx) => (
+              <circle key={`${cx}-${cy}`} cx={cx} cy={cy} r="0.9" fill="currentColor" stroke="none" />
+            ))
+          )}
         </svg>
       )
     case 'steamulation':
