@@ -72,6 +72,7 @@ export type Mix = {
   wind_cover: boolean | null
   bowl_type: string | null
   pack_style: string | null
+  pack_photo_url: string | null
   placement_note: string | null
   like_count: number
   view_count: number

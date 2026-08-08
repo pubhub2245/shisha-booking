@@ -9,6 +9,7 @@ import { LOCKABLE_SECTIONS } from '@/lib/premium'
 import { HmsPicker } from '@/components/hms-picker'
 import { BowlPicker } from '@/components/bowl-picker'
 import { PackPicker } from '@/components/pack-picker'
+import { PackPhotoInput } from '@/components/pack-photo-input'
 import { SourceLine } from '@/components/source-line'
 import { STEEP_SOURCES } from '@/lib/sources'
 import { TagPicker } from '@/components/tag-picker'
@@ -30,6 +31,7 @@ export type MixFormInitial = {
   windCover: string
   bowlType: string
   packStyle: string
+  packPhotoUrl: string
   placement: string
   premium: boolean
   price: string
@@ -337,6 +339,12 @@ export function MixForm({
         <div className="field">
           <label>🍶 フレーバーの盛り方</label>
           <PackPicker name="pack_style" defaultValue={initial?.packStyle ?? ''} />
+          <div className="mt-3">
+            <span className="text-xs" style={{ color: 'var(--color-ash-dim)' }}>盛り方の写真（任意）</span>
+            <div className="mt-1">
+              <PackPhotoInput name="pack_photo_url" defaultValue={initial?.packPhotoUrl ?? ''} />
+            </div>
+          </div>
         </div>
       </div>
 

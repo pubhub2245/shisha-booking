@@ -278,11 +278,12 @@ export default async function MixDetail({ params }: { params: Promise<{ id: stri
         mix.steep_heat != null ||
         mix.wind_cover != null ||
         mix.bowl_type ||
-        mix.pack_style) && (
+        mix.pack_style ||
+        mix.pack_photo_url) && (
         <section className="mt-8">
           <h2 className="mb-3 text-sm eyebrow">How to make — 作り方ノート</h2>
 
-          {(mix.hms_type || mix.charcoal_type || mix.charcoal_count != null || mix.steep_minutes != null || mix.steep_heat != null || mix.wind_cover != null || mix.bowl_type || mix.pack_style) &&
+          {(mix.hms_type || mix.charcoal_type || mix.charcoal_count != null || mix.steep_minutes != null || mix.steep_heat != null || mix.wind_cover != null || mix.bowl_type || mix.pack_style || mix.pack_photo_url) &&
             (locked('setup') ? (
               <div className="mb-4">
                 <LockedNote mixId={mix.id} title="セットアップ" icon="🪨" price={mix.price} isAuthed={!!user} />
@@ -352,6 +353,18 @@ export default async function MixDetail({ params }: { params: Promise<{ id: stri
                     </div>
                     <div className="text-xs" style={{ color: 'var(--color-ash)' }}>{packOption(mix.pack_style)!.desc}</div>
                   </div>
+                </div>
+              )}
+              {mix.pack_photo_url && (
+                <div className="mb-3">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={mix.pack_photo_url}
+                    alt="盛り方の写真"
+                    className="w-full rounded-xl border object-cover"
+                    style={{ maxHeight: 360, borderColor: 'var(--line)' }}
+                  />
+                  <p className="mt-1 text-xs" style={{ color: 'var(--color-ash-dim)' }}>📷 投稿者による盛り方の写真</p>
                 </div>
               )}
               <dl className="grid grid-cols-2 gap-x-4 gap-y-3 text-sm sm:grid-cols-3">

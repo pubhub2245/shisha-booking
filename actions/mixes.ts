@@ -7,6 +7,7 @@ import type { HeatPoint, HeatEvent } from '@/lib/types/database'
 import { comboKey } from '@/lib/combo'
 import { normalizePrice, LOCKABLE_SECTIONS } from '@/lib/premium'
 import { ALL_TASTE_TAGS } from '@/lib/tags'
+import { isValidMixPhotoUrl } from '@/lib/storage'
 
 /** 味わいタグ（選択式）をマスタに照合してパース */
 function parseTasteTags(formData: FormData): string[] {
@@ -118,6 +119,7 @@ function parseHeatSetup(formData: FormData) {
   const windRaw = String(formData.get('wind_cover') ?? '')
   const bowlRaw = String(formData.get('bowl_type') ?? '')
   const packRaw = String(formData.get('pack_style') ?? '')
+  const packPhotoRaw = String(formData.get('pack_photo_url') ?? '').trim()
   const count = countRaw ? Math.max(0, Math.min(20, Number(countRaw) || 0)) : null
   // 蒸らし時間（分）。0〜30、0.5刻みを許容。
   const steepNum = steepRaw ? Number(steepRaw) : NaN
@@ -139,6 +141,8 @@ function parseHeatSetup(formData: FormData) {
     wind_cover: windRaw === 'true' ? true : windRaw === 'false' ? false : null,
     bowl_type: BOWL_VALUES.includes(bowlRaw) ? bowlRaw : null,
     pack_style: PACK_VALUES.includes(packRaw) ? packRaw : null,
+    // 自分のストレージ公開URLのみ許可
+    pack_photo_url: packPhotoRaw && isValidMixPhotoUrl(packPhotoRaw) ? packPhotoRaw : null,
   }
 }
 

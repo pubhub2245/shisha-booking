@@ -31,6 +31,7 @@ export default async function EditMixPage({ params }: { params: Promise<{ id: st
     windCover: mix.wind_cover === true ? 'true' : mix.wind_cover === false ? 'false' : '',
     bowlType: mix.bowl_type ?? '',
     packStyle: mix.pack_style ?? '',
+    packPhotoUrl: mix.pack_photo_url ?? '',
     placement: mix.placement_note ?? '',
     premium: mix.premium,
     price: mix.price != null ? String(mix.price) : '',
