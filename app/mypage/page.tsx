@@ -81,6 +81,9 @@ export default async function MyPage() {
               <Link href="/admin/clicks" className="text-xs" style={{ color: 'var(--color-ember-hot)', fontWeight: 600 }}>
                 📊 送客クリック集計
               </Link>
+              <Link href="/admin/reports" className="text-xs" style={{ color: 'var(--color-ember-hot)', fontWeight: 600 }}>
+                🛡 通報の管理
+              </Link>
             </div>
           )}
         </div>

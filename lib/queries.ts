@@ -24,6 +24,7 @@ import type {
   MyMembership,
   Notification,
   NotificationWithContext,
+  Report,
 } from '@/lib/types/database'
 
 export type FeedOptions = {
@@ -828,6 +829,31 @@ export async function getMixesUsingBrand(brand: string): Promise<MixWithRelation
       .order('like_count', { ascending: false })
       .limit(30)
     return attachRelations(supabase, (data ?? []) as Mix[])
+  } catch {
+    return []
+  }
+}
+
+/** 通報一覧（管理者のみ・RLSで制御）。通報者と対象ミックス名付き。 */
+export async function getReports(): Promise<(Report & { reporter: MixAuthor | null; mixTitle: string | null })[]> {
+  try {
+    const supabase = await createClient()
+    const { data } = await supabase.from('reports').select('*').order('created_at', { ascending: false }).limit(200)
+    const rows = (data ?? []) as Report[]
+    if (rows.length === 0) return []
+    const reporterIds = [...new Set(rows.map((r) => r.reporter_id))]
+    const mixIds = [...new Set(rows.map((r) => r.mix_id).filter(Boolean) as string[])]
+    const [repRes, mixRes] = await Promise.all([
+      supabase.from('profiles').select('id, username, display_name, is_shop, is_pro, shop_name').in('id', reporterIds),
+      mixIds.length ? supabase.from('mixes').select('id, title').in('id', mixIds) : Promise.resolve({ data: [] }),
+    ])
+    const rmap = new Map((repRes.data ?? []).map((a) => [(a as MixAuthor).id, a as MixAuthor]))
+    const mmap = new Map((mixRes.data ?? []).map((m) => [(m as { id: string }).id, (m as { title: string }).title]))
+    return rows.map((r) => ({
+      ...r,
+      reporter: r.reporter_id ? rmap.get(r.reporter_id) ?? null : null,
+      mixTitle: r.mix_id ? mmap.get(r.mix_id) ?? null : null,
+    }))
   } catch {
     return []
   }
