@@ -830,6 +830,22 @@ export async function getMixesUsingBrand(brand: string): Promise<MixWithRelation
   }
 }
 
+/** 盛り方写真がある最近のミックス（トップの写真ストリップ用） */
+export async function getRecentPhotoMixes(limit = 12): Promise<MixWithRelations[]> {
+  try {
+    const supabase = await createClient()
+    const { data } = await supabase
+      .from('mixes')
+      .select('*')
+      .not('pack_photo_url', 'is', null)
+      .order('created_at', { ascending: false })
+      .limit(limit)
+    return attachRelations(supabase, (data ?? []) as Mix[])
+  } catch {
+    return []
+  }
+}
+
 /** ミックス検索（タイトル・説明・フレーバー名・味わいタグ）。like順は人気優先。 */
 export async function searchMixes(q: string): Promise<MixWithRelations[]> {
   const term = q.trim()

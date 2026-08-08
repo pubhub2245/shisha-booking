@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { getCombos, getTasteTags, getFlavors } from '@/lib/queries'
+import { getCombos, getTasteTags, getFlavors, getRecentPhotoMixes } from '@/lib/queries'
 import { getCurrentUser } from '@/lib/auth'
 import { ComboCard } from '@/components/combo-card'
 import { IconOrb } from '@/components/icon-orb'
@@ -29,10 +29,11 @@ export default async function Home({
   const makeableOnly = !!user && sp.makeable === '1'
   const hasFilters = activeTags.length > 0 || !!q || makeableOnly
 
-  const [combos, allTags, flavors] = await Promise.all([
+  const [combos, allTags, flavors, photoMixes] = await Promise.all([
     getCombos({ sort, tags: activeTags, q, makeableOnly }),
     getTasteTags(),
     getFlavors(),
+    hasFilters ? Promise.resolve([]) : getRecentPhotoMixes(12),
   ])
   const flavorShortcuts = flavors.slice(0, 12)
   const topBrands = [...new Set(flavors.map((f) => f.brand))].sort((a, b) => a.localeCompare(b, 'ja')).slice(0, 12)
@@ -183,6 +184,32 @@ export default async function Home({
             <Link href="/post" className="btn btn-ember">＋ ミックスを投稿</Link>
           </div>
         </div>
+      )}
+
+      {/* ---------- PHOTO STRIP（みんなの盛り方） ---------- */}
+      {photoMixes.length > 0 && (
+        <section className="mt-16">
+          <div className="mb-3 flex items-baseline justify-between">
+            <h2 className="text-lg" style={{ fontWeight: 700 }}>📷 みんなの盛り方</h2>
+            <Link href="/search" className="text-sm" style={{ color: 'var(--color-ember-hot)', fontWeight: 600 }}>もっと見る →</Link>
+          </div>
+          <div className="flex gap-3 overflow-x-auto pb-2">
+            {photoMixes.map((m) => (
+              <Link key={m.id} href={`/mix/${m.id}`} className="group block shrink-0" style={{ width: 150 }}>
+                <div className="overflow-hidden rounded-xl border" style={{ borderColor: 'var(--line)' }}>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={m.pack_photo_url!}
+                    alt={`${m.title} の盛り方`}
+                    className="aspect-square w-full object-cover transition-transform group-hover:scale-105"
+                    loading="lazy"
+                  />
+                </div>
+                <div className="mt-1 truncate text-xs" style={{ color: 'var(--color-ash)' }}>{m.title}</div>
+              </Link>
+            ))}
+          </div>
+        </section>
       )}
 
       {/* ---------- FLAVOR SHORTCUTS ---------- */}
