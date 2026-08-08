@@ -67,10 +67,16 @@ export async function generateMetadata({
   const mix = await getMixById(id)
   if (!mix) return { title: 'ミックスが見つかりません — MixHub' }
   const flavorLine = (mix.mix_flavors ?? []).map((f) => f.name).join(' × ')
+  // 盛り方写真があればOG画像に使う。無ければブランド既定画像にフォールバック。
+  const images = mix.pack_photo_url
+    ? [{ url: mix.pack_photo_url }]
+    : [{ url: '/og-default.png', width: 1200, height: 630 }]
+  const desc = mix.description ?? flavorLine ?? 'シーシャのミックスレシピ'
   return {
     title: `${mix.title} — MixHub`,
-    description: mix.description ?? flavorLine ?? 'シーシャのミックスレシピ',
-    openGraph: { title: mix.title, description: mix.description ?? flavorLine },
+    description: desc,
+    openGraph: { title: mix.title, description: desc, images },
+    twitter: { card: 'summary_large_image', title: mix.title, description: desc, images },
   }
 }
 

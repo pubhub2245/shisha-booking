@@ -32,6 +32,13 @@ export const metadata: Metadata = {
     description: "日本中の「美味しい」シーシャ ミックスと作り方が集まる図鑑コミュニティ。",
     type: "website",
     locale: "ja_JP",
+    images: [{ url: "/og-default.png", width: 1200, height: 630 }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "MixHub — シーシャのミックス図鑑",
+    description: "日本中の「美味しい」シーシャ ミックスと作り方が集まる図鑑コミュニティ。",
+    images: ["/og-default.png"],
   },
 };
 
