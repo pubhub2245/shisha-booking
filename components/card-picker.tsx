@@ -63,7 +63,7 @@ export function CardPicker({
             type="button"
             onClick={() => setExpanded(true)}
             className="shrink-0 rounded-full border px-3 py-1 text-xs"
-            style={{ borderColor: 'var(--line-strong)', color: 'var(--color-ash)', background: '#fff' }}
+            style={{ borderColor: 'var(--line-strong)', color: 'var(--color-ash)', background: 'var(--color-smoke-850)' }}
           >
             変更
           </button>
@@ -105,7 +105,7 @@ export function CardPicker({
           onChange={(e) => setOther(e.target.value)}
           placeholder={otherPlaceholder}
           className="mt-2 w-full rounded-xl border px-4 py-2.5 text-sm outline-none"
-          style={{ background: '#fff', borderColor: 'var(--line-strong)', color: 'var(--color-cream)' }}
+          style={{ background: 'var(--color-smoke-850)', borderColor: 'var(--line-strong)', color: 'var(--color-cream)' }}
         />
       )}
 

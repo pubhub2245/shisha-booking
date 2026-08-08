@@ -20,10 +20,12 @@ function toArray(v: string | string[] | undefined): string[] {
 export default async function Home({
   searchParams,
 }: {
-  searchParams: Promise<{ sort?: string; tag?: string | string[]; q?: string; makeable?: string }>
+  searchParams: Promise<{ sort?: string; tag?: string | string[]; q?: string; makeable?: string; page?: string }>
 }) {
   const sp = await searchParams
   const sort: Sort = sp.sort === 'popular' ? 'popular' : sp.sort === 'detailed' ? 'detailed' : 'new'
+  const PER_PAGE = 24
+  const page = Math.max(1, Number(sp.page) || 1)
   const activeTags = toArray(sp.tag)
   const q = sp.q
   const user = await getCurrentUser()
@@ -42,13 +44,14 @@ export default async function Home({
   const topBrands = [...new Set(flavors.map((f) => f.brand))].sort((a, b) => a.localeCompare(b, 'ja')).slice(0, 12)
 
   // URL 構築（tag は複数 append）
-  const href = (o: { tags?: string[]; sort?: Sort; q?: string; makeable?: boolean }) => {
+  const href = (o: { tags?: string[]; sort?: Sort; q?: string; makeable?: boolean; page?: number }) => {
     const p = new URLSearchParams()
     const s = o.sort ?? sort
     if (s && s !== 'new') p.set('sort', s)
     if (o.q ?? q) p.set('q', (o.q ?? q) as string)
     for (const t of o.tags ?? activeTags) p.append('tag', t)
     if ('makeable' in o ? o.makeable : makeableOnly) p.set('makeable', '1')
+    if (o.page && o.page > 1) p.set('page', String(o.page))
     const str = p.toString()
     return str ? `/?${str}` : '/'
   }
@@ -130,7 +133,7 @@ export default async function Home({
             defaultValue={q ?? ''}
             placeholder="フレーバー名・キーワードで検索"
             className="min-w-0 flex-1 rounded-xl border px-4 py-2.5 text-sm outline-none"
-            style={{ background: '#fff', borderColor: 'var(--line-strong)', color: 'var(--color-cream)' }}
+            style={{ background: 'var(--color-smoke-850)', borderColor: 'var(--line-strong)', color: 'var(--color-cream)' }}
           />
           <button type="submit" className="btn btn-ghost shrink-0 text-sm">検索</button>
         </form>
@@ -171,11 +174,20 @@ export default async function Home({
 
       {/* ---------- GRID (Combo単位) ---------- */}
       {combos.length > 0 ? (
-        <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {combos.map((combo) => (
-            <ComboCard key={combo.key} combo={combo} />
-          ))}
-        </div>
+        <>
+          <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {combos.slice(0, page * PER_PAGE).map((combo) => (
+              <ComboCard key={combo.key} combo={combo} />
+            ))}
+          </div>
+          {combos.length > page * PER_PAGE && (
+            <div className="mt-8 flex justify-center">
+              <Link href={href({ page: page + 1 })} className="btn btn-ghost" scroll={false}>
+                もっと見る（残り{combos.length - page * PER_PAGE}件）
+              </Link>
+            </div>
+          )}
+        </>
       ) : (
         <div className="card mt-6 p-12 text-center">
           <p className="text-lg" style={{ fontWeight: 700 }}>

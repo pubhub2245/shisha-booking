@@ -37,6 +37,37 @@
   --line: rgb(35 32 26 / 0.09);
   --line-strong: rgb(35 32 26 / 0.16);
   --accent-tint: rgb(31 138 118 / 0.09);
+  /* 半透明の紙色（ヘッダー/ボトムナビ等） */
+  --surface-blur: rgb(247 244 238 / 0.82);
+  --surface-blur-strong: rgb(247 244 238 / 0.92);
+}
+
+/* ============================================================ Dark mode
+   端末がダーク設定のときだけトークンの値を差し替える（参照側は変更不要）。 */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-smoke-950: #141210; /* page bg */
+    --color-smoke-900: #1b1813; /* 補助面 */
+    --color-smoke-850: #211d17; /* card / input surface */
+    --color-smoke-800: #262119;
+    --color-smoke-700: #322c22;
+    --color-smoke-600: #433b2e;
+
+    --color-ember:     #26a68d; /* primary accent（やや明るめ） */
+    --color-ember-hot: #4cc4aa; /* 暗地に映えるテキスト用アクセント */
+    --color-coal:      #2ba088;
+    --color-ember-deep:#e0714a;
+
+    --color-cream:   #ece7dd; /* 主要テキスト（明色） */
+    --color-ash:     #b3ac9e;
+    --color-ash-dim: #837c6e;
+
+    --line: rgb(255 255 255 / 0.10);
+    --line-strong: rgb(255 255 255 / 0.18);
+    --accent-tint: rgb(38 166 141 / 0.16);
+    --surface-blur: rgb(20 18 14 / 0.82);
+    --surface-blur-strong: rgb(20 18 14 / 0.92);
+  }
 }
 
 /* ============================================================ Base */
@@ -171,8 +202,9 @@ a.chip:hover {
 .field input,
 .field select,
 .field textarea {
+  color-scheme: light dark;
   width: 100%;
-  background: #fff;
+  background: var(--color-smoke-850);
   border: 1px solid var(--line-strong);
   border-radius: 12px;
   color: var(--color-cream);

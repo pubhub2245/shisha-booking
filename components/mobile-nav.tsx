@@ -18,7 +18,7 @@ export async function MobileNav() {
   return (
     <nav
       className="fixed inset-x-0 bottom-0 z-50 border-t md:hidden"
-      style={{ borderColor: 'var(--line)', background: 'rgb(247 244 238 / 0.92)', backdropFilter: 'blur(12px)' }}
+      style={{ borderColor: 'var(--line)', background: 'var(--surface-blur-strong)', backdropFilter: 'blur(12px)' }}
     >
       <div className="flex items-stretch justify-around">
         {all.map((it) => (

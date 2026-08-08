@@ -31,7 +31,7 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
           aria-label="検索"
           autoFocus
           className="min-w-0 flex-1 rounded-xl border px-4 py-2.5 text-sm outline-none"
-          style={{ background: '#fff', borderColor: 'var(--line-strong)', color: 'var(--color-cream)' }}
+          style={{ background: 'var(--color-smoke-850)', borderColor: 'var(--line-strong)', color: 'var(--color-cream)' }}
         />
         <button type="submit" className="btn btn-ember shrink-0 text-sm">検索</button>
       </form>

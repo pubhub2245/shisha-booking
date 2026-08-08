@@ -13,7 +13,7 @@ export async function SiteHeader() {
       className="sticky top-0 z-50 border-b"
       style={{
         borderColor: 'var(--line)',
-        background: 'rgb(247 244 238 / 0.82)',
+        background: 'var(--surface-blur)',
         backdropFilter: 'blur(12px)',
       }}
     >

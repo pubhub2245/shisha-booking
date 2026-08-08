@@ -44,7 +44,7 @@ export function HmsPicker({
                     {bowls.map((b) => (
                       <span
                         key={b.v}
-                        className="inline-flex items-center gap-1 rounded-full border bg-white px-2 py-0.5 text-[0.68rem]"
+                        className="inline-flex items-center gap-1 rounded-full border bg-[var(--color-smoke-850)] px-2 py-0.5 text-[0.68rem]"
                         style={{ borderColor: 'var(--line-strong)', color: 'var(--color-cream)' }}
                       >
                         <span style={{ color: 'var(--color-ember-hot)' }}><BowlIcon type={b.icon} size={16} /></span>

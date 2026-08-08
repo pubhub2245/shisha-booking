@@ -32,7 +32,7 @@ export function FlavorSearch({ flavors }: { flavors: FlavorLite[] }) {
           placeholder="フレーバー名・ブランドで検索"
           aria-label="フレーバー検索"
           className="min-w-0 flex-1 rounded-xl border px-4 py-2.5 text-sm outline-none"
-          style={{ background: '#fff', borderColor: 'var(--line-strong)', color: 'var(--color-cream)' }}
+          style={{ background: 'var(--color-smoke-850)', borderColor: 'var(--line-strong)', color: 'var(--color-cream)' }}
         />
         {q && (
           <button type="button" onClick={() => setQ('')} className="btn btn-ghost shrink-0 text-sm" aria-label="検索をクリア">

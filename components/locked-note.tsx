@@ -48,7 +48,7 @@ export function LockedNote({
 
       {/* オーバーレイ */}
       <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 p-4 text-center"
-        style={{ background: 'rgb(247 244 238 / 0.55)', backdropFilter: 'blur(1px)' }}>
+        style={{ background: 'var(--surface-blur)', backdropFilter: 'blur(1px)' }}>
         <div className="text-2xl" aria-hidden>🔒</div>
         <div className="text-sm" style={{ fontWeight: 700, color: 'var(--color-cream)' }}>
           {title}（有料ノート）
