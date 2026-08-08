@@ -485,6 +485,24 @@ export async function getMixesByBowlType(type: string): Promise<MixWithRelations
   }
 }
 
+/** 指定HMS種別を使ったミックス（新しい順）。旧値エイリアス（kaloud→lotus）も拾う。 */
+export async function getMixesByHmsType(type: string): Promise<MixWithRelations[]> {
+  try {
+    const supabase = await createClient()
+    const values = type === 'lotus' ? ['lotus', 'kaloud'] : [type]
+    const { data, error } = await supabase
+      .from('mixes')
+      .select('*')
+      .in('hms_type', values)
+      .order('created_at', { ascending: false })
+      .limit(200)
+    if (error) return []
+    return attachRelations(supabase, (data ?? []) as Mix[])
+  } catch {
+    return []
+  }
+}
+
 /** 現在のユーザーが解錠済みの mix_id 集合（複数ミックスの判定用） */
 export async function getMyUnlockedMixIds(): Promise<Set<string>> {
   try {
@@ -807,6 +825,52 @@ export async function getMixesUsingBrand(brand: string): Promise<MixWithRelation
       .order('like_count', { ascending: false })
       .limit(30)
     return attachRelations(supabase, (data ?? []) as Mix[])
+  } catch {
+    return []
+  }
+}
+
+/** ミックス検索（タイトル・説明・フレーバー名・味わいタグ）。like順は人気優先。 */
+export async function searchMixes(q: string): Promise<MixWithRelations[]> {
+  const term = q.trim()
+  if (!term) return []
+  try {
+    const supabase = await createClient()
+    // PostgREST の or フィルタを壊す記号を除去
+    const safe = term.replace(/[,()%_*]/g, ' ').trim()
+    if (!safe) return []
+    const like = `%${safe}%`
+    const [{ data: byText }, { data: mf }, { data: byTag }] = await Promise.all([
+      supabase.from('mixes').select('*').or(`title.ilike.${like},description.ilike.${like}`).limit(50),
+      supabase.from('mix_flavors').select('mix_id').ilike('name', like).limit(300),
+      supabase.from('mixes').select('*').contains('taste_tags', [safe]).limit(50),
+    ])
+    const flavorIds = [...new Set((mf ?? []).map((r) => r.mix_id as string))]
+    let byFlavor: Mix[] = []
+    if (flavorIds.length) {
+      const { data } = await supabase.from('mixes').select('*').in('id', flavorIds).limit(50)
+      byFlavor = (data ?? []) as Mix[]
+    }
+    const map = new Map<string, Mix>()
+    for (const m of [...((byText ?? []) as Mix[]), ...byFlavor, ...((byTag ?? []) as Mix[])]) map.set(m.id, m)
+    const merged = [...map.values()].sort((a, b) => (b.like_count ?? 0) - (a.like_count ?? 0)).slice(0, 40)
+    return attachRelations(supabase, merged)
+  } catch {
+    return []
+  }
+}
+
+/** フレーバー検索（名前・ブランド） */
+export async function searchFlavors(q: string): Promise<Flavor[]> {
+  const term = q.trim()
+  if (!term) return []
+  try {
+    const supabase = await createClient()
+    const safe = term.replace(/[,()%_*]/g, ' ').trim()
+    if (!safe) return []
+    const like = `%${safe}%`
+    const { data } = await supabase.from('flavors').select('*').or(`name.ilike.${like},brand.ilike.${like}`).limit(40)
+    return (data ?? []) as Flavor[]
   } catch {
     return []
   }

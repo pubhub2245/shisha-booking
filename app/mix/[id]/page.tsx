@@ -314,6 +314,11 @@ export default async function MixDetail({ params }: { params: Promise<{ id: stri
                         相性の良いボウル：{hmsBowls(mix.hms_type).map((b) => b.l).join('・')}
                       </div>
                     )}
+                    {mix.hms_type !== 'other' && hmsOption(mix.hms_type) && (
+                      <Link href={`/hms/${hmsOption(mix.hms_type)!.v}`} className="mt-1 inline-block text-xs underline underline-offset-2" style={{ color: 'var(--color-ember-hot)' }}>
+                        {hmsOption(mix.hms_type)!.l}の実例を見る →
+                      </Link>
+                    )}
                   </div>
                 </div>
               )}

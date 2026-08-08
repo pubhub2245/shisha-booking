@@ -264,11 +264,11 @@ export default function GuidePage() {
           <div className="mt-4 flex flex-col gap-3">
             {HMS_OPTIONS.filter((o) => o.v !== 'other' && (hmsBowls(o.v).length > 0 || o.bowlNote)).map((o) => (
               <div key={o.v} className="rounded-lg border p-4" style={{ borderColor: 'var(--line)' }}>
-                <div className="flex items-center gap-2.5">
+                <Link href={`/hms/${o.v}`} className="flex items-center gap-2.5 hover:underline">
                   <span style={{ color: 'var(--color-ember-hot)' }}><HmsIcon type={o.icon} size={30} /></span>
                   <span className="text-sm" style={{ fontWeight: 700 }}>{o.l}</span>
                   {o.en && <span className="text-xs" style={{ color: 'var(--color-ash-dim)' }}>{o.en}</span>}
-                </div>
+                </Link>
                 {hmsBowls(o.v).length > 0 && (
                   <div className="mt-2 flex flex-wrap gap-1.5">
                     {hmsBowls(o.v).map((b) => (

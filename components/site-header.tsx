@@ -36,6 +36,7 @@ export async function SiteHeader() {
           <Link href="/" className="transition-colors hover:text-[var(--color-cream)]">図鑑</Link>
           <Link href="/flavors" className="transition-colors hover:text-[var(--color-cream)]">フレーバー</Link>
           <Link href="/ranking" className="transition-colors hover:text-[var(--color-cream)]">ランキング</Link>
+          <Link href="/search" className="transition-colors hover:text-[var(--color-cream)]">検索</Link>
           <Link href="/guide" className="transition-colors hover:text-[var(--color-cream)]">作り方</Link>
           {user && <Link href="/shelf" className="transition-colors hover:text-[var(--color-cream)]">マイ棚</Link>}
           {user && <Link href="/timeline" className="transition-colors hover:text-[var(--color-cream)]">タイムライン</Link>}
@@ -43,6 +44,14 @@ export async function SiteHeader() {
         </nav>
 
         <div className="flex items-center gap-3">
+          <Link
+            href="/search"
+            aria-label="検索"
+            className="flex h-9 w-9 items-center justify-center rounded-full text-lg transition-colors hover:bg-[var(--accent-tint)]"
+            style={{ color: 'var(--color-ash)' }}
+          >
+            🔍
+          </Link>
           {user ? (
             <>
               <Link href="/post" className="btn btn-ember hidden text-sm sm:inline-flex">
