@@ -834,6 +834,29 @@ export async function getMixesUsingBrand(brand: string): Promise<MixWithRelation
   }
 }
 
+/** 期間別ランキング。week/month は期間内のいいね数、all は累計いいね順。 */
+export async function getRankedMixes(period: 'week' | 'month' | 'all'): Promise<MixWithRelations[]> {
+  try {
+    if (period === 'all') return await getMixes({ sort: 'popular' })
+    const supabase = await createClient()
+    const days = period === 'week' ? 7 : 30
+    const cutoff = new Date(Date.now() - days * 86400000).toISOString()
+    const { data: likes } = await supabase.from('likes').select('mix_id').gte('created_at', cutoff).limit(5000)
+    const counts = new Map<string, number>()
+    for (const l of likes ?? []) {
+      const id = (l as { mix_id: string }).mix_id
+      counts.set(id, (counts.get(id) ?? 0) + 1)
+    }
+    const topIds = [...counts.entries()].sort((a, b) => b[1] - a[1]).slice(0, 30).map((e) => e[0])
+    if (topIds.length === 0) return []
+    const { data } = await supabase.from('mixes').select('*').in('id', topIds)
+    const mixes = await attachRelations(supabase, (data ?? []) as Mix[])
+    return mixes.sort((a, b) => (counts.get(b.id) ?? 0) - (counts.get(a.id) ?? 0))
+  } catch {
+    return []
+  }
+}
+
 /** 通報一覧（管理者のみ・RLSで制御）。通報者と対象ミックス名付き。 */
 export async function getReports(): Promise<(Report & { reporter: MixAuthor | null; mixTitle: string | null })[]> {
   try {
@@ -854,6 +877,38 @@ export async function getReports(): Promise<(Report & { reporter: MixAuthor | nu
       reporter: r.reporter_id ? rmap.get(r.reporter_id) ?? null : null,
       mixTitle: r.mix_id ? mmap.get(r.mix_id) ?? null : null,
     }))
+  } catch {
+    return []
+  }
+}
+
+/** ログインユーザー向けのおすすめミックス（いいねした味わいタグから類推） */
+export async function getRecommendedMixes(limit = 6): Promise<MixWithRelations[]> {
+  try {
+    const supabase = await createClient()
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+    if (!user) return []
+    const { data: likes } = await supabase.from('likes').select('mix_id').eq('user_id', user.id).limit(200)
+    const likedIds = new Set((likes ?? []).map((l) => (l as { mix_id: string }).mix_id))
+    if (likedIds.size === 0) return []
+    const { data: likedMixes } = await supabase.from('mixes').select('taste_tags').in('id', [...likedIds])
+    const tagCount = new Map<string, number>()
+    for (const m of likedMixes ?? []) {
+      for (const t of ((m as { taste_tags: string[] }).taste_tags ?? [])) tagCount.set(t, (tagCount.get(t) ?? 0) + 1)
+    }
+    const tags = [...tagCount.entries()].sort((a, b) => b[1] - a[1]).slice(0, 3).map((e) => e[0])
+    if (tags.length === 0) return []
+    const { data } = await supabase
+      .from('mixes')
+      .select('*')
+      .overlaps('taste_tags', tags)
+      .order('like_count', { ascending: false })
+      .limit(limit + likedIds.size + 6)
+    const mixes = ((data ?? []) as Mix[]).filter((m) => !likedIds.has(m.id) && m.author_id !== user.id).slice(0, limit)
+    if (mixes.length === 0) return []
+    return attachRelations(supabase, mixes)
   } catch {
     return []
   }

@@ -1,19 +1,27 @@
 import Link from 'next/link'
-import { getMixes, getLikedMixIds } from '@/lib/queries'
+import { getRankedMixes, getLikedMixIds } from '@/lib/queries'
 import { getCurrentUser } from '@/lib/auth'
 import { MixCard } from '@/components/mix-card'
 
 export const dynamic = 'force-dynamic'
 export const metadata = {
   title: '人気ランキング — MixHub',
-  description: 'いいねが多い人気のシーシャ ミックスランキング。',
+  description: 'いいねが多い人気のシーシャ ミックスランキング。週間・月間・全期間。',
 }
 
 const MEDALS = ['🥇', '🥈', '🥉']
+const PERIODS = [
+  { v: 'week', l: '週間' },
+  { v: 'month', l: '月間' },
+  { v: 'all', l: '全期間' },
+] as const
 
-export default async function RankingPage() {
+export default async function RankingPage({ searchParams }: { searchParams: Promise<{ period?: string }> }) {
+  const sp = await searchParams
+  const period: 'week' | 'month' | 'all' =
+    sp.period === 'week' ? 'week' : sp.period === 'month' ? 'month' : 'all'
   const [mixes, likedIds, user] = await Promise.all([
-    getMixes({ sort: 'popular' }),
+    getRankedMixes(period),
     getLikedMixIds(),
     getCurrentUser(),
   ])
@@ -30,9 +38,21 @@ export default async function RankingPage() {
         みんなの「いいね」が多い順。迷ったら上位から試すのがおすすめ。
       </p>
 
+      <div className="mt-4 flex flex-wrap gap-2">
+        {PERIODS.map((p) => (
+          <Link
+            key={p.v}
+            href={p.v === 'all' ? '/ranking' : `/ranking?period=${p.v}`}
+            className={`chip ${period === p.v ? 'chip-active' : ''}`}
+          >
+            {p.l}
+          </Link>
+        ))}
+      </div>
+
       {mixes.length === 0 ? (
         <div className="card mt-8 p-8 text-center text-sm" style={{ color: 'var(--color-ash)' }}>
-          まだランキングデータがありません。
+          {period === 'all' ? 'まだランキングデータがありません。' : `この期間の「いいね」はまだありません。`}
         </div>
       ) : (
         <>

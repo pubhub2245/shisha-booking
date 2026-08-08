@@ -1,7 +1,8 @@
 import Link from 'next/link'
-import { getCombos, getTasteTags, getFlavors, getRecentPhotoMixes, getOnboardingStatus } from '@/lib/queries'
+import { getCombos, getTasteTags, getFlavors, getRecentPhotoMixes, getOnboardingStatus, getRecommendedMixes, getLikedMixIds } from '@/lib/queries'
 import { getCurrentUser } from '@/lib/auth'
 import { ComboCard } from '@/components/combo-card'
+import { MixCard } from '@/components/mix-card'
 import { IconOrb } from '@/components/icon-orb'
 import { OnboardingCard } from '@/components/onboarding-card'
 
@@ -33,6 +34,8 @@ export default async function Home({
   const hasFilters = activeTags.length > 0 || !!q || makeableOnly
   const onboarding = user ? await getOnboardingStatus() : { hasShelf: false, hasPosted: false }
   const hasProfile = !!(user?.profile?.username && user?.profile?.display_name)
+  const [recommended, recLikedIds] =
+    user && !hasFilters ? await Promise.all([getRecommendedMixes(6), getLikedMixIds()]) : [[], new Set<string>()]
 
   const [combos, allTags, flavors, photoMixes] = await Promise.all([
     getCombos({ sort, tags: activeTags, q, makeableOnly }),
@@ -204,6 +207,21 @@ export default async function Home({
             <Link href="/post" className="btn btn-ember">＋ ミックスを投稿</Link>
           </div>
         </div>
+      )}
+
+      {/* ---------- あなたへのおすすめ ---------- */}
+      {recommended.length > 0 && (
+        <section className="mt-16">
+          <div className="mb-3 flex items-baseline justify-between">
+            <h2 className="text-lg" style={{ fontWeight: 700 }}>✨ あなたへのおすすめ</h2>
+            <span className="text-xs" style={{ color: 'var(--color-ash-dim)' }}>いいねの傾向から</span>
+          </div>
+          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {recommended.map((m) => (
+              <MixCard key={m.id} mix={m} liked={recLikedIds.has(m.id)} isAuthed={!!user} />
+            ))}
+          </div>
+        </section>
       )}
 
       {/* ---------- PHOTO STRIP（みんなの盛り方） ---------- */}
