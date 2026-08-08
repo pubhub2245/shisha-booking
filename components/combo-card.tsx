@@ -4,7 +4,19 @@ import type { ComboSummary } from '@/lib/types/database'
 export function ComboCard({ combo }: { combo: ComboSummary }) {
   const names = combo.flavorNames
   return (
-    <Link href={`/combo/${combo.slug}`} className="card card-hover flex flex-col p-5 fade-up">
+    <Link href={`/combo/${combo.slug}`} className="card card-hover flex flex-col overflow-hidden fade-up">
+      {combo.top.pack_photo_url && (
+        <>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={combo.top.pack_photo_url}
+            alt={`${names.join(' × ')} の盛り方`}
+            className="aspect-[4/3] w-full object-cover"
+            loading="lazy"
+          />
+        </>
+      )}
+      <div className="flex flex-1 flex-col p-5">
       {/* flavor combo line */}
       <div className="mb-3 flex flex-wrap items-center gap-x-2 gap-y-1 text-lg" style={{ fontWeight: 700 }}>
         {names.slice(0, 4).map((n, i) => (
@@ -58,6 +70,7 @@ export function ComboCard({ combo }: { combo: ComboSummary }) {
           {combo.totalViews > 0 && <span>👁 {combo.totalViews}</span>}
           <span style={{ fontWeight: 600 }}>❤️ {combo.totalLikes}</span>
         </span>
+      </div>
       </div>
     </Link>
   )

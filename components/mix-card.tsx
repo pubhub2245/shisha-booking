@@ -20,8 +20,20 @@ export function MixCard({
 }) {
   const flavors = mix.mix_flavors ?? []
   return (
-    <article className="card card-hover flex flex-col fade-up">
-      <Link href={`/mix/${mix.id}`} className="flex flex-1 flex-col p-5">
+    <article className="card card-hover flex flex-col overflow-hidden fade-up">
+      <Link href={`/mix/${mix.id}`} className="flex flex-1 flex-col">
+        {mix.pack_photo_url && (
+          <div className="relative">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={mix.pack_photo_url}
+              alt={`${mix.title} の盛り方`}
+              className="aspect-[4/3] w-full object-cover"
+              loading="lazy"
+            />
+          </div>
+        )}
+        <div className="flex flex-1 flex-col p-5">
         {/* flavor combo line */}
         <div className="mb-3 flex flex-wrap items-center gap-x-2 gap-y-1">
           {flavors.slice(0, 4).map((f, i) => (
@@ -74,6 +86,7 @@ export function MixCard({
             {authorLabel(mix)}
             {mix.author?.is_pro && <VerifiedBadge size={13} />}
           </span>
+        </div>
         </div>
       </Link>
 

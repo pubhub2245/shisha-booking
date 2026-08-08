@@ -110,6 +110,28 @@ export default async function ProfilePage({ params }: { params: Promise<{ userna
         )}
       </div>
 
+      {/* ---------- PHOTO GRID ---------- */}
+      {mixes.some((m) => m.pack_photo_url) && (
+        <section className="mt-8">
+          <h2 className="mb-3 text-lg" style={{ fontWeight: 700 }}>📷 写真</h2>
+          <div className="grid grid-cols-3 gap-1.5">
+            {mixes
+              .filter((m) => m.pack_photo_url)
+              .map((m) => (
+                <Link key={m.id} href={`/mix/${m.id}`} className="group block overflow-hidden rounded-lg">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={m.pack_photo_url!}
+                    alt={`${m.title} の盛り方`}
+                    className="aspect-square w-full object-cover transition-transform group-hover:scale-105"
+                    loading="lazy"
+                  />
+                </Link>
+              ))}
+          </div>
+        </section>
+      )}
+
       {/* ---------- MIXES ---------- */}
       <h2 className="mb-4 mt-8 text-lg" style={{ fontWeight: 700 }}>
         投稿したミックス
