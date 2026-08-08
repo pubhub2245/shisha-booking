@@ -8,10 +8,12 @@ import {
   getMixComments,
   getRelatedMixes,
   isMixUnlocked,
+  getMadeStatus,
 } from '@/lib/queries'
 import { getCurrentUser } from '@/lib/auth'
 import { LikeButton } from '@/components/like-button'
 import { BookmarkButton } from '@/components/bookmark-button'
+import { MadeButton } from '@/components/made-button'
 import { ShareButton } from '@/components/share-button'
 import { ReportButton } from '@/components/report-button'
 import { VerifiedBadge } from '@/components/verified-badge'
@@ -92,7 +94,10 @@ export default async function MixDetail({ params }: { params: Promise<{ id: stri
     isMixUnlocked(id),
   ])
   if (!mix) notFound()
-  const related = await getRelatedMixes(mix as MixWithRelations)
+  const [related, madeStatus] = await Promise.all([
+    getRelatedMixes(mix as MixWithRelations),
+    getMadeStatus(id),
+  ])
 
   const flavors = mix.mix_flavors ?? []
   const isOwner = !!user && user.id === mix.author_id
@@ -192,6 +197,7 @@ export default async function MixDetail({ params }: { params: Promise<{ id: stri
             size="lg"
           />
           <BookmarkButton mixId={mix.id} initialSaved={bookmarkedIds.has(mix.id)} isAuthed={!!user} />
+          <MadeButton mixId={mix.id} initialCount={madeStatus.count} initialMade={madeStatus.made} isAuthed={!!user} />
           <a
             href={xShareUrl}
             target="_blank"

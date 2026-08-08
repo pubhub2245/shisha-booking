@@ -17,9 +17,10 @@ const VERB: Record<string, string> = {
   like: 'があなたのミックスにいいねしました',
   comment: 'があなたのミックスにコメントしました',
   follow: 'があなたをフォローしました',
+  make: 'があなたのミックスを「作った！」しました',
 }
 
-const ICON: Record<string, string> = { like: '❤️', comment: '💬', follow: '➕' }
+const ICON: Record<string, string> = { like: '❤️', comment: '💬', follow: '➕', make: '🎉' }
 
 export default async function NotificationsPage() {
   const user = await getCurrentUser()

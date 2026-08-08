@@ -100,6 +100,60 @@ export async function toggleFollow(targetId: string): Promise<{ following: boole
   return { following }
 }
 
+/** 「作った！」のトグル。戻り値で最新状態を返す。 */
+export async function toggleMade(mixId: string): Promise<{ made: boolean; count: number } | { error: string }> {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) return { error: 'ログインが必要です。' }
+
+  const { data: existing } = await supabase
+    .from('mix_makes')
+    .select('mix_id')
+    .eq('mix_id', mixId)
+    .eq('user_id', user.id)
+    .maybeSingle()
+
+  let made: boolean
+  if (existing) {
+    await supabase.from('mix_makes').delete().eq('mix_id', mixId).eq('user_id', user.id)
+    made = false
+  } else {
+    await supabase.from('mix_makes').insert({ mix_id: mixId, user_id: user.id })
+    made = true
+    const { data: target } = await supabase.from('mixes').select('author_id').eq('id', mixId).maybeSingle()
+    if (target?.author_id) {
+      await supabase.rpc('notify', { p_recipient: target.author_id as string, p_type: 'make', p_mix: mixId })
+    }
+  }
+  const { count } = await supabase.from('mix_makes').select('mix_id', { count: 'exact', head: true }).eq('mix_id', mixId)
+  revalidatePath(`/mix/${mixId}`)
+  return { made, count: count ?? 0 }
+}
+
+/** フレーバー評価（★1-5）。upsert。 */
+export async function rateFlavor(
+  flavorId: string,
+  rating: number
+): Promise<{ avg: number; count: number; mine: number } | { error: string }> {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) return { error: 'ログインが必要です。' }
+  const r = Math.max(1, Math.min(5, Math.round(rating)))
+  const { error } = await supabase
+    .from('flavor_ratings')
+    .upsert({ flavor_id: flavorId, user_id: user.id, rating: r }, { onConflict: 'flavor_id,user_id' })
+  if (error) return { error: '評価の保存に失敗しました。' }
+  const { data } = await supabase.from('flavor_ratings').select('rating').eq('flavor_id', flavorId)
+  const ratings = (data ?? []).map((x) => (x as { rating: number }).rating)
+  const avg = ratings.length ? ratings.reduce((a, b) => a + b, 0) / ratings.length : 0
+  revalidatePath(`/flavor/${flavorId}`)
+  return { avg, count: ratings.length, mine: r }
+}
+
 /** 不適切コンテンツの通報 */
 export async function reportContent(input: {
   mixId?: string

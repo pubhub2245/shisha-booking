@@ -83,6 +83,21 @@ export type Mix = {
   created_at: string
 }
 
+/** 「作った！」記録 */
+export type MixMake = {
+  mix_id: string
+  user_id: string
+  created_at: string
+}
+
+/** フレーバー評価（★1-5） */
+export type FlavorRating = {
+  flavor_id: string
+  user_id: string
+  rating: number
+  created_at: string
+}
+
 /** 有料ノートの解錠記録 */
 export type MixUnlock = {
   mix_id: string
@@ -275,6 +290,8 @@ export type Database = {
       mix_unlocks: Tbl<MixUnlock>
       notifications: Tbl<Notification>
       reports: Tbl<Report>
+      mix_makes: Tbl<MixMake>
+      flavor_ratings: Tbl<FlavorRating>
     }
     Views: Record<string, never>
     Functions: {

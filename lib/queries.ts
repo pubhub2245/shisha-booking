@@ -834,6 +834,42 @@ export async function getMixesUsingBrand(brand: string): Promise<MixWithRelation
   }
 }
 
+/** 「作った！」の件数と、現在ユーザーが作ったか */
+export async function getMadeStatus(mixId: string): Promise<{ count: number; made: boolean }> {
+  try {
+    const supabase = await createClient()
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+    const [{ count }, mineRes] = await Promise.all([
+      supabase.from('mix_makes').select('mix_id', { count: 'exact', head: true }).eq('mix_id', mixId),
+      user
+        ? supabase.from('mix_makes').select('mix_id').eq('mix_id', mixId).eq('user_id', user.id).maybeSingle()
+        : Promise.resolve({ data: null }),
+    ])
+    return { count: count ?? 0, made: !!mineRes.data }
+  } catch {
+    return { count: 0, made: false }
+  }
+}
+
+/** フレーバーの平均評価・件数・自分の評価 */
+export async function getFlavorRating(flavorId: string): Promise<{ avg: number; count: number; mine: number }> {
+  try {
+    const supabase = await createClient()
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+    const { data } = await supabase.from('flavor_ratings').select('user_id, rating').eq('flavor_id', flavorId)
+    const rows = (data ?? []) as { user_id: string; rating: number }[]
+    const avg = rows.length ? rows.reduce((a, b) => a + b.rating, 0) / rows.length : 0
+    const mine = user ? rows.find((r) => r.user_id === user.id)?.rating ?? 0 : 0
+    return { avg, count: rows.length, mine }
+  } catch {
+    return { avg: 0, count: 0, mine: 0 }
+  }
+}
+
 /** 期間別ランキング。week/month は期間内のいいね数、all は累計いいね順。 */
 export async function getRankedMixes(period: 'week' | 'month' | 'all'): Promise<MixWithRelations[]> {
   try {

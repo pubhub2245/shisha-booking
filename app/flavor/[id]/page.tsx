@@ -8,10 +8,12 @@ import {
   getMyShelfFlavorIds,
   getShopsWithFlavor,
   getFlavorAdder,
+  getFlavorRating,
 } from '@/lib/queries'
 import { getCurrentUser } from '@/lib/auth'
 import { MixCard } from '@/components/mix-card'
 import { ShelfButton } from '@/components/shelf-button'
+import { FlavorRating } from '@/components/flavor-rating'
 import { VerifiedBadge } from '@/components/verified-badge'
 import { goHref } from '@/lib/go'
 import { flavorKey } from '@/lib/combo'
@@ -37,13 +39,14 @@ export default async function FlavorDetail({ params }: { params: Promise<{ id: s
   const flavor = await getFlavorById(id)
   if (!flavor) notFound()
 
-  const [mixes, likedIds, user, shelfIds, shops, adder] = await Promise.all([
+  const [mixes, likedIds, user, shelfIds, shops, adder, rating] = await Promise.all([
     getMixesUsingFlavor(flavor),
     getLikedMixIds(),
     getCurrentUser(),
     getMyShelfFlavorIds(),
     getShopsWithFlavor(flavor),
     flavor.added_by ? getFlavorAdder(flavor.added_by) : Promise.resolve(null),
+    getFlavorRating(flavor.id),
   ])
   const buyUrl = goHref(flavor.affiliate_url, { f: flavor.id })
 
@@ -72,7 +75,16 @@ export default async function FlavorDetail({ params }: { params: Promise<{ id: s
         <div>
           <div className="text-xs" style={{ color: 'var(--color-ash-dim)' }}>{flavor.brand}</div>
           <h1 className="text-2xl" style={{ fontWeight: 800 }}>{flavor.name}</h1>
-          <div className="mt-1 flex items-center gap-1 text-xs" style={{ color: 'var(--color-ash-dim)' }}>
+          <div className="mt-2">
+            <FlavorRating
+              flavorId={flavor.id}
+              initialAvg={rating.avg}
+              initialCount={rating.count}
+              initialMine={rating.mine}
+              isAuthed={!!user}
+            />
+          </div>
+          <div className="mt-2 flex items-center gap-1 text-xs" style={{ color: 'var(--color-ash-dim)' }}>
             <span>追加:</span>
             {adder ? (
               <Link
