@@ -13,6 +13,7 @@ import { getCurrentUser } from '@/lib/auth'
 import { LikeButton } from '@/components/like-button'
 import { BookmarkButton } from '@/components/bookmark-button'
 import { ShareButton } from '@/components/share-button'
+import { ReportButton } from '@/components/report-button'
 import { VerifiedBadge } from '@/components/verified-badge'
 import { HeatCurveChart } from '@/components/heat-curve-chart'
 import { hmsOption, hmsBowls, charcoalLabel, windCoverLabel, bowlOption, packOption, orientationLabel } from '@/lib/heat'
@@ -506,6 +507,10 @@ export default async function MixDetail({ params }: { params: Promise<{ id: stri
       <div className="mt-12 flex flex-wrap justify-center gap-3">
         <Link href={`/post?from=${mix.id}`} className="btn btn-ember">この作り方をベースに投稿</Link>
         <Link href="/post" className="btn btn-ghost">ゼロから投稿する</Link>
+      </div>
+
+      <div className="mt-10 flex justify-center">
+        <ReportButton mixId={mix.id} isAuthed={!!user} />
       </div>
     </div>
   )

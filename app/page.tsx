@@ -1,8 +1,9 @@
 import Link from 'next/link'
-import { getCombos, getTasteTags, getFlavors, getRecentPhotoMixes } from '@/lib/queries'
+import { getCombos, getTasteTags, getFlavors, getRecentPhotoMixes, getOnboardingStatus } from '@/lib/queries'
 import { getCurrentUser } from '@/lib/auth'
 import { ComboCard } from '@/components/combo-card'
 import { IconOrb } from '@/components/icon-orb'
+import { OnboardingCard } from '@/components/onboarding-card'
 
 export const dynamic = 'force-dynamic'
 
@@ -28,6 +29,8 @@ export default async function Home({
   const user = await getCurrentUser()
   const makeableOnly = !!user && sp.makeable === '1'
   const hasFilters = activeTags.length > 0 || !!q || makeableOnly
+  const onboarding = user ? await getOnboardingStatus() : { hasShelf: false, hasPosted: false }
+  const hasProfile = !!(user?.profile?.username && user?.profile?.display_name)
 
   const [combos, allTags, flavors, photoMixes] = await Promise.all([
     getCombos({ sort, tags: activeTags, q, makeableOnly }),
@@ -73,6 +76,11 @@ export default async function Home({
           気分で探す図鑑 ・ {combos.length}通りの組み合わせ ・ {flavors.length}種のフレーバー
         </p>
       </section>
+
+      {/* ---------- オンボーディング（初回ユーザー向け） ---------- */}
+      {user && (
+        <OnboardingCard hasProfile={hasProfile} hasShelf={onboarding.hasShelf} hasPosted={onboarding.hasPosted} />
+      )}
 
       {/* ---------- 気分で探す（デフォルトは味わい＋検索、詳細は折りたたみ） ---------- */}
       <section id="mood" className="card mx-auto mt-6 max-w-2xl p-5 sm:p-6">

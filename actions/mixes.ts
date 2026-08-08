@@ -378,6 +378,11 @@ export async function toggleLike(mixId: string): Promise<{ liked: boolean; count
   } else {
     await supabase.from('likes').insert({ mix_id: mixId, user_id: user.id })
     liked = true
+    // 投稿者に通知（自分自身は notify 側でスキップ）
+    const { data: target } = await supabase.from('mixes').select('author_id').eq('id', mixId).maybeSingle()
+    if (target?.author_id) {
+      await supabase.rpc('notify', { p_recipient: target.author_id as string, p_type: 'like', p_mix: mixId })
+    }
   }
 
   const { data: mix } = await supabase.from('mixes').select('like_count').eq('id', mixId).maybeSingle()

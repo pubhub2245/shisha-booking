@@ -22,6 +22,8 @@ import type {
   ShopWithCounts,
   ShopMemberWithUser,
   MyMembership,
+  Notification,
+  NotificationWithContext,
 } from '@/lib/types/database'
 
 export type FeedOptions = {
@@ -828,6 +830,93 @@ export async function getMixesUsingBrand(brand: string): Promise<MixWithRelation
     return attachRelations(supabase, (data ?? []) as Mix[])
   } catch {
     return []
+  }
+}
+
+/** オンボーディングの進捗（棚登録・初投稿） */
+export async function getOnboardingStatus(): Promise<{ hasShelf: boolean; hasPosted: boolean }> {
+  try {
+    const supabase = await createClient()
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+    if (!user) return { hasShelf: false, hasPosted: false }
+    const [shelfRes, postRes] = await Promise.all([
+      supabase.from('shelf').select('flavor_id', { count: 'exact', head: true }).eq('user_id', user.id),
+      supabase.from('mixes').select('id', { count: 'exact', head: true }).eq('author_id', user.id),
+    ])
+    return { hasShelf: (shelfRes.count ?? 0) > 0, hasPosted: (postRes.count ?? 0) > 0 }
+  } catch {
+    return { hasShelf: false, hasPosted: false }
+  }
+}
+
+/** 未読通知の件数 */
+export async function getUnreadNotificationCount(): Promise<number> {
+  try {
+    const supabase = await createClient()
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+    if (!user) return 0
+    const { count } = await supabase
+      .from('notifications')
+      .select('id', { count: 'exact', head: true })
+      .eq('user_id', user.id)
+      .eq('read', false)
+    return count ?? 0
+  } catch {
+    return 0
+  }
+}
+
+/** 自分宛の通知一覧（行為者・対象ミックス付き） */
+export async function getNotifications(): Promise<NotificationWithContext[]> {
+  try {
+    const supabase = await createClient()
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+    if (!user) return []
+    const { data } = await supabase
+      .from('notifications')
+      .select('*')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false })
+      .limit(50)
+    const rows = (data ?? []) as Notification[]
+    if (rows.length === 0) return []
+    const actorIds = [...new Set(rows.map((r) => r.actor_id).filter(Boolean) as string[])]
+    const mixIds = [...new Set(rows.map((r) => r.mix_id).filter(Boolean) as string[])]
+    const [actorsRes, mixesRes] = await Promise.all([
+      actorIds.length
+        ? supabase.from('profiles').select('id, username, display_name, is_shop, is_pro, shop_name').in('id', actorIds)
+        : Promise.resolve({ data: [] }),
+      mixIds.length ? supabase.from('mixes').select('id, title').in('id', mixIds) : Promise.resolve({ data: [] }),
+    ])
+    const actorMap = new Map((actorsRes.data ?? []).map((a) => [(a as MixAuthor).id, a as MixAuthor]))
+    const mixMap = new Map((mixesRes.data ?? []).map((m) => [(m as { id: string }).id, m as { id: string; title: string }]))
+    return rows.map((r) => ({
+      ...r,
+      actor: r.actor_id ? actorMap.get(r.actor_id) ?? null : null,
+      mix: r.mix_id ? mixMap.get(r.mix_id) ?? null : null,
+    }))
+  } catch {
+    return []
+  }
+}
+
+/** 自分宛の未読通知をすべて既読にする */
+export async function markAllNotificationsRead(): Promise<void> {
+  try {
+    const supabase = await createClient()
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+    if (!user) return
+    await supabase.from('notifications').update({ read: true }).eq('user_id', user.id).eq('read', false)
+  } catch {
+    // noop
   }
 }
 

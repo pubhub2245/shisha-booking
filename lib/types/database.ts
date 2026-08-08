@@ -176,6 +176,34 @@ export type ShopFlavor = {
   created_at: string
 }
 
+/** 通知（いいね・コメント・フォロー） */
+export type Notification = {
+  id: number
+  user_id: string
+  actor_id: string | null
+  type: 'like' | 'comment' | 'follow' | string
+  mix_id: string | null
+  comment_id: string | null
+  read: boolean
+  created_at: string
+}
+
+/** 表示用：通知＋行為者＋対象ミックス */
+export type NotificationWithContext = Notification & {
+  actor: MixAuthor | null
+  mix: Pick<Mix, 'id' | 'title'> | null
+}
+
+/** 通報（不適切コンテンツ） */
+export type Report = {
+  id: number
+  reporter_id: string
+  mix_id: string | null
+  comment_id: string | null
+  reason: string | null
+  created_at: string
+}
+
 /** クリック計測（アフィリエイト等の送客ログ） */
 export type LinkClick = {
   id: number
@@ -245,6 +273,8 @@ export type Database = {
       shop_flavors: Tbl<ShopFlavor>
       link_clicks: Tbl<LinkClick>
       mix_unlocks: Tbl<MixUnlock>
+      notifications: Tbl<Notification>
+      reports: Tbl<Report>
     }
     Views: Record<string, never>
     Functions: {
@@ -252,6 +282,7 @@ export type Database = {
       is_admin: { Args: Record<string, never>; Returns: boolean }
       review_pro_application: { Args: { p_app_id: string; p_approve: boolean }; Returns: undefined }
       transfer_shop_ownership: { Args: { p_shop_id: string; p_new_owner: string }; Returns: undefined }
+      notify: { Args: { p_recipient: string; p_type: string; p_mix?: string; p_comment?: string }; Returns: undefined }
     }
     Enums: Record<string, never>
   }

@@ -21,6 +21,12 @@ export async function addComment(_prev: CommentState, formData: FormData): Promi
   const { error } = await supabase.from('comments').insert({ mix_id: mixId, user_id: user.id, body })
   if (error) return { error: 'コメントの投稿に失敗しました。' }
 
+  // 投稿者に通知
+  const { data: target } = await supabase.from('mixes').select('author_id').eq('id', mixId).maybeSingle()
+  if (target?.author_id) {
+    await supabase.rpc('notify', { p_recipient: target.author_id as string, p_type: 'comment', p_mix: mixId })
+  }
+
   revalidatePath(`/mix/${mixId}`)
   return { ok: true }
 }
@@ -88,9 +94,32 @@ export async function toggleFollow(targetId: string): Promise<{ following: boole
   } else {
     await supabase.from('follows').insert({ follower_id: user.id, following_id: targetId })
     following = true
+    await supabase.rpc('notify', { p_recipient: targetId, p_type: 'follow' })
   }
   revalidatePath('/', 'layout')
   return { following }
+}
+
+/** 不適切コンテンツの通報 */
+export async function reportContent(input: {
+  mixId?: string
+  commentId?: string
+  reason: string
+}): Promise<{ ok: true } | { error: string }> {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) return { error: 'ログインが必要です。' }
+  const reason = (input.reason || '').slice(0, 300)
+  const { error } = await supabase.from('reports').insert({
+    reporter_id: user.id,
+    mix_id: input.mixId ?? null,
+    comment_id: input.commentId ?? null,
+    reason: reason || null,
+  })
+  if (error) return { error: '通報の送信に失敗しました。' }
+  return { ok: true }
 }
 
 /** 閲覧数 +1（best-effort） */

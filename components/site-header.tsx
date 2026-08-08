@@ -1,10 +1,12 @@
 import Link from 'next/link'
 import { getCurrentUser } from '@/lib/auth'
+import { getUnreadNotificationCount } from '@/lib/queries'
 import { signOut } from '@/actions/auth'
 
 export async function SiteHeader() {
   const user = await getCurrentUser()
   const displayName = user?.profile?.display_name || user?.profile?.username || user?.email?.split('@')[0]
+  const unread = user ? await getUnreadNotificationCount() : 0
 
   return (
     <header
@@ -54,6 +56,22 @@ export async function SiteHeader() {
           </Link>
           {user ? (
             <>
+              <Link
+                href="/notifications"
+                aria-label="通知"
+                className="relative flex h-9 w-9 items-center justify-center rounded-full text-lg transition-colors hover:bg-[var(--accent-tint)]"
+                style={{ color: 'var(--color-ash)' }}
+              >
+                🔔
+                {unread > 0 && (
+                  <span
+                    className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[0.6rem] text-white"
+                    style={{ background: 'var(--color-ember)', fontWeight: 700 }}
+                  >
+                    {unread > 9 ? '9+' : unread}
+                  </span>
+                )}
+              </Link>
               <Link href="/post" className="btn btn-ember hidden text-sm sm:inline-flex">
                 ミックスを投稿
               </Link>
