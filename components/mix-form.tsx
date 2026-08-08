@@ -74,6 +74,21 @@ export function MixForm({
   const [charcoalType, setCharcoalType] = useState(initial?.charcoalType ?? '')
   const [steepMin, setSteepMin] = useState(initial?.steepMinutes ?? '')
   const [steepHeat, setSteepHeat] = useState(initial?.steepHeat ?? '')
+  // 既存投稿の編集などで詳細が入っていれば、詳細設定を開いた状態にする
+  const hasAdvanced = !!(
+    initial &&
+    (initial.hmsType ||
+      initial.bowlType ||
+      initial.charcoalType ||
+      initial.packStyle ||
+      initial.packPhotoUrl ||
+      initial.steepMinutes ||
+      initial.steepHeat ||
+      initial.placement ||
+      initial.heat ||
+      (initial.heatCurve && initial.heatCurve.length > 0) ||
+      (initial.heatEvents && initial.heatEvents.length > 0))
+  )
 
   const masterById = new Map(flavors.map((f) => [f.id, f]))
 
@@ -279,10 +294,16 @@ export function MixForm({
       </div>
 
       <div className="divider" />
-      <p className="text-sm" style={{ color: 'var(--color-ash)' }}>
-        作り方ノート（任意）— シーシャは作り方で味が変わります。ノウハウを共有しましょう。
-      </p>
-
+      <details open={hasAdvanced}>
+        <summary className="cursor-pointer list-none [&::-webkit-details-marker]:hidden">
+          <span className="inline-flex items-center gap-2 text-sm" style={{ color: 'var(--color-ember-hot)', fontWeight: 700 }}>
+            🔧 くわしく設定する（任意）
+          </span>
+          <span className="mt-1 block text-xs" style={{ color: 'var(--color-ash-dim)' }}>
+            熱管理カーブ・炭・HMS・ボウル・盛り方・写真など。作り方までこだわる人向け（あとから編集でも追加できます）。
+          </span>
+        </summary>
+        <div className="mt-4 flex flex-col gap-6">
       {/* 炭・熱源セットアップ */}
       <div className="card flex flex-col gap-4 p-5">
         <div className="text-sm" style={{ fontWeight: 700 }}>炭・熱源セットアップ</div>
@@ -408,6 +429,8 @@ export function MixForm({
         <label>🍃 フレーバーの置き方</label>
         <textarea name="placement_note" defaultValue={initial?.placement} placeholder="例：ダブルアップルを底に厚め、ミントは表面に薄く散らす。" maxLength={600} />
       </div>
+        </div>
+      </details>
 
       {/* 有料ノート（プロ認証者のみ） */}
       {canSell && (

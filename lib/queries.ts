@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { comboKey, comboSlug, comboKeyFromSlug, flavorKey } from '@/lib/combo'
 import { mixQuality, mixCompleteness } from '@/lib/quality'
+import { searchVariants } from '@/lib/kana'
 import type {
   MixWithRelations,
   Mix,
@@ -846,21 +847,29 @@ export async function getRecentPhotoMixes(limit = 12): Promise<MixWithRelations[
   }
 }
 
-/** ミックス検索（タイトル・説明・フレーバー名・味わいタグ）。like順は人気優先。 */
+/** PostgREST の or フィルタを壊す記号を除去したバリエーション（かな/カナ・大小） */
+function likeVariants(term: string): string[] {
+  return searchVariants(term)
+    .map((v) => v.replace(/[,()%_*]/g, ' ').trim())
+    .filter(Boolean)
+}
+
+/** ミックス検索（タイトル・説明・フレーバー名・味わいタグ）。表記ゆれ吸収・人気優先。 */
 export async function searchMixes(q: string): Promise<MixWithRelations[]> {
-  const term = q.trim()
-  if (!term) return []
+  const variants = likeVariants(q)
+  if (variants.length === 0) return []
   try {
     const supabase = await createClient()
-    // PostgREST の or フィルタを壊す記号を除去
-    const safe = term.replace(/[,()%_*]/g, ' ').trim()
-    if (!safe) return []
-    const like = `%${safe}%`
-    const [{ data: byText }, { data: mf }, { data: byTag }] = await Promise.all([
-      supabase.from('mixes').select('*').or(`title.ilike.${like},description.ilike.${like}`).limit(50),
-      supabase.from('mix_flavors').select('mix_id').ilike('name', like).limit(300),
-      supabase.from('mixes').select('*').contains('taste_tags', [safe]).limit(50),
+    const textOr = variants.flatMap((v) => [`title.ilike.%${v}%`, `description.ilike.%${v}%`]).join(',')
+    const nameOr = variants.map((v) => `name.ilike.%${v}%`).join(',')
+    const [{ data: byText }, { data: mf }] = await Promise.all([
+      supabase.from('mixes').select('*').or(textOr).limit(50),
+      supabase.from('mix_flavors').select('mix_id').or(nameOr).limit(300),
     ])
+    // タグは変種いずれかを含む
+    const tagResults = await Promise.all(
+      variants.map((v) => supabase.from('mixes').select('*').contains('taste_tags', [v]).limit(50))
+    )
     const flavorIds = [...new Set((mf ?? []).map((r) => r.mix_id as string))]
     let byFlavor: Mix[] = []
     if (flavorIds.length) {
@@ -868,7 +877,13 @@ export async function searchMixes(q: string): Promise<MixWithRelations[]> {
       byFlavor = (data ?? []) as Mix[]
     }
     const map = new Map<string, Mix>()
-    for (const m of [...((byText ?? []) as Mix[]), ...byFlavor, ...((byTag ?? []) as Mix[])]) map.set(m.id, m)
+    for (const m of [
+      ...((byText ?? []) as Mix[]),
+      ...byFlavor,
+      ...tagResults.flatMap((r) => (r.data ?? []) as Mix[]),
+    ]) {
+      map.set(m.id, m)
+    }
     const merged = [...map.values()].sort((a, b) => (b.like_count ?? 0) - (a.like_count ?? 0)).slice(0, 40)
     return attachRelations(supabase, merged)
   } catch {
@@ -876,16 +891,14 @@ export async function searchMixes(q: string): Promise<MixWithRelations[]> {
   }
 }
 
-/** フレーバー検索（名前・ブランド） */
+/** フレーバー検索（名前・ブランド）。表記ゆれ吸収。 */
 export async function searchFlavors(q: string): Promise<Flavor[]> {
-  const term = q.trim()
-  if (!term) return []
+  const variants = likeVariants(q)
+  if (variants.length === 0) return []
   try {
     const supabase = await createClient()
-    const safe = term.replace(/[,()%_*]/g, ' ').trim()
-    if (!safe) return []
-    const like = `%${safe}%`
-    const { data } = await supabase.from('flavors').select('*').or(`name.ilike.${like},brand.ilike.${like}`).limit(40)
+    const or = variants.flatMap((v) => [`name.ilike.%${v}%`, `brand.ilike.%${v}%`]).join(',')
+    const { data } = await supabase.from('flavors').select('*').or(or).limit(40)
     return (data ?? []) as Flavor[]
   } catch {
     return []

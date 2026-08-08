@@ -3,7 +3,7 @@ import { getCurrentUser } from '@/lib/auth'
 
 const items = [
   { href: '/', icon: '📖', label: '図鑑' },
-  { href: '/flavors', icon: '🍃', label: 'フレーバー' },
+  { href: '/search', icon: '🔍', label: '検索' },
   { href: '/post', icon: '➕', label: '投稿' },
   { href: '/ranking', icon: '🏆', label: '人気' },
 ]

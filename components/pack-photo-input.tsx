@@ -4,6 +4,32 @@ import { useRef, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { MIX_PHOTO_BUCKET } from '@/lib/storage'
 
+/** アップロード前にブラウザで縮小・JPEG圧縮する（転送量・表示速度・容量の削減）。失敗時は元ファイル。 */
+async function compressImage(file: File, maxDim = 1600, quality = 0.82): Promise<Blob> {
+  try {
+    const bitmap = await createImageBitmap(file)
+    let { width, height } = bitmap
+    const longest = Math.max(width, height)
+    if (longest > maxDim) {
+      const s = maxDim / longest
+      width = Math.round(width * s)
+      height = Math.round(height * s)
+    }
+    const canvas = document.createElement('canvas')
+    canvas.width = width
+    canvas.height = height
+    const ctx = canvas.getContext('2d')
+    if (!ctx) return file
+    ctx.drawImage(bitmap, 0, 0, width, height)
+    bitmap.close?.()
+    const blob: Blob | null = await new Promise((resolve) => canvas.toBlob((b) => resolve(b), 'image/jpeg', quality))
+    // 圧縮で逆に増えた場合は元を使う
+    return blob && blob.size < file.size ? blob : file
+  } catch {
+    return file
+  }
+}
+
 /**
  * 盛り方の写真をアップロードするコンポーネント。
  * Supabase Storage（公開バケット）へ直接アップロードし、公開URLを hidden input で送信する。
@@ -36,13 +62,16 @@ export function PackPhotoInput({ name = 'pack_photo_url', defaultValue = '' }: {
         setBusy(false)
         return
       }
-      const ext = (file.name.split('.').pop() || 'jpg').toLowerCase().replace(/[^a-z0-9]/g, '') || 'jpg'
-      // 乱数の代わりに時刻＋ファイルサイズでほぼ一意なパスにする
-      const path = `${uid}/${Date.now()}-${file.size}.${ext}`
-      const { error: upErr } = await supabase.storage.from(MIX_PHOTO_BUCKET).upload(path, file, {
+      // アップロード前に縮小・圧縮
+      const blob = await compressImage(file)
+      const isJpeg = blob !== file
+      const ext = isJpeg ? 'jpg' : (file.name.split('.').pop() || 'jpg').toLowerCase().replace(/[^a-z0-9]/g, '') || 'jpg'
+      // 乱数の代わりに時刻＋サイズでほぼ一意なパスにする
+      const path = `${uid}/${Date.now()}-${blob.size}.${ext}`
+      const { error: upErr } = await supabase.storage.from(MIX_PHOTO_BUCKET).upload(path, blob, {
         cacheControl: '3600',
         upsert: true,
-        contentType: file.type,
+        contentType: isJpeg ? 'image/jpeg' : file.type,
       })
       if (upErr) {
         setError('アップロードに失敗しました。時間をおいて再度お試しください。')
