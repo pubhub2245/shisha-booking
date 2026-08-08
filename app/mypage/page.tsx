@@ -14,6 +14,7 @@ import { MixCard } from '@/components/mix-card'
 import type { MixWithRelations } from '@/lib/types/database'
 import { ProfileForm } from './profile-form'
 import { ProApplicationForm } from './pro-application'
+import { InviteButton } from '@/components/invite-button'
 
 export const dynamic = 'force-dynamic'
 export const metadata = { title: 'マイページ — MixHub' }
@@ -68,6 +69,7 @@ export default async function MyPage() {
           <Link href="/shelf" className="btn btn-ghost text-sm">
             🫙 マイ棚
           </Link>
+          <InviteButton />
           {user.profile?.username && (
             <Link href={`/u/${user.profile.username}`} className="btn btn-ghost text-sm">
               公開プロフィール →

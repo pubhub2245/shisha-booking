@@ -56,8 +56,9 @@ export default async function RootLayout({
   return (
     <html lang="ja" className={`${outfit.variable} ${notoSansJp.variable}`}>
       <body className="flex min-h-dvh flex-col pb-16 md:pb-0">
+        <a href="#main" className="skip-link">本文へスキップ</a>
         <SiteHeader />
-        <main className="flex-1">{children}</main>
+        <main id="main" className="flex-1">{children}</main>
         <SiteFooter />
         <MobileNav />
         {!ageOk && <AgeGate />}
