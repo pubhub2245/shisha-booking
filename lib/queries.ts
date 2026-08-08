@@ -467,6 +467,24 @@ export async function getMixesByAuthor(authorId: string): Promise<MixWithRelatio
   }
 }
 
+/** 指定ボウル種別を使ったミックス（新しい順・写真ありを優先） */
+export async function getMixesByBowlType(type: string): Promise<MixWithRelations[]> {
+  try {
+    const supabase = await createClient()
+    const { data, error } = await supabase
+      .from('mixes')
+      .select('*')
+      .eq('bowl_type', type)
+      .order('created_at', { ascending: false })
+      .limit(200)
+    if (error) return []
+    const mixes = attachRelations(supabase, (data ?? []) as Mix[])
+    return mixes
+  } catch {
+    return []
+  }
+}
+
 /** 現在のユーザーが解錠済みの mix_id 集合（複数ミックスの判定用） */
 export async function getMyUnlockedMixIds(): Promise<Set<string>> {
   try {

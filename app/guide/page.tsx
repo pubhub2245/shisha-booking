@@ -272,14 +272,15 @@ export default function GuidePage() {
                 {hmsBowls(o.v).length > 0 && (
                   <div className="mt-2 flex flex-wrap gap-1.5">
                     {hmsBowls(o.v).map((b) => (
-                      <span
+                      <Link
                         key={b.v}
-                        className="inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs"
+                        href={`/bowl/${b.v}`}
+                        className="inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs transition-colors hover:bg-[var(--accent-tint)]"
                         style={{ borderColor: 'var(--line-strong)', color: 'var(--color-cream)' }}
                       >
                         <span style={{ color: 'var(--color-ember-hot)' }}><BowlIcon type={b.icon} size={16} /></span>
                         {b.l}
-                      </span>
+                      </Link>
                     ))}
                   </div>
                 )}

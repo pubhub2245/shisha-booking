@@ -1,6 +1,7 @@
 import type { MetadataRoute } from 'next'
 import { createClient } from '@/lib/supabase/server'
 import { comboSlug } from '@/lib/combo'
+import { BOWL_OPTIONS } from '@/lib/heat'
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://shisha-booking.vercel.app'
 
@@ -9,6 +10,7 @@ export const dynamic = 'force-dynamic'
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const staticRoutes: MetadataRoute.Sitemap = [
     '', '/flavors', '/ranking', '/guide', '/about', '/for-shops', '/shops', '/signup',
+    ...BOWL_OPTIONS.filter((o) => o.v !== 'other').map((o) => `/bowl/${o.v}`),
   ].map((path) => ({ url: `${SITE_URL}${path}`, changeFrequency: 'daily', priority: path === '' ? 1 : 0.6 }))
 
   try {

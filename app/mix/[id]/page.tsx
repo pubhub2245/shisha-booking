@@ -333,6 +333,11 @@ export default async function MixDetail({ params }: { params: Promise<{ id: stri
                       )}
                     </div>
                     <div className="text-xs" style={{ color: 'var(--color-ash)' }}>{bowlOption(mix.bowl_type)!.desc}</div>
+                    {bowlOption(mix.bowl_type)!.v !== 'other' && (
+                      <Link href={`/bowl/${bowlOption(mix.bowl_type)!.v}`} className="mt-1 inline-block text-xs underline underline-offset-2" style={{ color: 'var(--color-ember-hot)' }}>
+                        {bowlOption(mix.bowl_type)!.l}の実例を見る →
+                      </Link>
+                    )}
                   </div>
                 </div>
               )}
