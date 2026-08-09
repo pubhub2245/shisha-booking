@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation'
 import { getCurrentUser } from '@/lib/auth'
 import { resolveMode } from '@/lib/mode'
 import { ModeToggle } from '@/components/mode-toggle'
+import { signOut } from '@/actions/auth'
 import {
   getMixesByAuthor,
   getLikedMixIds,
@@ -77,6 +78,10 @@ export default async function MyPage() {
               公開プロフィール →
             </Link>
           )}
+          {/* モバイルではヘッダーにログアウトが無いため、ここに常設 */}
+          <form action={signOut} className="sm:hidden">
+            <button type="submit" className="btn btn-ghost text-sm">ログアウト</button>
+          </form>
           {user.profile?.is_admin && (
             <div className="flex flex-col items-end gap-1">
               <Link href="/admin/pro" className="text-xs" style={{ color: 'var(--color-ember-hot)', fontWeight: 600 }}>
