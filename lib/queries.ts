@@ -1093,6 +1093,36 @@ export async function refreshNationalReps(): Promise<void> {
   }
 }
 
+/** 作り手の実績サマリー（プロフィールの"作品集"表示用）。 */
+export async function getAuthorStats(
+  authorId: string
+): Promise<{ mixCount: number; totalLikes: number; totalMakes: number; repCategories: string[] }> {
+  try {
+    const supabase = await createClient()
+    const { data: mixes } = await supabase
+      .from('mixes')
+      .select('id, like_count')
+      .eq('author_id', authorId)
+      .eq('hidden', false)
+    const rows = (mixes ?? []) as { id: string; like_count: number }[]
+    const mixIds = rows.map((r) => r.id)
+    const totalLikes = rows.reduce((s, r) => s + (r.like_count ?? 0), 0)
+    let totalMakes = 0
+    if (mixIds.length) {
+      const { count } = await supabase
+        .from('mix_makes')
+        .select('mix_id', { count: 'exact', head: true })
+        .in('mix_id', mixIds)
+      totalMakes = count ?? 0
+    }
+    const team = await getNationalTeam()
+    const repCategories = team.filter((r) => !r.sample && r.mix.author_id === authorId).map((r) => r.category)
+    return { mixCount: rows.length, totalLikes, totalMakes, repCategories }
+  } catch {
+    return { mixCount: 0, totalLikes: 0, totalMakes: 0, repCategories: [] }
+  }
+}
+
 /** このミックスが現在「日本代表」に選ばれている系統の一覧（暫定代表=サンプルは除く）。 */
 export async function getNationalRepCategories(mixId: string): Promise<string[]> {
   try {

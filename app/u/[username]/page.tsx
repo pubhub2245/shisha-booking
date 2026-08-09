@@ -8,6 +8,7 @@ import {
   getFollowCounts,
   isFollowing,
   getShopsByMember,
+  getAuthorStats,
 } from '@/lib/queries'
 import { getCurrentUser } from '@/lib/auth'
 import { MixCard } from '@/components/mix-card'
@@ -34,13 +35,14 @@ export default async function ProfilePage({ params }: { params: Promise<{ userna
   const profile = await getProfileByUsername(username)
   if (!profile) notFound()
 
-  const [mixes, likedIds, counts, following, me, shops] = await Promise.all([
+  const [mixes, likedIds, counts, following, me, shops, stats] = await Promise.all([
     getMixesByAuthor(profile.id),
     getLikedMixIds(),
     getFollowCounts(profile.id),
     isFollowing(profile.id),
     getCurrentUser(),
     getShopsByMember(profile.id),
+    getAuthorStats(profile.id),
   ])
   const isSelf = me?.id === profile.id
   const displayName = profile.display_name || `@${profile.username}`
@@ -88,8 +90,39 @@ export default async function ProfilePage({ params }: { params: Promise<{ userna
           </p>
         )}
 
-        <div className="mt-4 flex gap-5 text-sm">
-          <span><b>{mixes.length}</b> <span style={{ color: 'var(--color-ash-dim)' }}>ミックス</span></span>
+        {/* 日本代表の冠（保有していれば実力の証） */}
+        {stats.repCategories.length > 0 && (
+          <div className="mt-4 flex flex-wrap items-center gap-2">
+            <span className="text-xs" style={{ color: 'var(--color-ash-dim)', fontWeight: 600 }}>🇯🇵 日本代表</span>
+            {stats.repCategories.map((c) => (
+              <Link
+                key={c}
+                href="/national"
+                className="rounded-full px-2.5 py-0.5 text-xs"
+                style={{ background: 'linear-gradient(90deg, #bc002d, #e60033)', color: '#fff', fontWeight: 800 }}
+              >
+                {c}系
+              </Link>
+            ))}
+          </div>
+        )}
+
+        {/* 実績スタッツ（作品集の"顔"） */}
+        <div className="mt-4 grid grid-cols-4 gap-2">
+          {[
+            { n: stats.mixCount, l: 'ミックス' },
+            { n: stats.totalLikes, l: '累計いいね' },
+            { n: stats.totalMakes, l: '作られた' },
+            { n: stats.repCategories.length, l: '代表 冠' },
+          ].map((s) => (
+            <div key={s.l} className="rounded-xl border px-2 py-2.5 text-center" style={{ borderColor: 'var(--line)' }}>
+              <div className="text-lg" style={{ fontWeight: 800 }}>{s.n}</div>
+              <div className="text-[0.65rem]" style={{ color: 'var(--color-ash-dim)' }}>{s.l}</div>
+            </div>
+          ))}
+        </div>
+
+        <div className="mt-3 flex gap-5 text-sm">
           <span><b>{counts.followers}</b> <span style={{ color: 'var(--color-ash-dim)' }}>フォロワー</span></span>
           <span><b>{counts.following}</b> <span style={{ color: 'var(--color-ash-dim)' }}>フォロー中</span></span>
         </div>
