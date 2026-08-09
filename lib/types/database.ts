@@ -346,6 +346,15 @@ export type MixWithRelations = Mix & {
   mix_flavors: MixFlavor[]
 }
 
+/** 日本代表（殿堂）：系統ごとに選出された代表ミックス */
+export type NationalRep = {
+  category: string // 系統（TYPE_TAG）
+  mix: MixWithRelations
+  score: number
+  likes: number
+  makes: number
+}
+
 /** あと1フレーバーで作れるコンボ（不足している1品を提示） */
 export type NearMakeable = {
   combo: ComboSummary

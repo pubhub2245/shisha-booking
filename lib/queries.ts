@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { comboKey, comboSlug, comboKeyFromSlug, flavorKey } from '@/lib/combo'
 import { mixQuality, mixCompleteness } from '@/lib/quality'
 import { searchVariants } from '@/lib/kana'
+import { TYPE_TAGS } from '@/lib/tags'
 import type {
   MixWithRelations,
   Mix,
@@ -32,6 +33,7 @@ import type {
   IdeaComment,
   IdeaCommentWithAuthor,
   IdeaArbitration,
+  NationalRep,
 } from '@/lib/types/database'
 
 export type FeedOptions = {
@@ -264,7 +266,7 @@ export async function getShopsWithFlavor(flavor: Flavor): Promise<Shop[]> {
  * PostgREST の埋め込み（author:profiles(...) 等）はスキーマキャッシュに依存して
  * 不安定なため、単純な select を複数回投げて結合する堅牢な実装にしている。
  */
-async function attachRelations(
+export async function attachRelations(
   supabase: Awaited<ReturnType<typeof createClient>>,
   mixes: Mix[]
 ): Promise<MixWithRelations[]> {
@@ -985,6 +987,58 @@ export async function getRankedMixes(period: 'week' | 'month' | 'all'): Promise<
     const { data } = await supabase.from('mixes').select('*').in('id', topIds)
     const mixes = await attachRelations(supabase, (data ?? []) as Mix[])
     return mixes.sort((a, b) => (counts.get(b.id) ?? 0) - (counts.get(a.id) ?? 0))
+  } catch {
+    return []
+  }
+}
+
+/**
+ * 日本代表（殿堂）を選出する。系統（TYPE_TAGS）ごとに、支持スコアが最も高い
+ * ミックスを1つ「代表」として選ぶ。スコア = いいね数 + 「作った！」数×2
+ * （実際に作られた＝より強い支持、と重み付け）。
+ * 初期はデータが少ないため、AI生成サンプルも候補に含める（バッジで区別済み）。
+ */
+export async function getNationalTeam(): Promise<NationalRep[]> {
+  try {
+    const supabase = await createClient()
+    const { data } = await supabase.from('mixes').select('*').limit(1000)
+    const mixes = (data ?? []) as Mix[]
+    if (mixes.length === 0) return []
+
+    const { data: makesRows } = await supabase.from('mix_makes').select('mix_id').limit(10000)
+    const makes = new Map<string, number>()
+    for (const r of makesRows ?? []) {
+      const id = (r as { mix_id: string }).mix_id
+      makes.set(id, (makes.get(id) ?? 0) + 1)
+    }
+    const scoreOf = (m: Mix) => m.like_count + (makes.get(m.id) ?? 0) * 2
+
+    // 系統ごとに最高スコアのミックスを代表に。
+    // （汎用性の高い名ミックスは複数ポジションを兼任しうる＝重複を許容）
+    const reps: { category: string; mix: Mix; score: number }[] = []
+    for (const cat of TYPE_TAGS) {
+      const inCat = mixes.filter((m) => (m.taste_tags ?? []).includes(cat))
+      if (inCat.length === 0) continue
+      const best = inCat.reduce((a, b) => (scoreOf(b) > scoreOf(a) ? b : a))
+      reps.push({ category: cat, mix: best, score: scoreOf(best) })
+    }
+    if (reps.length === 0) return []
+
+    // 重複ミックスも1回だけ取得して結合
+    const uniqueMixes = [...new Map(reps.map((r) => [r.mix.id, r.mix])).values()]
+    const withRel = await attachRelations(supabase, uniqueMixes)
+    const byId = new Map(withRel.map((m) => [m.id, m]))
+
+    return reps
+      .map((r) => ({
+        category: r.category,
+        mix: byId.get(r.mix.id) as MixWithRelations,
+        score: r.score,
+        likes: r.mix.like_count,
+        makes: makes.get(r.mix.id) ?? 0,
+      }))
+      .filter((r) => r.mix)
+      .sort((a, b) => b.score - a.score)
   } catch {
     return []
   }

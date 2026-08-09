@@ -36,6 +36,7 @@ export async function SiteHeader() {
 
         <nav className="hidden items-center gap-6 text-sm md:flex" style={{ color: 'var(--color-ash)' }}>
           <Link href="/" className="transition-colors hover:text-[var(--color-cream)]">図鑑</Link>
+          <Link href="/national" className="transition-colors hover:text-[var(--color-cream)]" style={{ fontWeight: 700 }}>🇯🇵 日本代表</Link>
           <Link href="/flavors" className="transition-colors hover:text-[var(--color-cream)]">フレーバー</Link>
           <Link href="/ranking" className="transition-colors hover:text-[var(--color-cream)]">ランキング</Link>
           <Link href="/search" className="transition-colors hover:text-[var(--color-cream)]">検索</Link>
