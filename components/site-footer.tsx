@@ -21,6 +21,7 @@ export function SiteFooter() {
           <Link href="/post" className="hover:text-[var(--color-cream)]">投稿する</Link>
           <Link href="/shops" className="hover:text-[var(--color-cream)]">店舗一覧</Link>
           <Link href="/for-shops" className="hover:text-[var(--color-cream)]">店舗の方へ</Link>
+          <Link href="/founders" className="hover:text-[var(--color-cream)]">創設メンバー募集</Link>
           <Link href="/ideas" className="hover:text-[var(--color-cream)]">意見箱</Link>
           <Link href="/about" className="hover:text-[var(--color-cream)]">MixHubとは</Link>
         </nav>

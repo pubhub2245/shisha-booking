@@ -55,9 +55,17 @@ export default async function ProfilePage({ params }: { params: Promise<{ userna
           <div className="flex min-w-0 items-start gap-3">
             <Avatar name={profile.display_name || profile.username} seed={profile.id} size={52} />
             <div className="min-w-0">
-            {profile.is_shop && (
-              <span className="chip chip-active mb-2 inline-flex">🏠 店舗スタッフ</span>
-            )}
+            <div className="mb-2 flex flex-wrap items-center gap-1.5">
+              {profile.is_founder && (
+                <span
+                  className="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs"
+                  style={{ background: 'linear-gradient(90deg, #a16207, #d4a017)', color: '#fff', fontWeight: 800 }}
+                >
+                  🎖️ 創設メンバー
+                </span>
+              )}
+              {profile.is_shop && <span className="chip chip-active inline-flex">🏠 店舗スタッフ</span>}
+            </div>
             <h1 className="flex items-center gap-1.5 text-2xl" style={{ fontWeight: 800 }}>
               <span className="truncate">{displayName}</span>
               {profile.is_pro && <VerifiedBadge size={19} />}
