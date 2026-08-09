@@ -426,6 +426,7 @@ export type Database = {
       transfer_shop_ownership: { Args: { p_shop_id: string; p_new_owner: string }; Returns: undefined }
       notify: { Args: { p_recipient: string; p_type: string; p_mix?: string; p_comment?: string }; Returns: undefined }
       save_arbitration: { Args: { p_idea_id: number; p_summary: string }; Returns: undefined }
+      refresh_national_reps: { Args: Record<string, never>; Returns: undefined }
     }
     Enums: Record<string, never>
   }

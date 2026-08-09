@@ -10,12 +10,13 @@ import {
   isMixUnlocked,
   getMadeStatus,
   getMixPhotos,
+  getNationalRepCategories,
 } from '@/lib/queries'
 import { getCurrentUser } from '@/lib/auth'
 import { LikeButton } from '@/components/like-button'
 import { BookmarkButton } from '@/components/bookmark-button'
 import { MadeButton } from '@/components/made-button'
-import { ShareButton } from '@/components/share-button'
+import { ShareBar } from '@/components/share-bar'
 import { ReportButton } from '@/components/report-button'
 import { VerifiedBadge } from '@/components/verified-badge'
 import { HeatCurveChart } from '@/components/heat-curve-chart'
@@ -95,12 +96,15 @@ export default async function MixDetail({ params }: { params: Promise<{ id: stri
     isMixUnlocked(id),
   ])
   if (!mix) notFound()
-  const [related, madeStatus, photos] = await Promise.all([
+  const [related, madeStatus, photos, repCats] = await Promise.all([
     getRelatedMixes(mix as MixWithRelations),
     getMadeStatus(id),
     getMixPhotos(id),
+    getNationalRepCategories(id),
   ])
   const commentTotal = comments.reduce((n, c) => n + 1 + c.replies.length, 0)
+  const isRep = repCats.length > 0
+  const repLabel = repCats.join('・')
 
   const flavors = mix.mix_flavors ?? []
   const isOwner = !!user && user.id === mix.author_id
@@ -112,9 +116,12 @@ export default async function MixDetail({ params }: { params: Promise<{ id: stri
     mix.premium && (mix.locked_sections ?? []).includes(section) && !entitled
 
   const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://shisha-booking.vercel.app'
+  const mixUrl = `${SITE_URL}/mix/${mix.id}`
   const flavorLine = flavors.map((f) => f.name).join(' × ')
-  const tweetText = `${mix.title}${flavorLine ? `｜${flavorLine}` : ''}\n#シーシャ #MixHub`
-  const xShareUrl = `https://x.com/intent/tweet?text=${encodeURIComponent(tweetText)}&url=${encodeURIComponent(`${SITE_URL}/mix/${mix.id}`)}`
+  // 日本代表に選ばれていれば、その"自慢"をシェア文面に載せる（バイラルの起点）
+  const shareText = isRep
+    ? `🇯🇵 ${repLabel}系の日本代表に選ばれました！\n${mix.title}${flavorLine ? `｜${flavorLine}` : ''}\n#シーシャ #MixHub #日本代表シーシャ図鑑`
+    : `${mix.title}${flavorLine ? `｜${flavorLine}` : ''}\n#シーシャ #MixHub`
 
   // 構造化データ（有料・非公開の熱管理データは含めない）
   const jsonLd = {
@@ -175,6 +182,15 @@ export default async function MixDetail({ params }: { params: Promise<{ id: stri
         <h1 className="text-3xl leading-tight sm:text-4xl" style={{ fontWeight: 800 }}>
           {mix.title}
         </h1>
+        {isRep && (
+          <Link
+            href="/national"
+            className="mt-2 inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs"
+            style={{ background: 'linear-gradient(90deg, #bc002d, #e60033)', color: '#fff', fontWeight: 800, letterSpacing: '0.03em' }}
+          >
+            🇯🇵 {repLabel}系の日本代表
+          </Link>
+        )}
         {mix.premium && (mix.locked_sections ?? []).length > 0 && (
           <div className="mt-2 inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs"
             style={{ background: 'var(--accent-tint)', color: 'var(--color-ember-hot)', fontWeight: 700 }}>
@@ -191,6 +207,23 @@ export default async function MixDetail({ params }: { params: Promise<{ id: stri
           この組み合わせの作り方をすべて見る →
         </Link>
 
+        {isRep && isOwner && (
+          <div
+            className="mt-4 rounded-xl border p-4"
+            style={{ borderColor: 'rgb(230 0 51 / 0.35)', background: 'rgb(230 0 51 / 0.06)' }}
+          >
+            <p className="text-sm" style={{ fontWeight: 800 }}>
+              🎉 おめでとうございます！あなたのミックスが <span style={{ color: '#e60033' }}>{repLabel}系の日本代表</span> に選ばれています。
+            </p>
+            <p className="mt-1 text-xs" style={{ color: 'var(--color-ash)' }}>
+              みんなの👍と「作った！」で選出された証。ぜひSNSで自慢しましょう。
+            </p>
+            <div className="mt-3">
+              <ShareBar url={mixUrl} text={shareText} />
+            </div>
+          </div>
+        )}
+
         <div className="mt-4 flex flex-wrap items-center gap-3">
           <LikeButton
             mixId={mix.id}
@@ -201,16 +234,7 @@ export default async function MixDetail({ params }: { params: Promise<{ id: stri
           />
           <BookmarkButton mixId={mix.id} initialSaved={bookmarkedIds.has(mix.id)} isAuthed={!!user} />
           <MadeButton mixId={mix.id} initialCount={madeStatus.count} initialMade={madeStatus.made} isAuthed={!!user} />
-          <a
-            href={xShareUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm transition-colors"
-            style={{ borderColor: 'var(--line-strong)', color: 'var(--color-ash)', fontWeight: 600 }}
-          >
-            𝕏 でシェア
-          </a>
-          <ShareButton title={mix.title} />
+          <ShareBar url={mixUrl} text={shareText} />
         </div>
         <div className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm" style={{ color: 'var(--color-ash)' }}>
           {mix.author && <Avatar name={mix.author.display_name || mix.author.username} seed={mix.author.id} size={24} />}

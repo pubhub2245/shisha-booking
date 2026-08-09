@@ -37,6 +37,7 @@ const ICON: Record<string, string> = {
   idea_considering: '🔎',
   idea_done: '✅',
   idea_declined: '📮',
+  national_selected: '🇯🇵',
 }
 
 export default async function NotificationsPage() {
@@ -62,12 +63,15 @@ export default async function NotificationsPage() {
       ) : (
         <ul className="mt-6 flex flex-col gap-2">
           {items.map((n) => {
+            const isSystem = n.type === 'national_selected'
             const name = actorName(n.actor)
-            const href = n.type.startsWith('idea')
-              ? '/ideas'
-              : n.type === 'follow'
-                ? (n.actor?.username ? `/u/${n.actor.username}` : '/notifications')
-                : (n.mix ? `/mix/${n.mix.id}` : '/notifications')
+            const href = isSystem
+              ? (n.mix ? `/mix/${n.mix.id}` : '/national')
+              : n.type.startsWith('idea')
+                ? '/ideas'
+                : n.type === 'follow'
+                  ? (n.actor?.username ? `/u/${n.actor.username}` : '/notifications')
+                  : (n.mix ? `/mix/${n.mix.id}` : '/notifications')
             return (
               <li key={n.id}>
                 <Link
@@ -75,15 +79,31 @@ export default async function NotificationsPage() {
                   className="card card-hover flex items-center gap-3 p-4"
                   style={!n.read ? { borderColor: 'var(--color-ember)', background: 'var(--accent-tint)' } : undefined}
                 >
-                  <div className="relative shrink-0">
-                    <Avatar name={n.actor?.display_name || n.actor?.username || '?'} seed={n.actor_id || String(n.id)} size={40} />
-                    <span className="absolute -bottom-1 -right-1 text-sm" aria-hidden>{ICON[n.type] ?? '🔔'}</span>
-                  </div>
+                  {isSystem ? (
+                    <div
+                      className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-lg"
+                      style={{ background: 'linear-gradient(135deg, #bc002d, #e60033)' }}
+                      aria-hidden
+                    >
+                      🇯🇵
+                    </div>
+                  ) : (
+                    <div className="relative shrink-0">
+                      <Avatar name={n.actor?.display_name || n.actor?.username || '?'} seed={n.actor_id || String(n.id)} size={40} />
+                      <span className="absolute -bottom-1 -right-1 text-sm" aria-hidden>{ICON[n.type] ?? '🔔'}</span>
+                    </div>
+                  )}
                   <div className="min-w-0 flex-1">
-                    <p className="text-sm leading-snug" style={{ color: 'var(--color-cream)' }}>
-                      <span style={{ fontWeight: 700 }}>{name}</span>
-                      <span style={{ color: 'var(--color-ash)' }}>{VERB[n.type] ?? 'の通知'}</span>
-                    </p>
+                    {isSystem ? (
+                      <p className="text-sm leading-snug" style={{ fontWeight: 700, color: 'var(--color-cream)' }}>
+                        🎉 あなたのミックスが日本代表に選ばれました！
+                      </p>
+                    ) : (
+                      <p className="text-sm leading-snug" style={{ color: 'var(--color-cream)' }}>
+                        <span style={{ fontWeight: 700 }}>{name}</span>
+                        <span style={{ color: 'var(--color-ash)' }}>{VERB[n.type] ?? 'の通知'}</span>
+                      </p>
+                    )}
                     {n.mix && (
                       <p className="truncate text-xs" style={{ color: 'var(--color-ash-dim)' }}>「{n.mix.title}」</p>
                     )}

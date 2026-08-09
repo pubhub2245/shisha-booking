@@ -1,8 +1,10 @@
 import Link from 'next/link'
 import type { Metadata } from 'next'
-import { getNationalTeam, getLikedMixIds } from '@/lib/queries'
+import { getNationalTeam, getLikedMixIds, refreshNationalReps } from '@/lib/queries'
 import { getCurrentUser } from '@/lib/auth'
 import { MixCard } from '@/components/mix-card'
+import { ShareBar } from '@/components/share-bar'
+import { SITE_URL } from '@/lib/site'
 
 export const dynamic = 'force-dynamic'
 export const metadata: Metadata = {
@@ -26,6 +28,8 @@ const CAT_META: Record<string, { icon: string; label: string }> = {
 }
 
 export default async function NationalTeamPage() {
+  // 代表スナップショットを同期（変化があれば新代表の投稿者へ通知）。表示は常に最新計算。
+  await refreshNationalReps()
   const [team, user] = await Promise.all([getNationalTeam(), getCurrentUser()])
   const likedIds = user ? await getLikedMixIds() : new Set<string>()
 
@@ -104,6 +108,14 @@ export default async function NationalTeamPage() {
                       支持スコア {rep.score}
                     </span>
                   </div>
+                  {!rep.sample && (
+                    <div className="px-1">
+                      <ShareBar
+                        url={`${SITE_URL}/mix/${rep.mix.id}`}
+                        text={`🇯🇵 ${meta.label}の日本代表はこれ！\n${rep.mix.title}\n#シーシャ #MixHub #日本代表シーシャ図鑑`}
+                      />
+                    </div>
+                  )}
                 </div>
               )
             })}

@@ -1083,6 +1083,26 @@ export async function getNationalTeam(): Promise<NationalRep[]> {
   }
 }
 
+/** 代表スナップショットを再計算し、変化があれば投稿者へ通知する（best-effort）。 */
+export async function refreshNationalReps(): Promise<void> {
+  try {
+    const supabase = await createClient()
+    await supabase.rpc('refresh_national_reps')
+  } catch {
+    // best-effort（表示は getNationalTeam が常に最新を計算するため影響なし）
+  }
+}
+
+/** このミックスが現在「日本代表」に選ばれている系統の一覧（暫定代表=サンプルは除く）。 */
+export async function getNationalRepCategories(mixId: string): Promise<string[]> {
+  try {
+    const team = await getNationalTeam()
+    return team.filter((r) => r.mix.id === mixId && !r.sample).map((r) => r.category)
+  } catch {
+    return []
+  }
+}
+
 /** 意見箱の一覧（投稿者・投票集計付き）。いいねが多い順（＝改修希望が高い順）。 */
 export async function getIdeas(): Promise<IdeaWithVotes[]> {
   try {
