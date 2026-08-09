@@ -4,6 +4,7 @@ import { getIdeas } from '@/lib/queries'
 import { getCurrentUser } from '@/lib/auth'
 import { IdeaForm } from '@/components/idea-form'
 import { IdeaVoteButtons } from '@/components/idea-vote-buttons'
+import { IdeaComments } from '@/components/idea-comments'
 import { deleteIdea, setIdeaStatus } from '@/actions/ideas'
 import { relativeTime } from '@/lib/time'
 import { Avatar } from '@/components/avatar'
@@ -59,7 +60,8 @@ export default async function IdeasPage({
       <h1 className="mt-2 text-3xl" style={{ fontWeight: 800 }}>意見箱</h1>
       <p className="mt-2 text-sm leading-relaxed" style={{ color: 'var(--color-ash)' }}>
         「こう直してほしい」を投稿して、みんなの <b>👍</b> で優先度を決める場所です。
-        なんでも採用するとアプリが散らかるので、<b>要望が多い（👍が多い）ものから改善</b>していきます。反対は 👎 で示せます。
+        なんでも採用するとアプリが散らかるので、<b>要望が多い（👍が多い）ものから改善</b>していきます。反対は理由付きの 👎 で示せます。
+        賛否が割れたときは <b>コメントで議論</b>したり、<b>🤝 AIに中立の落とし所を提案</b>してもらえます。
       </p>
 
       <div className="mt-6">
@@ -134,6 +136,17 @@ export default async function IdeasPage({
                     )}
                     <span>・ {relativeTime(idea.created_at)}</span>
                   </div>
+
+                  <IdeaComments
+                    ideaId={idea.id}
+                    comments={idea.comments}
+                    arbitration={idea.arbitration}
+                    up={idea.up}
+                    down={idea.down}
+                    isAuthed={!!user}
+                    isAdmin={isAdmin}
+                    currentUserId={user?.id ?? null}
+                  />
 
                   {(isAdmin || canDelete) && (
                     <div className="mt-2 flex flex-wrap items-center gap-3 border-t pt-2" style={{ borderColor: 'var(--line)' }}>

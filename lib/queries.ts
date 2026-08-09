@@ -29,6 +29,9 @@ import type {
   FlavorLogWithAuthor,
   Idea,
   IdeaWithVotes,
+  IdeaComment,
+  IdeaCommentWithAuthor,
+  IdeaArbitration,
 } from '@/lib/types/database'
 
 export type FeedOptions = {
@@ -999,12 +1002,17 @@ export async function getIdeas(): Promise<IdeaWithVotes[]> {
     if (ideas.length === 0) return []
     const ids = ideas.map((i) => i.id)
     const authorIds = [...new Set(ideas.map((i) => i.user_id).filter(Boolean) as string[])]
-    const [votesRes, authorsRes] = await Promise.all([
+    const [votesRes, commentsRes, arbRes] = await Promise.all([
       supabase.from('idea_votes').select('idea_id, user_id, value, reason').in('idea_id', ids),
-      authorIds.length
-        ? supabase.from('profiles').select('id, username, display_name, is_shop, is_pro, shop_name').in('id', authorIds)
-        : Promise.resolve({ data: [] }),
+      supabase.from('idea_comments').select('*').in('idea_id', ids).order('created_at', { ascending: true }),
+      supabase.from('idea_arbitrations').select('*').in('idea_id', ids),
     ])
+    // コメント投稿者も著者一覧に含めてまとめて取得
+    const commentUserIds = ((commentsRes.data ?? []) as IdeaComment[]).map((c) => c.user_id).filter(Boolean) as string[]
+    const allAuthorIds = [...new Set([...authorIds, ...commentUserIds])]
+    const authorsRes = allAuthorIds.length
+      ? await supabase.from('profiles').select('id, username, display_name, is_shop, is_pro, shop_name').in('id', allAuthorIds)
+      : { data: [] }
     const up = new Map<number, number>()
     const down = new Map<number, number>()
     const mine = new Map<number, number>()
@@ -1018,6 +1026,12 @@ export async function getIdeas(): Promise<IdeaWithVotes[]> {
       if (user && v.user_id === user.id) mine.set(v.idea_id, v.value)
     }
     const amap = new Map((authorsRes.data ?? []).map((a) => [(a as MixAuthor).id, a as MixAuthor]))
+    const commentsByIdea = new Map<number, IdeaCommentWithAuthor[]>()
+    for (const c of (commentsRes.data ?? []) as IdeaComment[]) {
+      const withAuthor: IdeaCommentWithAuthor = { ...c, author: c.user_id ? amap.get(c.user_id) ?? null : null }
+      commentsByIdea.set(c.idea_id, [...(commentsByIdea.get(c.idea_id) ?? []), withAuthor])
+    }
+    const arbByIdea = new Map((arbRes.data ?? []).map((a) => [(a as IdeaArbitration).idea_id, a as IdeaArbitration]))
     return ideas
       .map((i) => {
         const u = up.get(i.id) ?? 0
@@ -1030,6 +1044,8 @@ export async function getIdeas(): Promise<IdeaWithVotes[]> {
           myVote: mine.get(i.id) ?? 0,
           score: u - d,
           downReasons: reasons.get(i.id) ?? [],
+          comments: commentsByIdea.get(i.id) ?? [],
+          arbitration: arbByIdea.get(i.id) ?? null,
         }
       })
       .sort((a, b) => {

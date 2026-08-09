@@ -293,7 +293,26 @@ export type IdeaVote = {
   reason: string | null
   created_at: string
 }
-/** 表示用：意見＋投稿者＋投票集計（反対理由付き） */
+/** 意見箱の議論コメント */
+export type IdeaComment = {
+  id: number
+  idea_id: number
+  user_id: string | null
+  body: string
+  is_ai: boolean
+  created_at: string
+}
+export type IdeaCommentWithAuthor = IdeaComment & { author: MixAuthor | null }
+
+/** AI 仲裁案（落とし所） */
+export type IdeaArbitration = {
+  idea_id: number
+  summary: string
+  created_at: string
+  updated_at: string
+}
+
+/** 表示用：意見＋投稿者＋投票集計（反対理由付き）＋議論＋AI仲裁 */
 export type IdeaWithVotes = Idea & {
   author: MixAuthor | null
   up: number
@@ -301,6 +320,8 @@ export type IdeaWithVotes = Idea & {
   myVote: number
   score: number
   downReasons: string[]
+  comments: IdeaCommentWithAuthor[]
+  arbitration: IdeaArbitration | null
 }
 
 /** クリック計測（アフィリエイト等の送客ログ） */
@@ -382,6 +403,8 @@ export type Database = {
       mix_photos: Tbl<MixPhoto>
       ideas: Tbl<Idea>
       idea_votes: Tbl<IdeaVote>
+      idea_comments: Tbl<IdeaComment>
+      idea_arbitrations: Tbl<IdeaArbitration>
     }
     Views: Record<string, never>
     Functions: {
@@ -390,6 +413,7 @@ export type Database = {
       review_pro_application: { Args: { p_app_id: string; p_approve: boolean }; Returns: undefined }
       transfer_shop_ownership: { Args: { p_shop_id: string; p_new_owner: string }; Returns: undefined }
       notify: { Args: { p_recipient: string; p_type: string; p_mix?: string; p_comment?: string }; Returns: undefined }
+      save_arbitration: { Args: { p_idea_id: number; p_summary: string }; Returns: undefined }
     }
     Enums: Record<string, never>
   }
