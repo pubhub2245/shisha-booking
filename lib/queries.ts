@@ -27,6 +27,8 @@ import type {
   Report,
   FlavorLog,
   FlavorLogWithAuthor,
+  Idea,
+  IdeaWithVotes,
 } from '@/lib/types/database'
 
 export type FeedOptions = {
@@ -980,6 +982,57 @@ export async function getRankedMixes(period: 'week' | 'month' | 'all'): Promise<
     const { data } = await supabase.from('mixes').select('*').in('id', topIds)
     const mixes = await attachRelations(supabase, (data ?? []) as Mix[])
     return mixes.sort((a, b) => (counts.get(b.id) ?? 0) - (counts.get(a.id) ?? 0))
+  } catch {
+    return []
+  }
+}
+
+/** 意見箱の一覧（投稿者・投票集計付き）。いいねが多い順（＝改修希望が高い順）。 */
+export async function getIdeas(): Promise<IdeaWithVotes[]> {
+  try {
+    const supabase = await createClient()
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+    const { data } = await supabase.from('ideas').select('*').order('created_at', { ascending: false }).limit(300)
+    const ideas = (data ?? []) as Idea[]
+    if (ideas.length === 0) return []
+    const ids = ideas.map((i) => i.id)
+    const authorIds = [...new Set(ideas.map((i) => i.user_id).filter(Boolean) as string[])]
+    const [votesRes, authorsRes] = await Promise.all([
+      supabase.from('idea_votes').select('idea_id, user_id, value').in('idea_id', ids),
+      authorIds.length
+        ? supabase.from('profiles').select('id, username, display_name, is_shop, is_pro, shop_name').in('id', authorIds)
+        : Promise.resolve({ data: [] }),
+    ])
+    const up = new Map<number, number>()
+    const down = new Map<number, number>()
+    const mine = new Map<number, number>()
+    for (const v of (votesRes.data ?? []) as { idea_id: number; user_id: string; value: number }[]) {
+      if (v.value === 1) up.set(v.idea_id, (up.get(v.idea_id) ?? 0) + 1)
+      else if (v.value === -1) down.set(v.idea_id, (down.get(v.idea_id) ?? 0) + 1)
+      if (user && v.user_id === user.id) mine.set(v.idea_id, v.value)
+    }
+    const amap = new Map((authorsRes.data ?? []).map((a) => [(a as MixAuthor).id, a as MixAuthor]))
+    return ideas
+      .map((i) => {
+        const u = up.get(i.id) ?? 0
+        const d = down.get(i.id) ?? 0
+        return {
+          ...i,
+          author: i.user_id ? amap.get(i.user_id) ?? null : null,
+          up: u,
+          down: d,
+          myVote: mine.get(i.id) ?? 0,
+          score: u - d,
+        }
+      })
+      .sort((a, b) => {
+        // 対応済み/見送りは下へ。それ以外はスコア→いいね→新着
+        const done = (x: IdeaWithVotes) => (x.status === 'done' || x.status === 'declined' ? 1 : 0)
+        if (done(a) !== done(b)) return done(a) - done(b)
+        return b.score - a.score || b.up - a.up || (a.created_at < b.created_at ? 1 : -1)
+      })
   } catch {
     return []
   }

@@ -275,6 +275,31 @@ export type Report = {
   created_at: string
 }
 
+/** 意見箱（改修要望） */
+export type IdeaStatus = 'open' | 'considering' | 'done' | 'declined'
+export type Idea = {
+  id: number
+  user_id: string | null
+  title: string
+  body: string | null
+  status: string
+  created_at: string
+}
+export type IdeaVote = {
+  idea_id: number
+  user_id: string
+  value: number
+  created_at: string
+}
+/** 表示用：意見＋投稿者＋投票集計 */
+export type IdeaWithVotes = Idea & {
+  author: MixAuthor | null
+  up: number
+  down: number
+  myVote: number
+  score: number
+}
+
 /** クリック計測（アフィリエイト等の送客ログ） */
 export type LinkClick = {
   id: number
@@ -352,6 +377,8 @@ export type Database = {
       flavor_logs: Tbl<FlavorLog>
       flavor_log_helpful: Tbl<FlavorLogHelpful>
       mix_photos: Tbl<MixPhoto>
+      ideas: Tbl<Idea>
+      idea_votes: Tbl<IdeaVote>
     }
     Views: Record<string, never>
     Functions: {

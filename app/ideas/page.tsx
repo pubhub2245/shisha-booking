@@ -1,0 +1,108 @@
+import Link from 'next/link'
+import type { Metadata } from 'next'
+import { getIdeas } from '@/lib/queries'
+import { getCurrentUser } from '@/lib/auth'
+import { IdeaForm } from '@/components/idea-form'
+import { IdeaVoteButtons } from '@/components/idea-vote-buttons'
+import { deleteIdea, setIdeaStatus } from '@/actions/ideas'
+import { relativeTime } from '@/lib/time'
+import { Avatar } from '@/components/avatar'
+
+export const dynamic = 'force-dynamic'
+export const metadata: Metadata = {
+  title: '意見箱 — MixHub',
+  description: 'アプリの改修要望を投稿して、みんなの👍👎で優先度を決めます。要望が多いものから改善します。',
+}
+
+const STATUS: Record<string, { l: string; color: string; bg: string }> = {
+  open: { l: '募集中', color: 'var(--color-ember-hot)', bg: 'var(--accent-tint)' },
+  considering: { l: '検討中', color: '#b7791f', bg: 'rgb(213 153 43 / 0.12)' },
+  done: { l: '対応済み', color: '#2ba088', bg: 'rgb(31 138 118 / 0.12)' },
+  declined: { l: '見送り', color: 'var(--color-ash-dim)', bg: 'var(--line)' },
+}
+
+export default async function IdeasPage() {
+  const [ideas, user] = await Promise.all([getIdeas(), getCurrentUser()])
+  const isAdmin = !!user?.profile?.is_admin
+
+  return (
+    <div className="wrap max-w-2xl py-10">
+      <p className="eyebrow">Feedback</p>
+      <h1 className="mt-2 text-3xl" style={{ fontWeight: 800 }}>意見箱</h1>
+      <p className="mt-2 text-sm leading-relaxed" style={{ color: 'var(--color-ash)' }}>
+        「こう直してほしい」を投稿して、みんなの <b>👍</b> で優先度を決める場所です。
+        なんでも採用するとアプリが散らかるので、<b>要望が多い（👍が多い）ものから改善</b>していきます。反対は 👎 で示せます。
+      </p>
+
+      <div className="mt-6">
+        <IdeaForm isAuthed={!!user} />
+      </div>
+
+      <div className="mt-8 flex flex-col gap-3">
+        {ideas.length === 0 ? (
+          <div className="card p-8 text-center text-sm" style={{ color: 'var(--color-ash)' }}>
+            まだ意見がありません。最初の要望を投稿しましょう。
+          </div>
+        ) : (
+          ideas.map((idea) => {
+            const st = STATUS[idea.status] ?? STATUS.open
+            const canDelete = isAdmin || (user && idea.user_id === user.id)
+            return (
+              <div key={idea.id} className="card flex gap-3 p-4">
+                <IdeaVoteButtons ideaId={idea.id} up={idea.up} down={idea.down} myVote={idea.myVote} isAuthed={!!user} />
+                <div className="min-w-0 flex-1">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span
+                      className="rounded-full px-2 py-0.5 text-[0.68rem]"
+                      style={{ background: st.bg, color: st.color, fontWeight: 700 }}
+                    >
+                      {st.l}
+                    </span>
+                    <h2 className="text-base leading-snug" style={{ fontWeight: 700 }}>{idea.title}</h2>
+                  </div>
+                  {idea.body && (
+                    <p className="mt-1 whitespace-pre-wrap text-sm" style={{ color: 'var(--color-ash)' }}>{idea.body}</p>
+                  )}
+                  <div className="mt-2 flex flex-wrap items-center gap-2 text-xs" style={{ color: 'var(--color-ash-dim)' }}>
+                    <Avatar name={idea.author?.display_name || idea.author?.username || '?'} seed={idea.user_id || String(idea.id)} size={18} />
+                    {idea.author?.username ? (
+                      <Link href={`/u/${idea.author.username}`} className="hover:underline">
+                        {idea.author.display_name || `@${idea.author.username}`}
+                      </Link>
+                    ) : (
+                      <span>{idea.author?.display_name || '匿名'}</span>
+                    )}
+                    <span>・ {relativeTime(idea.created_at)}</span>
+                  </div>
+
+                  {(isAdmin || canDelete) && (
+                    <div className="mt-2 flex flex-wrap items-center gap-3 border-t pt-2" style={{ borderColor: 'var(--line)' }}>
+                      {isAdmin && (
+                        <form action={setIdeaStatus} className="flex items-center gap-1">
+                          <input type="hidden" name="id" value={idea.id} />
+                          <select name="status" defaultValue={idea.status} className="rounded-lg border px-2 py-1 text-xs" style={{ background: 'var(--color-smoke-850)', borderColor: 'var(--line-strong)', color: 'var(--color-cream)' }}>
+                            <option value="open">募集中</option>
+                            <option value="considering">検討中</option>
+                            <option value="done">対応済み</option>
+                            <option value="declined">見送り</option>
+                          </select>
+                          <button type="submit" className="text-xs" style={{ color: 'var(--color-ember-hot)', fontWeight: 600 }}>更新</button>
+                        </form>
+                      )}
+                      {canDelete && (
+                        <form action={deleteIdea}>
+                          <input type="hidden" name="id" value={idea.id} />
+                          <button type="submit" className="text-xs" style={{ color: 'var(--color-ash-dim)' }}>削除</button>
+                        </form>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )
+          })
+        )}
+      </div>
+    </div>
+  )
+}
