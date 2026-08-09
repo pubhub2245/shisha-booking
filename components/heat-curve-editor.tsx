@@ -169,6 +169,10 @@ export function HeatCurveEditor({
         <p className="mt-1 text-xs" style={{ color: 'var(--color-ash-dim)' }}>
           点をドラッグで火力・時間を調整／グラフ内をタップで点を追加／各時点の「🔥炭」にキューブ炭の個数を記録できます（任意）
         </p>
+        <p className="mt-1 text-[0.68rem] leading-relaxed" style={{ color: 'var(--color-ash-dim)' }}>
+          ※ 火力は「弱(0-33)／中(33-66)／強(66-100)」の目安。炭の種類・個数・ボウル・部屋の気温で体感は変わるため、
+          数値そのものより<b>「時間経過でどう上下させるか」の形</b>を参考にしてください。難しければ入力は任意です。
+        </p>
       </div>
 
       {/* numeric rows */}

@@ -48,6 +48,16 @@ export function AuthForm({ mode, next }: { mode: 'login' | 'signup'; next?: stri
         />
       </div>
 
+      {mode === 'signup' && !EMAIL_ENABLED && (
+        <p
+          className="rounded-lg px-3 py-2 text-xs leading-relaxed"
+          style={{ background: 'rgb(213 153 43 / 0.12)', color: '#b7791f' }}
+        >
+          ⚠️ 現在はメール認証を使わない運用のため、<b>パスワードを忘れると再設定できません</b>。
+          メールアドレスとパスワードは必ず控えておいてください。
+        </p>
+      )}
+
       <button type="submit" disabled={pending} className="btn btn-ember">
         {pending ? '処理中…' : mode === 'login' ? 'ログイン' : 'アカウントを作成'}
       </button>

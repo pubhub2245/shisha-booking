@@ -283,6 +283,10 @@ export function MixForm({
           })}
         </div>
         <button type="button" onClick={addRow} className="btn btn-ghost mt-3 text-sm">＋ フレーバーを追加</button>
+        <p className="mt-2 text-xs leading-relaxed" style={{ color: 'var(--color-ash-dim)' }}>
+          💡 量はグラム推奨ですが、スケールがなければ目安でOK（ボウル1杯 ≒ 15〜20g、ひとつまみ ≒ 2〜3g）。
+          比率が伝わればOKなので、迷ったら「多め／少なめ」を説明欄に添えてください。
+        </p>
       </div>
 
       <div className="field">

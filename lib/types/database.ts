@@ -77,6 +77,7 @@ export type Mix = {
   like_count: number
   view_count: number
   combo_key: string
+  hidden: boolean
   premium: boolean
   price: number | null
   locked_sections: string[]
@@ -153,6 +154,7 @@ export type Comment = {
   user_id: string
   body: string
   parent_id: string | null
+  hidden: boolean
   created_at: string
 }
 
@@ -353,6 +355,7 @@ export type NationalRep = {
   score: number
   likes: number
   makes: number
+  sample: boolean // 本物レシピがまだ無く、AI生成サンプルが暫定代表か
 }
 
 /** あと1フレーバーで作れるコンボ（不足している1品を提示） */

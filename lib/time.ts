@@ -1,3 +1,11 @@
+/** ISO 日時が指定日数より古いか（サーバー側で評価） */
+export function isOlderThanDays(iso: string | null | undefined, days: number): boolean {
+  if (!iso) return false
+  const then = new Date(iso).getTime()
+  if (Number.isNaN(then)) return false
+  return Date.now() - then > days * 86400000
+}
+
 /** ISO 日時を「◯分前」等の相対表現に（サーバー側で評価） */
 export function relativeTime(iso: string | null | undefined): string {
   if (!iso) return ''

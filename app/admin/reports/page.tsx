@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { getCurrentUser } from '@/lib/auth'
 import { getReports } from '@/lib/queries'
-import { adminDismissReport, adminDeleteMix } from '@/actions/admin'
+import { adminDismissReport, adminDeleteMix, adminRestoreContent } from '@/actions/admin'
 import { relativeTime } from '@/lib/time'
 
 export const dynamic = 'force-dynamic'
@@ -20,6 +20,7 @@ export default async function AdminReportsPage() {
       <h1 className="mt-3 text-2xl" style={{ fontWeight: 800 }}>🛡 通報の管理</h1>
       <p className="mt-2 text-sm" style={{ color: 'var(--color-ash-dim)' }}>
         未対応の通報 {reports.length} 件。内容を確認し、問題なければ「対応済み」、不適切なら「投稿を削除」してください。
+        <br />※ 異なる3人以上から通報された投稿・コメントは<b>自動で非表示</b>になります。誤検知なら「非表示を解除して公開」で戻せます。
       </p>
 
       {reports.length === 0 ? (
@@ -66,6 +67,12 @@ export default async function AdminReportsPage() {
                     </button>
                   </form>
                 )}
+                {/* 自動非表示の誤検知を救済（公開に戻す） */}
+                <form action={adminRestoreContent}>
+                  {r.mix_id && <input type="hidden" name="mix_id" value={r.mix_id} />}
+                  {r.comment_id && <input type="hidden" name="comment_id" value={r.comment_id} />}
+                  <button type="submit" className="btn btn-ghost text-xs">↩ 非表示を解除して公開</button>
+                </form>
               </div>
             </li>
           ))}

@@ -14,10 +14,13 @@ export const metadata: Metadata = {
 // 系統（TYPE_TAGS）ごとの見た目
 const CAT_META: Record<string, { icon: string; label: string }> = {
   フルーツ: { icon: '🍎', label: 'フルーツ系' },
+  シトラス: { icon: '🍋', label: 'シトラス系' },
   ミント: { icon: '🍃', label: 'ミント系' },
   ベリー: { icon: '🫐', label: 'ベリー系' },
   デザート: { icon: '🍮', label: 'デザート系' },
   トロピカル: { icon: '🌴', label: 'トロピカル系' },
+  スパイス: { icon: '🌶️', label: 'スパイス系' },
+  ドリンク: { icon: '🥤', label: 'ドリンク系' },
   お茶: { icon: '🍵', label: 'お茶系' },
   和: { icon: '🎐', label: '和' },
 }
@@ -40,7 +43,8 @@ export default async function NationalTeamPage() {
           系統ごとに、<b>👍いいね</b>と<b>🔥「作った！」</b>で最も支持を集めたミックスが<b>日本代表</b>に選出されます。
         </p>
         <p className="mx-auto mt-2 max-w-2xl text-xs" style={{ color: 'var(--color-ash-dim)' }}>
-          ※ 選出は現在の支持データから自動集計。あなたの👍と「作った！」が、代表の顔ぶれを変えます。
+          ※ 選出基準：支持スコア（👍＋🔥作った×2）が1以上・本物のレシピを優先。あなたの👍と「作った！」が代表の顔ぶれを変えます。
+          <br />本物のレシピが未選出の系統は「暫定代表」と表示され、投稿が集まり次第 差し替わります。
         </p>
       </div>
 
@@ -73,12 +77,22 @@ export default async function NationalTeamPage() {
                       <span aria-hidden>{meta.icon}</span>
                       {meta.label} 代表
                     </span>
-                    <span
-                      className="rounded-full px-2 py-0.5 text-[0.6rem]"
-                      style={{ background: 'linear-gradient(90deg, #bc002d, #e60033)', color: '#fff', fontWeight: 800, letterSpacing: '0.05em' }}
-                    >
-                      日本代表
-                    </span>
+                    {rep.sample ? (
+                      <span
+                        className="rounded-full px-2 py-0.5 text-[0.6rem]"
+                        style={{ background: 'var(--line)', color: 'var(--color-ash-dim)', fontWeight: 800, letterSpacing: '0.05em' }}
+                        title="本物のレシピが集まるまでの暫定枠です"
+                      >
+                        暫定代表
+                      </span>
+                    ) : (
+                      <span
+                        className="rounded-full px-2 py-0.5 text-[0.6rem]"
+                        style={{ background: 'linear-gradient(90deg, #bc002d, #e60033)', color: '#fff', fontWeight: 800, letterSpacing: '0.05em' }}
+                      >
+                        日本代表
+                      </span>
+                    )}
                   </div>
                   {/* 代表ミックス */}
                   <MixCard mix={rep.mix} liked={likedIds.has(rep.mix.id)} isAuthed={!!user} />

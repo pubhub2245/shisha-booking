@@ -7,8 +7,10 @@ import {
   getShopMenuCombos,
   getShopMembers,
   getMyMembership,
+  getShopInventoryUpdatedAt,
 } from '@/lib/queries'
 import { getCurrentUser } from '@/lib/auth'
+import { relativeTime, isOlderThanDays } from '@/lib/time'
 import { ComboCard } from '@/components/combo-card'
 import { VerifiedBadge } from '@/components/verified-badge'
 import { Avatar } from '@/components/avatar'
@@ -32,15 +34,18 @@ export default async function ShopPage({ params }: { params: Promise<{ id: strin
   const shop = await getShopById(id)
   if (!shop) notFound()
 
-  const [flavors, combos, members, membership, me] = await Promise.all([
+  const [flavors, combos, members, membership, me, invUpdatedAt] = await Promise.all([
     getShopFlavors(shop.id),
     getShopMenuCombos(shop.id),
     getShopMembers(shop.id),
     getMyMembership(shop.id),
     getCurrentUser(),
+    getShopInventoryUpdatedAt(shop.id),
   ])
   const isApproved = membership?.status === 'approved'
   const joinState = membership ? membership.status : 'none'
+  // 在庫の鮮度（30日以上更新なしは要注意表示）
+  const invStale = isOlderThanDays(invUpdatedAt, 30)
 
   const byBrand = new Map<string, Flavor[]>()
   for (const f of flavors) {
@@ -123,8 +128,22 @@ export default async function ShopPage({ params }: { params: Promise<{ id: strin
             <p className="mb-3 text-sm" style={{ color: 'var(--color-ash)' }}>
               この中から好きなフレーバーを選んでください。タップで詳細・作れるミックスが見られます。
             </p>
-            <div className="mb-3 flex items-baseline justify-between">
+            <div className="mb-3 flex flex-wrap items-baseline justify-between gap-2">
               <h2 className="text-lg" style={{ fontWeight: 700 }}>🍃 今あるフレーバー（{flavors.length}）</h2>
+              {invUpdatedAt && (
+                <span
+                  className="rounded-full px-2 py-0.5 text-[0.68rem]"
+                  style={
+                    invStale
+                      ? { background: 'rgb(213 153 43 / 0.14)', color: '#b7791f', fontWeight: 700 }
+                      : { color: 'var(--color-ash-dim)' }
+                  }
+                  title="在庫が最後に更新された時期の目安です"
+                >
+                  {invStale ? '⚠️ ' : '🕒 '}在庫更新 {relativeTime(invUpdatedAt)}
+                  {invStale && '（古い可能性）'}
+                </span>
+              )}
             </div>
             <div className="flex flex-col gap-5">
               {brands.map((brand) => (

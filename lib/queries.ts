@@ -226,6 +226,23 @@ export async function getShopFlavors(shopId: string): Promise<Flavor[]> {
   }
 }
 
+/** 店の在庫が最後に更新（追加）された日時。鮮度表示用。無ければ null。 */
+export async function getShopInventoryUpdatedAt(shopId: string): Promise<string | null> {
+  try {
+    const supabase = await createClient()
+    const { data } = await supabase
+      .from('shop_flavors')
+      .select('created_at')
+      .eq('shop_id', shopId)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle()
+    return (data as { created_at: string } | null)?.created_at ?? null
+  } catch {
+    return null
+  }
+}
+
 /** 店の在庫フレーバーの正規化キー集合（brand|name）— 作れる判定用 */
 export async function getShopOwnedFlavorKeys(shopId: string): Promise<Set<string>> {
   const flavors = await getShopFlavors(shopId)
@@ -301,7 +318,7 @@ export async function attachRelations(
 export async function getMixes(opts: FeedOptions = {}): Promise<MixWithRelations[]> {
   try {
     const supabase = await createClient()
-    let query = supabase.from('mixes').select('*')
+    let query = supabase.from('mixes').select('*').eq('hidden', false)
 
     // 複数タグは AND（すべて含む）
     if (opts.tags && opts.tags.length) query = query.contains('taste_tags', opts.tags)
@@ -457,7 +474,23 @@ export async function getMixById(id: string): Promise<MixWithRelations | null> {
     const supabase = await createClient()
     const { data, error } = await supabase.from('mixes').select('*').eq('id', id).maybeSingle()
     if (error || !data) return null
-    const [withRel] = await attachRelations(supabase, [data as Mix])
+    const mix = data as Mix
+    // 通報により非表示のミックスは、投稿者本人と管理者以外には見せない
+    if (mix.hidden) {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
+      let allowed = false
+      if (user) {
+        if (user.id === mix.author_id) allowed = true
+        else {
+          const { data: prof } = await supabase.from('profiles').select('is_admin').eq('id', user.id).maybeSingle()
+          allowed = !!(prof as { is_admin?: boolean } | null)?.is_admin
+        }
+      }
+      if (!allowed) return null
+    }
+    const [withRel] = await attachRelations(supabase, [mix])
     return withRel ?? null
   } catch {
     return null
@@ -577,6 +610,7 @@ export async function getMixComments(mixId: string): Promise<CommentNode[]> {
       .from('comments')
       .select('*')
       .eq('mix_id', mixId)
+      .eq('hidden', false)
       .order('created_at', { ascending: true })
     const comments = (data ?? []) as Comment[]
     if (comments.length === 0) return []
@@ -984,7 +1018,7 @@ export async function getRankedMixes(period: 'week' | 'month' | 'all'): Promise<
     }
     const topIds = [...counts.entries()].sort((a, b) => b[1] - a[1]).slice(0, 30).map((e) => e[0])
     if (topIds.length === 0) return []
-    const { data } = await supabase.from('mixes').select('*').in('id', topIds)
+    const { data } = await supabase.from('mixes').select('*').in('id', topIds).eq('hidden', false)
     const mixes = await attachRelations(supabase, (data ?? []) as Mix[])
     return mixes.sort((a, b) => (counts.get(b.id) ?? 0) - (counts.get(a.id) ?? 0))
   } catch {
@@ -1001,7 +1035,7 @@ export async function getRankedMixes(period: 'week' | 'month' | 'all'): Promise<
 export async function getNationalTeam(): Promise<NationalRep[]> {
   try {
     const supabase = await createClient()
-    const { data } = await supabase.from('mixes').select('*').limit(1000)
+    const { data } = await supabase.from('mixes').select('*').eq('hidden', false).limit(1000)
     const mixes = (data ?? []) as Mix[]
     if (mixes.length === 0) return []
 
@@ -1013,14 +1047,18 @@ export async function getNationalTeam(): Promise<NationalRep[]> {
     }
     const scoreOf = (m: Mix) => m.like_count + (makes.get(m.id) ?? 0) * 2
 
-    // 系統ごとに最高スコアのミックスを代表に。
-    // （汎用性の高い名ミックスは複数ポジションを兼任しうる＝重複を許容）
-    const reps: { category: string; mix: Mix; score: number }[] = []
+    // 系統ごとに代表を選ぶ。ルール：
+    //  1) 支持スコア(いいね+作った×2)が1以上あること（無支持のサンプルを代表にしない）
+    //  2) 本物のレシピ(author_idあり)に支持があれば、AI生成サンプルより優先
+    //  （汎用性の高い名ミックスは複数ポジションを兼任しうる＝重複を許容）
+    const reps: { category: string; mix: Mix; score: number; sample: boolean }[] = []
     for (const cat of TYPE_TAGS) {
-      const inCat = mixes.filter((m) => (m.taste_tags ?? []).includes(cat))
+      const inCat = mixes.filter((m) => (m.taste_tags ?? []).includes(cat) && scoreOf(m) >= 1)
       if (inCat.length === 0) continue
-      const best = inCat.reduce((a, b) => (scoreOf(b) > scoreOf(a) ? b : a))
-      reps.push({ category: cat, mix: best, score: scoreOf(best) })
+      const real = inCat.filter((m) => m.author_id)
+      const pool = real.length > 0 ? real : inCat
+      const best = pool.reduce((a, b) => (scoreOf(b) > scoreOf(a) ? b : a))
+      reps.push({ category: cat, mix: best, score: scoreOf(best), sample: !best.author_id })
     }
     if (reps.length === 0) return []
 
@@ -1036,6 +1074,7 @@ export async function getNationalTeam(): Promise<NationalRep[]> {
         score: r.score,
         likes: r.mix.like_count,
         makes: makes.get(r.mix.id) ?? 0,
+        sample: r.sample,
       }))
       .filter((r) => r.mix)
       .sort((a, b) => b.score - a.score)
