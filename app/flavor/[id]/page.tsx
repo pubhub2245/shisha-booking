@@ -10,14 +10,16 @@ import {
   getFlavorAdder,
   getFlavorRating,
   getFlavorLogs,
+  getPublicFlavorLogs,
 } from '@/lib/queries'
 import { getCurrentUser } from '@/lib/auth'
 import { MixCard } from '@/components/mix-card'
 import { ShelfButton } from '@/components/shelf-button'
 import { FlavorRating } from '@/components/flavor-rating'
 import { FlavorLogForm } from '@/components/flavor-log-form'
-import { deleteFlavorLog } from '@/actions/flavor-log'
+import { deleteFlavorLog, toggleBestLog, togglePublicLog } from '@/actions/flavor-log'
 import { hmsLabel, charcoalLabel, packLabel } from '@/lib/heat'
+import { Avatar } from '@/components/avatar'
 import { VerifiedBadge } from '@/components/verified-badge'
 import { goHref } from '@/lib/go'
 import { flavorKey } from '@/lib/combo'
@@ -43,7 +45,7 @@ export default async function FlavorDetail({ params }: { params: Promise<{ id: s
   const flavor = await getFlavorById(id)
   if (!flavor) notFound()
 
-  const [mixes, likedIds, user, shelfIds, shops, adder, rating, logs] = await Promise.all([
+  const [mixes, likedIds, user, shelfIds, shops, adder, rating, logs, publicLogs] = await Promise.all([
     getMixesUsingFlavor(flavor),
     getLikedMixIds(),
     getCurrentUser(),
@@ -52,6 +54,7 @@ export default async function FlavorDetail({ params }: { params: Promise<{ id: s
     flavor.added_by ? getFlavorAdder(flavor.added_by) : Promise.resolve(null),
     getFlavorRating(flavor.id),
     getFlavorLogs(flavor.id),
+    getPublicFlavorLogs(flavor.id),
   ])
   // 練習ログのサマリー・散布図データ
   const ratedLogs = logs.filter((l) => l.rating != null)
@@ -59,6 +62,7 @@ export default async function FlavorDetail({ params }: { params: Promise<{ id: s
     ? ratedLogs.reduce((a, b) => a + (b.rating ?? 0), 0) / ratedLogs.length
     : 0
   const scatter = logs.filter((l) => l.steep_heat != null && l.rating != null)
+  const bestLog = logs.find((l) => l.is_best) ?? null
   const buyUrl = goHref(flavor.affiliate_url, { f: flavor.id })
 
   // よく一緒に使われるフレーバー（共起）
@@ -135,6 +139,22 @@ export default async function FlavorDetail({ params }: { params: Promise<{ id: s
 
         {user ? (
           <>
+            {bestLog && (
+              <div className="card mb-3 p-5" style={{ borderColor: 'var(--color-ember)', background: 'var(--accent-tint)' }}>
+                <div className="text-sm" style={{ fontWeight: 700, color: 'var(--color-ember-hot)' }}>👑 あなたのベスト設定</div>
+                <div className="mt-2 flex flex-wrap gap-1.5">
+                  {bestLog.steep_heat != null && <span className="chip" style={{ fontSize: '0.72rem' }}>🔥到達{bestLog.steep_heat}</span>}
+                  {bestLog.steep_minutes != null && <span className="chip" style={{ fontSize: '0.72rem' }}>♨️蒸らし{bestLog.steep_minutes}分</span>}
+                  {hmsLabel(bestLog.hms_type) && <span className="chip" style={{ fontSize: '0.72rem' }}>{hmsLabel(bestLog.hms_type)}</span>}
+                  {charcoalLabel(bestLog.charcoal_type) && <span className="chip" style={{ fontSize: '0.72rem' }}>炭:{charcoalLabel(bestLog.charcoal_type)}</span>}
+                  {packLabel(bestLog.pack_style) && <span className="chip" style={{ fontSize: '0.72rem' }}>盛り:{packLabel(bestLog.pack_style)}</span>}
+                  {bestLog.rating != null && <span style={{ color: '#f5a623' }}>{'★'.repeat(bestLog.rating)}</span>}
+                </div>
+                {bestLog.result_note && (
+                  <p className="mt-2 whitespace-pre-wrap text-sm" style={{ color: 'var(--color-cream)' }}>{bestLog.result_note}</p>
+                )}
+              </div>
+            )}
             {logs.length > 0 && (
               <div className="card mb-3 p-5">
                 <div className="flex flex-wrap gap-x-6 gap-y-1 text-sm">
@@ -189,17 +209,14 @@ export default async function FlavorDetail({ params }: { params: Promise<{ id: s
                   if (charcoalLabel(l.charcoal_type)) chips.push(`炭:${charcoalLabel(l.charcoal_type)}`)
                   if (packLabel(l.pack_style)) chips.push(`盛り:${packLabel(l.pack_style)}`)
                   return (
-                    <div key={l.id} className="card p-4">
+                    <div key={l.id} className="card p-4" style={l.is_best ? { borderColor: 'var(--color-ember)' } : undefined}>
                       <div className="flex items-center justify-between gap-2">
-                        <div className="flex items-center gap-2 text-sm" style={{ fontWeight: 700 }}>
+                        <div className="flex flex-wrap items-center gap-2 text-sm" style={{ fontWeight: 700 }}>
+                          {l.is_best && <span style={{ color: 'var(--color-ember-hot)' }}>👑 ベスト</span>}
                           <span>{l.logged_at}</span>
                           {l.rating != null && <span style={{ color: '#f5a623' }}>{'★'.repeat(l.rating)}</span>}
+                          {l.is_public && <span className="text-xs" style={{ color: 'var(--color-ash-dim)', fontWeight: 400 }}>🌐 公開中</span>}
                         </div>
-                        <form action={deleteFlavorLog}>
-                          <input type="hidden" name="id" value={l.id} />
-                          <input type="hidden" name="flavor_id" value={flavor.id} />
-                          <button type="submit" className="text-xs" style={{ color: 'var(--color-ash-dim)' }}>削除</button>
-                        </form>
                       </div>
                       {chips.length > 0 && (
                         <div className="mt-2 flex flex-wrap gap-1.5">
@@ -214,6 +231,27 @@ export default async function FlavorDetail({ params }: { params: Promise<{ id: s
                       {l.change_note && (
                         <p className="mt-1 text-xs" style={{ color: 'var(--color-ash-dim)' }}>変更点：{l.change_note}</p>
                       )}
+                      <div className="mt-2 flex flex-wrap items-center gap-3 border-t pt-2" style={{ borderColor: 'var(--line)' }}>
+                        <form action={toggleBestLog}>
+                          <input type="hidden" name="id" value={l.id} />
+                          <input type="hidden" name="flavor_id" value={flavor.id} />
+                          <button type="submit" className="text-xs" style={{ color: l.is_best ? 'var(--color-ember-hot)' : 'var(--color-ash-dim)', fontWeight: 600 }}>
+                            {l.is_best ? '👑 ベスト解除' : '👑 ベストにする'}
+                          </button>
+                        </form>
+                        <form action={togglePublicLog}>
+                          <input type="hidden" name="id" value={l.id} />
+                          <input type="hidden" name="flavor_id" value={flavor.id} />
+                          <button type="submit" className="text-xs" style={{ color: 'var(--color-ash-dim)' }}>
+                            {l.is_public ? '🌐 公開をやめる' : '🌐 公開して共有'}
+                          </button>
+                        </form>
+                        <form action={deleteFlavorLog}>
+                          <input type="hidden" name="id" value={l.id} />
+                          <input type="hidden" name="flavor_id" value={flavor.id} />
+                          <button type="submit" className="text-xs" style={{ color: 'var(--color-ash-dim)' }}>削除</button>
+                        </form>
+                      </div>
                     </div>
                   )
                 })}
@@ -226,6 +264,47 @@ export default async function FlavorDetail({ params }: { params: Promise<{ id: s
             <Link href={`/login?next=/flavor/${flavor.id}`} style={{ color: 'var(--color-ember-hot)', fontWeight: 600 }}>
               ログイン
             </Link>
+          </div>
+        )}
+
+        {publicLogs.length > 0 && (
+          <div className="mt-6">
+            <h3 className="mb-2 text-sm" style={{ fontWeight: 700 }}>🌐 みんなの研究メモ（公開）</h3>
+            <div className="flex flex-col gap-2">
+              {publicLogs.map((l) => {
+                const chips: string[] = []
+                if (l.steep_heat != null) chips.push(`🔥到達${l.steep_heat}`)
+                if (l.steep_minutes != null) chips.push(`♨️蒸らし${l.steep_minutes}分`)
+                if (hmsLabel(l.hms_type)) chips.push(hmsLabel(l.hms_type)!)
+                if (packLabel(l.pack_style)) chips.push(`盛り:${packLabel(l.pack_style)}`)
+                return (
+                  <div key={l.id} className="card p-4">
+                    <div className="flex flex-wrap items-center gap-2 text-sm" style={{ fontWeight: 600 }}>
+                      <Avatar name={l.author?.display_name || l.author?.username} seed={l.user_id} size={22} />
+                      {l.author?.username ? (
+                        <Link href={`/u/${l.author.username}`} className="hover:underline" style={{ color: 'var(--color-ember-hot)' }}>
+                          {l.author.display_name || `@${l.author.username}`}
+                        </Link>
+                      ) : (
+                        <span>{l.author?.display_name || '名無し'}</span>
+                      )}
+                      {l.is_best && <span className="text-xs" style={{ color: 'var(--color-ember-hot)' }}>👑ベスト</span>}
+                      {l.rating != null && <span style={{ color: '#f5a623' }}>{'★'.repeat(l.rating)}</span>}
+                    </div>
+                    {chips.length > 0 && (
+                      <div className="mt-2 flex flex-wrap gap-1.5">
+                        {chips.map((c, i) => (
+                          <span key={i} className="chip" style={{ fontSize: '0.7rem' }}>{c}</span>
+                        ))}
+                      </div>
+                    )}
+                    {l.result_note && (
+                      <p className="mt-2 whitespace-pre-wrap text-sm" style={{ color: 'var(--color-cream)' }}>{l.result_note}</p>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
           </div>
         )}
       </section>

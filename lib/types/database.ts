@@ -113,8 +113,13 @@ export type FlavorLog = {
   rating: number | null
   result_note: string | null
   change_note: string | null
+  is_best: boolean
+  is_public: boolean
   created_at: string
 }
+
+/** 公開研究メモの表示用（投稿者付き） */
+export type FlavorLogWithAuthor = FlavorLog & { author: MixAuthor | null }
 
 /** フレーバー評価（★1-5） */
 export type FlavorRating = {

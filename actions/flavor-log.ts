@@ -58,6 +58,42 @@ export async function addFlavorLog(_prev: FlavorLogState, formData: FormData): P
   return { ok: true }
 }
 
+/** ベスト設定のトグル（フレーバーごとに1件だけ）。 */
+export async function toggleBestLog(formData: FormData): Promise<void> {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) return
+  const id = Number(formData.get('id') ?? '')
+  const flavorId = String(formData.get('flavor_id') ?? '')
+  if (!id || !flavorId) return
+  const { data: cur } = await supabase.from('flavor_logs').select('is_best').eq('id', id).eq('user_id', user.id).maybeSingle()
+  if (!cur) return
+  const next = !cur.is_best
+  if (next) {
+    await supabase.from('flavor_logs').update({ is_best: false }).eq('user_id', user.id).eq('flavor_id', flavorId)
+  }
+  await supabase.from('flavor_logs').update({ is_best: next }).eq('id', id).eq('user_id', user.id)
+  revalidatePath(`/flavor/${flavorId}`)
+}
+
+/** 公開/非公開のトグル。 */
+export async function togglePublicLog(formData: FormData): Promise<void> {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) return
+  const id = Number(formData.get('id') ?? '')
+  const flavorId = String(formData.get('flavor_id') ?? '')
+  if (!id || !flavorId) return
+  const { data: cur } = await supabase.from('flavor_logs').select('is_public').eq('id', id).eq('user_id', user.id).maybeSingle()
+  if (!cur) return
+  await supabase.from('flavor_logs').update({ is_public: !cur.is_public }).eq('id', id).eq('user_id', user.id)
+  revalidatePath(`/flavor/${flavorId}`)
+}
+
 /** 練習ログを削除する（本人のみ）。 */
 export async function deleteFlavorLog(formData: FormData): Promise<void> {
   const supabase = await createClient()

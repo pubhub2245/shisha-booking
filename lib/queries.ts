@@ -26,6 +26,7 @@ import type {
   NotificationWithContext,
   Report,
   FlavorLog,
+  FlavorLogWithAuthor,
 } from '@/lib/types/database'
 
 export type FeedOptions = {
@@ -895,6 +896,36 @@ export async function getFlavorLogs(flavorId: string): Promise<FlavorLog[]> {
       .order('id', { ascending: false })
       .limit(100)
     return (data ?? []) as FlavorLog[]
+  } catch {
+    return []
+  }
+}
+
+/** 公開された研究メモ（他ユーザー分）。ベスト→高評価順。 */
+export async function getPublicFlavorLogs(flavorId: string): Promise<FlavorLogWithAuthor[]> {
+  try {
+    const supabase = await createClient()
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+    const { data } = await supabase
+      .from('flavor_logs')
+      .select('*')
+      .eq('flavor_id', flavorId)
+      .eq('is_public', true)
+      .order('is_best', { ascending: false })
+      .order('rating', { ascending: false, nullsFirst: false })
+      .limit(30)
+    let rows = (data ?? []) as FlavorLog[]
+    if (user) rows = rows.filter((r) => r.user_id !== user.id)
+    if (rows.length === 0) return []
+    const ids = [...new Set(rows.map((r) => r.user_id))]
+    const { data: authors } = await supabase
+      .from('profiles')
+      .select('id, username, display_name, is_shop, is_pro, shop_name')
+      .in('id', ids)
+    const map = new Map((authors ?? []).map((a) => [(a as MixAuthor).id, a as MixAuthor]))
+    return rows.map((r) => ({ ...r, author: map.get(r.user_id) ?? null }))
   } catch {
     return []
   }
