@@ -1000,7 +1000,7 @@ export async function getIdeas(): Promise<IdeaWithVotes[]> {
     const ids = ideas.map((i) => i.id)
     const authorIds = [...new Set(ideas.map((i) => i.user_id).filter(Boolean) as string[])]
     const [votesRes, authorsRes] = await Promise.all([
-      supabase.from('idea_votes').select('idea_id, user_id, value').in('idea_id', ids),
+      supabase.from('idea_votes').select('idea_id, user_id, value, reason').in('idea_id', ids),
       authorIds.length
         ? supabase.from('profiles').select('id, username, display_name, is_shop, is_pro, shop_name').in('id', authorIds)
         : Promise.resolve({ data: [] }),
@@ -1008,9 +1008,13 @@ export async function getIdeas(): Promise<IdeaWithVotes[]> {
     const up = new Map<number, number>()
     const down = new Map<number, number>()
     const mine = new Map<number, number>()
-    for (const v of (votesRes.data ?? []) as { idea_id: number; user_id: string; value: number }[]) {
+    const reasons = new Map<number, string[]>()
+    for (const v of (votesRes.data ?? []) as { idea_id: number; user_id: string; value: number; reason: string | null }[]) {
       if (v.value === 1) up.set(v.idea_id, (up.get(v.idea_id) ?? 0) + 1)
-      else if (v.value === -1) down.set(v.idea_id, (down.get(v.idea_id) ?? 0) + 1)
+      else if (v.value === -1) {
+        down.set(v.idea_id, (down.get(v.idea_id) ?? 0) + 1)
+        if (v.reason) reasons.set(v.idea_id, [...(reasons.get(v.idea_id) ?? []), v.reason])
+      }
       if (user && v.user_id === user.id) mine.set(v.idea_id, v.value)
     }
     const amap = new Map((authorsRes.data ?? []).map((a) => [(a as MixAuthor).id, a as MixAuthor]))
@@ -1025,6 +1029,7 @@ export async function getIdeas(): Promise<IdeaWithVotes[]> {
           down: d,
           myVote: mine.get(i.id) ?? 0,
           score: u - d,
+          downReasons: reasons.get(i.id) ?? [],
         }
       })
       .sort((a, b) => {

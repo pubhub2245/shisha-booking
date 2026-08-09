@@ -33,10 +33,11 @@ export async function createIdea(_prev: IdeaState, formData: FormData): Promise<
   return { ok: true }
 }
 
-/** 投票（👍=1 / 👎=-1）。同じ値を再度押すと取り消し。 */
+/** 投票（👍=1 / 👎=-1）。同じ値を再度押すと取り消し。👎には理由が必須。 */
 export async function voteIdea(
   ideaId: number,
-  value: 1 | -1
+  value: 1 | -1,
+  reason?: string
 ): Promise<{ up: number; down: number; myVote: number } | { error: string }> {
   const supabase = await createClient()
   const {
@@ -53,10 +54,16 @@ export async function voteIdea(
 
   let myVote: number
   if (existing && existing.value === value) {
+    // 取り消し（理由不要）
     await supabase.from('idea_votes').delete().eq('idea_id', ideaId).eq('user_id', user.id)
     myVote = 0
   } else {
-    await supabase.from('idea_votes').upsert({ idea_id: ideaId, user_id: user.id, value }, { onConflict: 'idea_id,user_id' })
+    const trimmed = (reason ?? '').trim().slice(0, 300)
+    // 反対（👎）には理由が必須
+    if (value === -1 && !trimmed) return { error: '反対する場合は理由を入力してください。' }
+    await supabase
+      .from('idea_votes')
+      .upsert({ idea_id: ideaId, user_id: user.id, value, reason: value === -1 ? trimmed : null }, { onConflict: 'idea_id,user_id' })
     myVote = value
   }
   const { data: votes } = await supabase.from('idea_votes').select('value').eq('idea_id', ideaId)

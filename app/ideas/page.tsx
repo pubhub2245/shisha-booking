@@ -109,6 +109,20 @@ export default async function IdeasPage({
                   {idea.body && (
                     <p className="mt-1 whitespace-pre-wrap text-sm" style={{ color: 'var(--color-ash)' }}>{idea.body}</p>
                   )}
+                  {idea.downReasons.length > 0 && (
+                    <details className="mt-2 rounded-lg border px-3 py-2" style={{ borderColor: 'var(--line)', background: 'var(--line)' }}>
+                      <summary className="cursor-pointer text-xs" style={{ color: 'var(--color-ash)', fontWeight: 600 }}>
+                        🚫 反対の理由（{idea.downReasons.length}）
+                      </summary>
+                      <ul className="mt-2 flex flex-col gap-1">
+                        {idea.downReasons.map((r, i) => (
+                          <li key={i} className="text-xs leading-relaxed" style={{ color: 'var(--color-ash)' }}>
+                            ・{r}
+                          </li>
+                        ))}
+                      </ul>
+                    </details>
+                  )}
                   <div className="mt-2 flex flex-wrap items-center gap-2 text-xs" style={{ color: 'var(--color-ash-dim)' }}>
                     <Avatar name={idea.author?.display_name || idea.author?.username || '?'} seed={idea.user_id || String(idea.id)} size={18} />
                     {idea.author?.username ? (

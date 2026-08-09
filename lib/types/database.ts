@@ -290,15 +290,17 @@ export type IdeaVote = {
   idea_id: number
   user_id: string
   value: number
+  reason: string | null
   created_at: string
 }
-/** 表示用：意見＋投稿者＋投票集計 */
+/** 表示用：意見＋投稿者＋投票集計（反対理由付き） */
 export type IdeaWithVotes = Idea & {
   author: MixAuthor | null
   up: number
   down: number
   myVote: number
   score: number
+  downReasons: string[]
 }
 
 /** クリック計測（アフィリエイト等の送客ログ） */
