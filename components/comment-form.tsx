@@ -5,7 +5,21 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { addComment, type CommentState } from '@/actions/social'
 
-export function CommentForm({ mixId, isAuthed }: { mixId: string; isAuthed: boolean }) {
+export function CommentForm({
+  mixId,
+  isAuthed,
+  parentId,
+  placeholder,
+  compact = false,
+  onDone,
+}: {
+  mixId: string
+  isAuthed: boolean
+  parentId?: string
+  placeholder?: string
+  compact?: boolean
+  onDone?: () => void
+}) {
   const router = useRouter()
   const [state, action, pending] = useActionState<CommentState, FormData>(addComment, null)
   const formRef = useRef<HTMLFormElement>(null)
@@ -14,8 +28,9 @@ export function CommentForm({ mixId, isAuthed }: { mixId: string; isAuthed: bool
     if (state && 'ok' in state) {
       formRef.current?.reset()
       router.refresh()
+      onDone?.()
     }
-  }, [state, router])
+  }, [state, router, onDone])
 
   if (!isAuthed) {
     return (
@@ -32,16 +47,23 @@ export function CommentForm({ mixId, isAuthed }: { mixId: string; isAuthed: bool
   return (
     <form ref={formRef} action={action} className="flex flex-col gap-2">
       <input type="hidden" name="mix_id" value={mixId} />
+      {parentId && <input type="hidden" name="parent_id" value={parentId} />}
       {state && 'error' in state && (
         <p className="text-sm" style={{ color: 'var(--color-ember-deep)' }}>
           {state.error}
         </p>
       )}
       <div className="field">
-        <textarea name="body" placeholder="このミックスの感想・コツ・アレンジを書く…" maxLength={500} required />
+        <textarea
+          name="body"
+          placeholder={placeholder ?? 'このミックスの感想・コツ・アレンジを書く…（@ユーザー名で言及できます）'}
+          maxLength={500}
+          required
+          style={compact ? { minHeight: 64 } : undefined}
+        />
       </div>
       <button type="submit" disabled={pending} className="btn btn-ember self-end text-sm">
-        {pending ? '送信中…' : 'コメントする'}
+        {pending ? '送信中…' : compact ? '返信する' : 'コメントする'}
       </button>
     </form>
   )

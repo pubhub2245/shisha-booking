@@ -110,10 +110,24 @@ export type Comment = {
   mix_id: string
   user_id: string
   body: string
+  parent_id: string | null
+  created_at: string
+}
+
+export type CommentLike = {
+  comment_id: string
+  user_id: string
   created_at: string
 }
 
 export type CommentWithAuthor = Comment & { author: MixAuthor | null }
+
+/** 表示用：コメント＋いいね数＋自分のいいね＋返信（1段） */
+export type CommentNode = CommentWithAuthor & {
+  like_count: number
+  my_liked: boolean
+  replies: CommentNode[]
+}
 
 export type Bookmark = {
   mix_id: string
@@ -292,6 +306,7 @@ export type Database = {
       reports: Tbl<Report>
       mix_makes: Tbl<MixMake>
       flavor_ratings: Tbl<FlavorRating>
+      comment_likes: Tbl<CommentLike>
     }
     Views: Record<string, never>
     Functions: {

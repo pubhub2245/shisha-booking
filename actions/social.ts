@@ -14,17 +14,33 @@ export async function addComment(_prev: CommentState, formData: FormData): Promi
 
   const mixId = String(formData.get('mix_id') ?? '')
   const body = String(formData.get('body') ?? '').trim()
+  const parentId = String(formData.get('parent_id') ?? '').trim() || null
   if (!mixId) return { error: '対象が不明です。' }
   if (!body) return { error: 'コメントを入力してください。' }
   if (body.length > 500) return { error: 'コメントは500文字以内で入力してください。' }
 
-  const { error } = await supabase.from('comments').insert({ mix_id: mixId, user_id: user.id, body })
+  const { error } = await supabase.from('comments').insert({ mix_id: mixId, user_id: user.id, body, parent_id: parentId })
   if (error) return { error: 'コメントの投稿に失敗しました。' }
 
   // 投稿者に通知
   const { data: target } = await supabase.from('mixes').select('author_id').eq('id', mixId).maybeSingle()
   if (target?.author_id) {
     await supabase.rpc('notify', { p_recipient: target.author_id as string, p_type: 'comment', p_mix: mixId })
+  }
+  // 返信なら親コメントの投稿者にも通知
+  if (parentId) {
+    const { data: parent } = await supabase.from('comments').select('user_id').eq('id', parentId).maybeSingle()
+    if (parent?.user_id) {
+      await supabase.rpc('notify', { p_recipient: parent.user_id as string, p_type: 'reply', p_mix: mixId })
+    }
+  }
+  // @メンションの通知
+  const handles = [...new Set((body.match(/@([A-Za-z0-9_]{2,30})/g) ?? []).map((s) => s.slice(1)))].slice(0, 5)
+  if (handles.length > 0) {
+    const { data: mentioned } = await supabase.from('profiles').select('id').in('username', handles)
+    for (const m of (mentioned ?? []) as { id: string }[]) {
+      await supabase.rpc('notify', { p_recipient: m.id, p_type: 'mention', p_mix: mixId })
+    }
   }
 
   revalidatePath(`/mix/${mixId}`)
@@ -42,6 +58,39 @@ export async function deleteComment(formData: FormData): Promise<void> {
   if (!id) return
   await supabase.from('comments').delete().eq('id', id).eq('user_id', user.id)
   if (mixId) revalidatePath(`/mix/${mixId}`)
+}
+
+/** コメントへのいいねトグル。 */
+export async function toggleCommentLike(commentId: string): Promise<{ liked: boolean; count: number } | { error: string }> {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) return { error: 'ログインが必要です。' }
+
+  const { data: existing } = await supabase
+    .from('comment_likes')
+    .select('comment_id')
+    .eq('comment_id', commentId)
+    .eq('user_id', user.id)
+    .maybeSingle()
+
+  let liked: boolean
+  if (existing) {
+    await supabase.from('comment_likes').delete().eq('comment_id', commentId).eq('user_id', user.id)
+    liked = false
+  } else {
+    await supabase.from('comment_likes').insert({ comment_id: commentId, user_id: user.id })
+    liked = true
+    const { data: c } = await supabase.from('comments').select('user_id, mix_id').eq('id', commentId).maybeSingle()
+    if (c?.user_id) {
+      await supabase.rpc('notify', { p_recipient: c.user_id as string, p_type: 'comment_like', p_mix: c.mix_id as string })
+    }
+  }
+  const { count } = await supabase.from('comment_likes').select('comment_id', { count: 'exact', head: true }).eq('comment_id', commentId)
+  const { data: c2 } = await supabase.from('comments').select('mix_id').eq('id', commentId).maybeSingle()
+  if (c2?.mix_id) revalidatePath(`/mix/${c2.mix_id}`)
+  return { liked, count: count ?? 0 }
 }
 
 /** ブックマークのトグル。戻り値で最新状態を返す。 */

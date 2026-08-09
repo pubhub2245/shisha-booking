@@ -7,7 +7,7 @@ import type {
   Mix,
   MixFlavor,
   MixAuthor,
-  CommentWithAuthor,
+  CommentNode,
   Comment,
   Profile,
   Flavor,
@@ -558,9 +558,12 @@ export async function getLikedMixIds(): Promise<Set<string>> {
 }
 
 // ---------- コメント ----------
-export async function getMixComments(mixId: string): Promise<CommentWithAuthor[]> {
+export async function getMixComments(mixId: string): Promise<CommentNode[]> {
   try {
     const supabase = await createClient()
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
     const { data } = await supabase
       .from('comments')
       .select('*')
@@ -569,13 +572,34 @@ export async function getMixComments(mixId: string): Promise<CommentWithAuthor[]
     const comments = (data ?? []) as Comment[]
     if (comments.length === 0) return []
     const authorIds = [...new Set(comments.map((c) => c.user_id))]
-    const { data: authors } = await supabase
-      .from('profiles')
-      .select('id, username, display_name, is_shop, is_pro, shop_name')
-      .in('id', authorIds)
+    const commentIds = comments.map((c) => c.id)
+    const [authorsRes, likesRes] = await Promise.all([
+      supabase.from('profiles').select('id, username, display_name, is_shop, is_pro, shop_name').in('id', authorIds),
+      supabase.from('comment_likes').select('comment_id, user_id').in('comment_id', commentIds),
+    ])
     const byId = new Map<string, MixAuthor>()
-    for (const a of (authors ?? []) as MixAuthor[]) byId.set(a.id, a)
-    return comments.map((c) => ({ ...c, author: byId.get(c.user_id) ?? null }))
+    for (const a of (authorsRes.data ?? []) as MixAuthor[]) byId.set(a.id, a)
+    const likeCount = new Map<string, number>()
+    const myLiked = new Set<string>()
+    for (const l of (likesRes.data ?? []) as { comment_id: string; user_id: string }[]) {
+      likeCount.set(l.comment_id, (likeCount.get(l.comment_id) ?? 0) + 1)
+      if (user && l.user_id === user.id) myLiked.add(l.comment_id)
+    }
+    const nodes: CommentNode[] = comments.map((c) => ({
+      ...c,
+      author: byId.get(c.user_id) ?? null,
+      like_count: likeCount.get(c.id) ?? 0,
+      my_liked: myLiked.has(c.id),
+      replies: [],
+    }))
+    const nodeById = new Map(nodes.map((n) => [n.id, n]))
+    const roots: CommentNode[] = []
+    for (const n of nodes) {
+      const parent = n.parent_id ? nodeById.get(n.parent_id) : null
+      if (parent) parent.replies.push(n)
+      else roots.push(n)
+    }
+    return roots
   } catch {
     return []
   }

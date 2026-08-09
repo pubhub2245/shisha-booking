@@ -26,11 +26,11 @@ import { Avatar } from '@/components/avatar'
 import { CompletenessMeter } from '@/components/completeness'
 import { relativeTime } from '@/lib/time'
 import { CommentForm } from '@/components/comment-form'
+import { CommentThread } from '@/components/comment-thread'
 import { ViewTracker } from '@/components/view-tracker'
 import { LockedNote } from '@/components/locked-note'
 import { MixCard } from '@/components/mix-card'
 import { deleteMix } from '@/actions/mixes'
-import { deleteComment } from '@/actions/social'
 import { goHref } from '@/lib/go'
 import { comboKey, comboSlug } from '@/lib/combo'
 import type { MixWithRelations, MixAuthor } from '@/lib/types/database'
@@ -98,6 +98,7 @@ export default async function MixDetail({ params }: { params: Promise<{ id: stri
     getRelatedMixes(mix as MixWithRelations),
     getMadeStatus(id),
   ])
+  const commentTotal = comments.reduce((n, c) => n + 1 + c.replies.length, 0)
 
   const flavors = mix.mix_flavors ?? []
   const isOwner = !!user && user.id === mix.author_id
@@ -460,39 +461,8 @@ export default async function MixDetail({ params }: { params: Promise<{ id: stri
 
       {/* ---------- COMMENTS ---------- */}
       <section className="mt-10">
-        <h2 className="mb-3 text-sm eyebrow">Comments — コメント（{comments.length}）</h2>
-        <div className="flex flex-col gap-3">
-          {comments.map((c) => (
-            <div key={c.id} className="card p-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2 text-sm" style={{ fontWeight: 600 }}>
-                  <Avatar name={c.author?.display_name || c.author?.username} seed={c.user_id} size={26} />
-                  <AuthorLink author={c.author} />
-                  <span className="text-xs" style={{ color: 'var(--color-ash-dim)', fontWeight: 400 }}>
-                    {relativeTime(c.created_at)}
-                  </span>
-                </div>
-                {user?.id === c.user_id && (
-                  <form action={deleteComment}>
-                    <input type="hidden" name="id" value={c.id} />
-                    <input type="hidden" name="mix_id" value={mix.id} />
-                    <button type="submit" className="text-xs" style={{ color: 'var(--color-ash-dim)' }}>
-                      削除
-                    </button>
-                  </form>
-                )}
-              </div>
-              <p className="mt-1.5 whitespace-pre-wrap text-sm" style={{ color: 'var(--color-cream)' }}>
-                {c.body}
-              </p>
-            </div>
-          ))}
-          {comments.length === 0 && (
-            <p className="text-sm" style={{ color: 'var(--color-ash-dim)' }}>
-              まだコメントはありません。最初のコメントを書きましょう。
-            </p>
-          )}
-        </div>
+        <h2 className="mb-3 text-sm eyebrow">Comments — コメント（{commentTotal}）</h2>
+        <CommentThread comments={comments} mixId={mix.id} isAuthed={!!user} currentUserId={user?.id} />
         <div className="mt-4">
           <CommentForm mixId={mix.id} isAuthed={!!user} />
         </div>
