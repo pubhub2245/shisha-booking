@@ -2,6 +2,9 @@ import { redirect } from 'next/navigation'
 import { getCurrentUser } from '@/lib/auth'
 import { getComboBySlug, getFlavors, getMixById } from '@/lib/queries'
 import { MixForm, type MixFormInitial } from '@/components/mix-form'
+import { SimpleMixForm } from '@/components/simple-mix-form'
+import { ModeToggle } from '@/components/mode-toggle'
+import { resolveMode } from '@/lib/mode'
 import type { MixWithRelations } from '@/lib/types/database'
 
 export const dynamic = 'force-dynamic'
@@ -102,6 +105,34 @@ export default async function PostPage({
     }
   }
 
+  const mode = resolveMode(user.profile)
+
+  // 初心者モード：かんたん投稿（熱管理・器具などは出さない）
+  if (mode === 'simple') {
+    const initialFlavorIds = (initial?.flavors ?? [])
+      .map((f) => f.flavorId)
+      .filter((id): id is string => !!id)
+    return (
+      <div className="wrap max-w-2xl py-10">
+        <p className="eyebrow">かんたん投稿</p>
+        <h1 className="mt-2 text-3xl" style={{ fontWeight: 800 }}>ミックスを投稿</h1>
+        <p className="mt-2 text-sm" style={{ color: 'var(--color-ash)' }}>
+          フレーバーの組み合わせと味わいだけで、かんたんに投稿できます。
+        </p>
+        <SimpleMixForm flavors={flavors} initialFlavorIds={initialFlavorIds} />
+        <div className="mt-8 rounded-xl border border-dashed p-4 text-center" style={{ borderColor: 'var(--line-strong)' }}>
+          <p className="text-sm" style={{ color: 'var(--color-ash)' }}>
+            熱管理カーブ・炭・蒸らし・器具まで細かく記録したい方は
+          </p>
+          <div className="mt-2">
+            <ModeToggle target="pro" label="🛠 プロモードに切り替えて投稿" className="btn btn-ghost text-sm" />
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // プロモード：フル投稿
   return (
     <div className="wrap max-w-2xl py-10">
       <p className="eyebrow">Post a mix</p>
@@ -114,6 +145,9 @@ export default async function PostPage({
         canAddFlavor={!!user.profile?.is_pro || !!user.profile?.is_founder || !!user.profile?.is_admin}
         canSell={!!user.profile?.is_pro || !!user.profile?.is_admin}
       />
+      <div className="mt-8 text-center">
+        <ModeToggle target="simple" label="🔰 かんたん投稿に切り替える" className="text-xs underline underline-offset-2" />
+      </div>
     </div>
   )
 }

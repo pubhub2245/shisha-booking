@@ -1,6 +1,8 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { getCurrentUser } from '@/lib/auth'
+import { resolveMode } from '@/lib/mode'
+import { ModeToggle } from '@/components/mode-toggle'
 import {
   getMixesByAuthor,
   getLikedMixIds,
@@ -96,6 +98,32 @@ export default async function MyPage() {
         <span><b>{counts.followers}</b> <span style={{ color: 'var(--color-ash-dim)' }}>フォロワー</span></span>
         <span><b>{counts.following}</b> <span style={{ color: 'var(--color-ash-dim)' }}>フォロー中</span></span>
       </div>
+
+      <section className="mt-8">
+        <h2 className="text-sm" style={{ fontWeight: 700, color: 'var(--color-ash)' }}>表示モード</h2>
+        {(() => {
+          const mode = resolveMode(user.profile)
+          return (
+            <div className="card mt-2 flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <p className="text-sm" style={{ fontWeight: 700 }}>
+                  {mode === 'pro' ? '🛠 プロモード' : '🔰 かんたんモード'}
+                </p>
+                <p className="mt-1 text-xs" style={{ color: 'var(--color-ash-dim)' }}>
+                  {mode === 'pro'
+                    ? '熱管理・器具・蒸らし・練習ログまで、すべての機能が使えます。'
+                    : 'フレーバーと味わい中心のシンプルな表示。細かい設定は隠れています。'}
+                </p>
+              </div>
+              {mode === 'pro' ? (
+                <ModeToggle target="simple" label="🔰 かんたんモードにする" className="btn btn-ghost shrink-0 text-sm" />
+              ) : (
+                <ModeToggle target="pro" label="🛠 プロモードにする" className="btn btn-ember shrink-0 text-sm" />
+              )}
+            </div>
+          )
+        })()}
+      </section>
 
       <section className="mt-8">
         <h2 className="text-sm" style={{ fontWeight: 700, color: 'var(--color-ash)' }}>プロフィール</h2>

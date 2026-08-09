@@ -5,6 +5,20 @@ import { revalidatePath } from 'next/cache'
 
 export type ProfileState = { ok?: boolean; error?: string } | null
 
+/** 表示モード（初心者=simple / プロ=pro）を切り替える。 */
+export async function setUiMode(mode: 'simple' | 'pro'): Promise<{ ok: true } | { error: string }> {
+  if (mode !== 'simple' && mode !== 'pro') return { error: '不正なモードです。' }
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) return { error: 'ログインが必要です。' }
+  const { error } = await supabase.from('profiles').update({ ui_mode: mode }).eq('id', user.id)
+  if (error) return { error: '切り替えに失敗しました。' }
+  revalidatePath('/', 'layout')
+  return { ok: true }
+}
+
 export async function updateProfile(_prev: ProfileState, formData: FormData): Promise<ProfileState> {
   const supabase = await createClient()
   const {

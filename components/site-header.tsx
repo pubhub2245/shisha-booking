@@ -1,12 +1,15 @@
 import Link from 'next/link'
 import { getCurrentUser } from '@/lib/auth'
 import { getUnreadNotificationCount } from '@/lib/queries'
+import { resolveMode } from '@/lib/mode'
 import { signOut } from '@/actions/auth'
 
 export async function SiteHeader() {
   const user = await getCurrentUser()
   const displayName = user?.profile?.display_name || user?.profile?.username || user?.email?.split('@')[0]
   const unread = user ? await getUnreadNotificationCount() : 0
+  const mode = resolveMode(user?.profile)
+  const isPro = mode === 'pro'
 
   return (
     <header
@@ -38,11 +41,14 @@ export async function SiteHeader() {
           <Link href="/" className="transition-colors hover:text-[var(--color-cream)]">図鑑</Link>
           <Link href="/national" className="transition-colors hover:text-[var(--color-cream)]" style={{ fontWeight: 700 }}>🇯🇵 日本代表</Link>
           <Link href="/flavors" className="transition-colors hover:text-[var(--color-cream)]">フレーバー</Link>
-          <Link href="/ranking" className="transition-colors hover:text-[var(--color-cream)]">ランキング</Link>
-          <Link href="/search" className="transition-colors hover:text-[var(--color-cream)]">検索</Link>
-          <Link href="/guide" className="transition-colors hover:text-[var(--color-cream)]">作り方</Link>
+          {/* プロは競争/深掘り導線、初心者は学習導線 */}
+          {isPro ? (
+            <Link href="/ranking" className="transition-colors hover:text-[var(--color-cream)]">ランキング</Link>
+          ) : (
+            <Link href="/guide" className="transition-colors hover:text-[var(--color-cream)]">作り方</Link>
+          )}
           {user && <Link href="/shelf" className="transition-colors hover:text-[var(--color-cream)]">マイ棚</Link>}
-          {user && <Link href="/timeline" className="transition-colors hover:text-[var(--color-cream)]">タイムライン</Link>}
+          {isPro && user && <Link href="/timeline" className="transition-colors hover:text-[var(--color-cream)]">タイムライン</Link>}
           <Link href="/post" className="transition-colors hover:text-[var(--color-cream)]">投稿する</Link>
         </nav>
 

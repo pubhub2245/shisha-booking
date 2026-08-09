@@ -5,6 +5,8 @@ import { ComboCard } from '@/components/combo-card'
 import { MixCard } from '@/components/mix-card'
 import { IconOrb } from '@/components/icon-orb'
 import { OnboardingCard } from '@/components/onboarding-card'
+import { ModeChooser } from '@/components/mode-chooser'
+import { needsModeChoice } from '@/lib/mode'
 
 export const dynamic = 'force-dynamic'
 
@@ -82,6 +84,9 @@ export default async function Home({
           気分で探す図鑑 ・ {combos.length}通りの組み合わせ ・ {flavors.length}種のフレーバー
         </p>
       </section>
+
+      {/* ---------- モード選択（初回・未設定ユーザー向け） ---------- */}
+      {user && needsModeChoice(user.profile) && <ModeChooser />}
 
       {/* ---------- オンボーディング（初回ユーザー向け） ---------- */}
       {user && (

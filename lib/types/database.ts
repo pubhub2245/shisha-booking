@@ -20,6 +20,7 @@ export type Profile = {
   is_pro: boolean
   is_admin: boolean
   is_founder: boolean
+  ui_mode: 'simple' | 'pro' | null
   shop_name: string | null
   shop_area: string | null
   shop_url: string | null
