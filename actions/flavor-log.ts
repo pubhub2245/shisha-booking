@@ -1,0 +1,73 @@
+'use server'
+
+import { createClient } from '@/lib/supabase/server'
+import { revalidatePath } from 'next/cache'
+
+export type FlavorLogState = { error: string } | { ok: true } | null
+
+const HMS_VALUES = ['lotus', 'provost', 'turkish', 'steamulation', 'nagrani', 'aot', 'foil', 'other', 'kaloud']
+const CHARCOAL_VALUES = ['cube', 'flat', 'ogatan', 'other']
+const PACK_VALUES = ['fluff', 'layered', 'dense', 'flat', 'overpack', 'other']
+
+function numOrNull(formData: FormData, key: string, min: number, max: number, round = false): number | null {
+  const s = String(formData.get(key) ?? '').trim()
+  if (!s) return null
+  const n = Number(s)
+  if (!Number.isFinite(n)) return null
+  const clamped = Math.max(min, Math.min(max, n))
+  return round ? Math.round(clamped) : clamped
+}
+function strOrNull(formData: FormData, key: string, len: number): string | null {
+  const s = String(formData.get(key) ?? '').trim()
+  return s ? s.slice(0, len) : null
+}
+function enumOrNull(formData: FormData, key: string, allowed: string[]): string | null {
+  const s = String(formData.get(key) ?? '').trim()
+  return allowed.includes(s) ? s : null
+}
+
+/** 練習ログを1件追加する。 */
+export async function addFlavorLog(_prev: FlavorLogState, formData: FormData): Promise<FlavorLogState> {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) return { error: 'ログインが必要です。' }
+
+  const flavorId = String(formData.get('flavor_id') ?? '')
+  if (!flavorId) return { error: '対象が不明です。' }
+
+  const row: Record<string, unknown> = {
+    user_id: user.id,
+    flavor_id: flavorId,
+    hms_type: enumOrNull(formData, 'hms_type', HMS_VALUES),
+    charcoal_type: enumOrNull(formData, 'charcoal_type', CHARCOAL_VALUES),
+    steep_minutes: numOrNull(formData, 'steep_minutes', 0, 30),
+    steep_heat: numOrNull(formData, 'steep_heat', 1, 100, true),
+    pack_style: enumOrNull(formData, 'pack_style', PACK_VALUES),
+    rating: numOrNull(formData, 'rating', 1, 5, true),
+    result_note: strOrNull(formData, 'result_note', 500),
+    change_note: strOrNull(formData, 'change_note', 300),
+  }
+  const loggedAt = String(formData.get('logged_at') ?? '').trim()
+  if (loggedAt) row.logged_at = loggedAt
+
+  const { error } = await supabase.from('flavor_logs').insert(row)
+  if (error) return { error: '記録の保存に失敗しました。' }
+  revalidatePath(`/flavor/${flavorId}`)
+  return { ok: true }
+}
+
+/** 練習ログを削除する（本人のみ）。 */
+export async function deleteFlavorLog(formData: FormData): Promise<void> {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) return
+  const id = Number(formData.get('id') ?? '')
+  const flavorId = String(formData.get('flavor_id') ?? '')
+  if (!id) return
+  await supabase.from('flavor_logs').delete().eq('id', id).eq('user_id', user.id)
+  if (flavorId) revalidatePath(`/flavor/${flavorId}`)
+}

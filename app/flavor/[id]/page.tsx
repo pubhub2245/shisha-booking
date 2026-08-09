@@ -9,11 +9,15 @@ import {
   getShopsWithFlavor,
   getFlavorAdder,
   getFlavorRating,
+  getFlavorLogs,
 } from '@/lib/queries'
 import { getCurrentUser } from '@/lib/auth'
 import { MixCard } from '@/components/mix-card'
 import { ShelfButton } from '@/components/shelf-button'
 import { FlavorRating } from '@/components/flavor-rating'
+import { FlavorLogForm } from '@/components/flavor-log-form'
+import { deleteFlavorLog } from '@/actions/flavor-log'
+import { hmsLabel, charcoalLabel, packLabel } from '@/lib/heat'
 import { VerifiedBadge } from '@/components/verified-badge'
 import { goHref } from '@/lib/go'
 import { flavorKey } from '@/lib/combo'
@@ -39,7 +43,7 @@ export default async function FlavorDetail({ params }: { params: Promise<{ id: s
   const flavor = await getFlavorById(id)
   if (!flavor) notFound()
 
-  const [mixes, likedIds, user, shelfIds, shops, adder, rating] = await Promise.all([
+  const [mixes, likedIds, user, shelfIds, shops, adder, rating, logs] = await Promise.all([
     getMixesUsingFlavor(flavor),
     getLikedMixIds(),
     getCurrentUser(),
@@ -47,7 +51,14 @@ export default async function FlavorDetail({ params }: { params: Promise<{ id: s
     getShopsWithFlavor(flavor),
     flavor.added_by ? getFlavorAdder(flavor.added_by) : Promise.resolve(null),
     getFlavorRating(flavor.id),
+    getFlavorLogs(flavor.id),
   ])
+  // 練習ログのサマリー・散布図データ
+  const ratedLogs = logs.filter((l) => l.rating != null)
+  const avgLogRating = ratedLogs.length
+    ? ratedLogs.reduce((a, b) => a + (b.rating ?? 0), 0) / ratedLogs.length
+    : 0
+  const scatter = logs.filter((l) => l.steep_heat != null && l.rating != null)
   const buyUrl = goHref(flavor.affiliate_url, { f: flavor.id })
 
   // よく一緒に使われるフレーバー（共起）
@@ -114,6 +125,110 @@ export default async function FlavorDetail({ params }: { params: Promise<{ id: s
           )}
         </div>
       </div>
+
+      {/* ---------- 練習ログ（フレーバーをこする） ---------- */}
+      <section className="mt-8">
+        <h2 className="text-lg" style={{ fontWeight: 700 }}>🔬 あなたの練習ログ</h2>
+        <p className="mb-3 mt-1 text-sm" style={{ color: 'var(--color-ash-dim)' }}>
+          同じフレーバーを繰り返し作って（“こする”）、得意な温度帯・味の出方を研究する非公開ノートです。
+        </p>
+
+        {user ? (
+          <>
+            {logs.length > 0 && (
+              <div className="card mb-3 p-5">
+                <div className="flex flex-wrap gap-x-6 gap-y-1 text-sm">
+                  <span>これまで <b>{logs.length}</b> 回</span>
+                  {ratedLogs.length > 0 && (
+                    <span>平均の出来 <b style={{ color: 'var(--color-ember-hot)' }}>★{avgLogRating.toFixed(1)}</b></span>
+                  )}
+                </div>
+
+                {scatter.length >= 2 && (
+                  <div className="mt-4">
+                    <p className="mb-1 text-xs" style={{ color: 'var(--color-ash-dim)' }}>
+                      到達火力 × 出来 — 高評価が集まる火力帯が「得意温度帯」
+                    </p>
+                    <svg viewBox="0 0 320 150" width="100%" style={{ maxWidth: 440 }} role="img" aria-label="到達火力と出来の散布図">
+                      {[1, 2, 3, 4, 5].map((r) => {
+                        const y = 10 + (1 - (r - 1) / 4) * (150 - 10 - 24)
+                        return (
+                          <g key={r}>
+                            <line x1={28} x2={310} y1={y} y2={y} stroke="var(--line)" />
+                            <text x={24} y={y + 3} textAnchor="end" fontSize="8" fill="var(--color-ash-dim)">★{r}</text>
+                          </g>
+                        )
+                      })}
+                      {[0, 50, 100].map((h) => {
+                        const x = 28 + (h / 100) * (320 - 28 - 10)
+                        return (
+                          <text key={h} x={x} y={144} textAnchor="middle" fontSize="8" fill="var(--color-ash-dim)">{h}</text>
+                        )
+                      })}
+                      <text x={310} y={144} textAnchor="end" fontSize="8" fill="var(--color-ash-dim)">火力→</text>
+                      {scatter.map((l) => {
+                        const x = 28 + ((l.steep_heat ?? 0) / 100) * (320 - 28 - 10)
+                        const y = 10 + (1 - ((l.rating ?? 1) - 1) / 4) * (150 - 10 - 24)
+                        return <circle key={l.id} cx={x} cy={y} r="4" fill="var(--color-ember)" fillOpacity="0.65" stroke="#fff" strokeWidth="1" />
+                      })}
+                    </svg>
+                  </div>
+                )}
+              </div>
+            )}
+
+            <FlavorLogForm flavorId={flavor.id} />
+
+            {logs.length > 0 && (
+              <div className="mt-3 flex flex-col gap-2">
+                {logs.map((l) => {
+                  const chips: string[] = []
+                  if (l.steep_minutes != null) chips.push(`♨️蒸らし${l.steep_minutes}分`)
+                  if (l.steep_heat != null) chips.push(`🔥到達${l.steep_heat}`)
+                  if (hmsLabel(l.hms_type)) chips.push(hmsLabel(l.hms_type)!)
+                  if (charcoalLabel(l.charcoal_type)) chips.push(`炭:${charcoalLabel(l.charcoal_type)}`)
+                  if (packLabel(l.pack_style)) chips.push(`盛り:${packLabel(l.pack_style)}`)
+                  return (
+                    <div key={l.id} className="card p-4">
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-2 text-sm" style={{ fontWeight: 700 }}>
+                          <span>{l.logged_at}</span>
+                          {l.rating != null && <span style={{ color: '#f5a623' }}>{'★'.repeat(l.rating)}</span>}
+                        </div>
+                        <form action={deleteFlavorLog}>
+                          <input type="hidden" name="id" value={l.id} />
+                          <input type="hidden" name="flavor_id" value={flavor.id} />
+                          <button type="submit" className="text-xs" style={{ color: 'var(--color-ash-dim)' }}>削除</button>
+                        </form>
+                      </div>
+                      {chips.length > 0 && (
+                        <div className="mt-2 flex flex-wrap gap-1.5">
+                          {chips.map((c, i) => (
+                            <span key={i} className="chip" style={{ fontSize: '0.7rem' }}>{c}</span>
+                          ))}
+                        </div>
+                      )}
+                      {l.result_note && (
+                        <p className="mt-2 whitespace-pre-wrap text-sm" style={{ color: 'var(--color-cream)' }}>{l.result_note}</p>
+                      )}
+                      {l.change_note && (
+                        <p className="mt-1 text-xs" style={{ color: 'var(--color-ash-dim)' }}>変更点：{l.change_note}</p>
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+          </>
+        ) : (
+          <div className="card p-5 text-sm" style={{ color: 'var(--color-ash)' }}>
+            ログインすると、このフレーバーを繰り返し研究する練習ノート（熱設定・味の出方・評価）を記録できます。{' '}
+            <Link href={`/login?next=/flavor/${flavor.id}`} style={{ color: 'var(--color-ember-hot)', fontWeight: 600 }}>
+              ログイン
+            </Link>
+          </div>
+        )}
+      </section>
 
       {/* ---------- 取り扱い店舗（来店誘導） ---------- */}
       {shops.length > 0 && (

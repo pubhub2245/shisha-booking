@@ -90,6 +90,23 @@ export type MixMake = {
   created_at: string
 }
 
+/** フレーバー練習ログ（「こする」＝繰り返し研究する非公開ノート） */
+export type FlavorLog = {
+  id: number
+  user_id: string
+  flavor_id: string
+  logged_at: string
+  hms_type: string | null
+  charcoal_type: string | null
+  steep_minutes: number | null
+  steep_heat: number | null
+  pack_style: string | null
+  rating: number | null
+  result_note: string | null
+  change_note: string | null
+  created_at: string
+}
+
 /** フレーバー評価（★1-5） */
 export type FlavorRating = {
   flavor_id: string
@@ -307,6 +324,7 @@ export type Database = {
       mix_makes: Tbl<MixMake>
       flavor_ratings: Tbl<FlavorRating>
       comment_likes: Tbl<CommentLike>
+      flavor_logs: Tbl<FlavorLog>
     }
     Views: Record<string, never>
     Functions: {

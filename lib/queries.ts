@@ -25,6 +25,7 @@ import type {
   Notification,
   NotificationWithContext,
   Report,
+  FlavorLog,
 } from '@/lib/types/database'
 
 export type FeedOptions = {
@@ -874,6 +875,28 @@ export async function getMadeStatus(mixId: string): Promise<{ count: number; mad
     return { count: count ?? 0, made: !!mineRes.data }
   } catch {
     return { count: 0, made: false }
+  }
+}
+
+/** 自分のフレーバー練習ログ（新しい順）。RLSで本人のみ。 */
+export async function getFlavorLogs(flavorId: string): Promise<FlavorLog[]> {
+  try {
+    const supabase = await createClient()
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+    if (!user) return []
+    const { data } = await supabase
+      .from('flavor_logs')
+      .select('*')
+      .eq('flavor_id', flavorId)
+      .eq('user_id', user.id)
+      .order('logged_at', { ascending: false })
+      .order('id', { ascending: false })
+      .limit(100)
+    return (data ?? []) as FlavorLog[]
+  } catch {
+    return []
   }
 }
 
