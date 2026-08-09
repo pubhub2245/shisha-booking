@@ -7,6 +7,7 @@ import { IdeaVoteButtons } from '@/components/idea-vote-buttons'
 import { deleteIdea, setIdeaStatus } from '@/actions/ideas'
 import { relativeTime } from '@/lib/time'
 import { Avatar } from '@/components/avatar'
+import { IDEA_CATEGORIES, ideaCategory } from '@/lib/ideas'
 
 export const dynamic = 'force-dynamic'
 export const metadata: Metadata = {
@@ -21,9 +22,36 @@ const STATUS: Record<string, { l: string; color: string; bg: string }> = {
   declined: { l: '見送り', color: 'var(--color-ash-dim)', bg: 'var(--line)' },
 }
 
-export default async function IdeasPage() {
-  const [ideas, user] = await Promise.all([getIdeas(), getCurrentUser()])
+export default async function IdeasPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ cat?: string; sort?: string; status?: string }>
+}) {
+  const sp = await searchParams
+  const [allIdeas, user] = await Promise.all([getIdeas(), getCurrentUser()])
   const isAdmin = !!user?.profile?.is_admin
+
+  const cat = IDEA_CATEGORIES.some((c) => c.v === sp.cat) ? sp.cat : ''
+  const sort = sp.sort === 'new' ? 'new' : 'popular'
+  const activeOnly = sp.status === 'active'
+
+  let ideas = allIdeas
+  if (cat) ideas = ideas.filter((i) => i.category === cat)
+  if (activeOnly) ideas = ideas.filter((i) => i.status === 'open' || i.status === 'considering')
+  if (sort === 'new') ideas = [...ideas].sort((a, b) => (a.created_at < b.created_at ? 1 : -1))
+
+  // フィルタURL構築
+  const href = (o: { cat?: string; sort?: string; active?: boolean }) => {
+    const p = new URLSearchParams()
+    const c = 'cat' in o ? o.cat : cat
+    const s = o.sort ?? sort
+    const a = 'active' in o ? o.active : activeOnly
+    if (c) p.set('cat', c)
+    if (s === 'new') p.set('sort', 'new')
+    if (a) p.set('status', 'active')
+    const str = p.toString()
+    return str ? `/ideas?${str}` : '/ideas'
+  }
 
   return (
     <div className="wrap max-w-2xl py-10">
@@ -38,10 +66,25 @@ export default async function IdeasPage() {
         <IdeaForm isAuthed={!!user} />
       </div>
 
+      {/* 並び替え・絞り込み */}
       <div className="mt-8 flex flex-col gap-3">
+        <div className="flex flex-wrap items-center gap-2">
+          <Link href={href({ sort: 'popular' })} className={`chip ${sort === 'popular' ? 'chip-active' : ''}`}>👍 人気</Link>
+          <Link href={href({ sort: 'new' })} className={`chip ${sort === 'new' ? 'chip-active' : ''}`}>新着</Link>
+          <Link href={href({ active: !activeOnly })} className={`chip ${activeOnly ? 'chip-active' : ''}`}>未対応のみ</Link>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <Link href={href({ cat: '' })} className={`chip ${!cat ? 'chip-active' : ''}`}>すべて</Link>
+          {IDEA_CATEGORIES.map((c) => (
+            <Link key={c.v} href={href({ cat: c.v })} className={`chip ${cat === c.v ? 'chip-active' : ''}`}>{c.icon} {c.l}</Link>
+          ))}
+        </div>
+      </div>
+
+      <div className="mt-4 flex flex-col gap-3">
         {ideas.length === 0 ? (
           <div className="card p-8 text-center text-sm" style={{ color: 'var(--color-ash)' }}>
-            まだ意見がありません。最初の要望を投稿しましょう。
+            {cat || activeOnly ? '条件に合う意見がありません。' : 'まだ意見がありません。最初の要望を投稿しましょう。'}
           </div>
         ) : (
           ideas.map((idea) => {
@@ -57,6 +100,9 @@ export default async function IdeasPage() {
                       style={{ background: st.bg, color: st.color, fontWeight: 700 }}
                     >
                       {st.l}
+                    </span>
+                    <span className="text-[0.68rem]" style={{ color: 'var(--color-ash-dim)', fontWeight: 600 }}>
+                      {ideaCategory(idea.category).icon} {ideaCategory(idea.category).l}
                     </span>
                     <h2 className="text-base leading-snug" style={{ fontWeight: 700 }}>{idea.title}</h2>
                   </div>

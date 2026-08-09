@@ -4,6 +4,7 @@ import { useActionState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createIdea, type IdeaState } from '@/actions/ideas'
+import { IDEA_CATEGORIES } from '@/lib/ideas'
 
 export function IdeaForm({ isAuthed }: { isAuthed: boolean }) {
   const router = useRouter()
@@ -32,9 +33,19 @@ export function IdeaForm({ isAuthed }: { isAuthed: boolean }) {
       {state && 'error' in state && (
         <p className="text-sm" style={{ color: 'var(--color-ember-deep)' }}>{state.error}</p>
       )}
-      <div className="field">
-        <label>改修したい点・要望</label>
-        <input name="title" placeholder="例：投稿画面の熱グラフをもっと簡単に" maxLength={120} required />
+      <div className="grid gap-3 sm:grid-cols-[160px_1fr]">
+        <div className="field">
+          <label>カテゴリ</label>
+          <select name="category" defaultValue="post">
+            {IDEA_CATEGORIES.map((c) => (
+              <option key={c.v} value={c.v}>{c.icon} {c.l}</option>
+            ))}
+          </select>
+        </div>
+        <div className="field">
+          <label>改修したい点・要望</label>
+          <input name="title" placeholder="例：投稿画面の熱グラフをもっと簡単に" maxLength={120} required />
+        </div>
       </div>
       <div className="field">
         <label>詳細（任意）</label>

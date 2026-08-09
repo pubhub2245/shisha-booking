@@ -2,6 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
+import { IDEA_CATEGORY_VALUES } from '@/lib/ideas'
 
 export type IdeaState = { error: string } | { ok: true } | null
 
@@ -14,13 +15,15 @@ export async function createIdea(_prev: IdeaState, formData: FormData): Promise<
   if (!user) return { error: 'ログインが必要です。' }
   const title = String(formData.get('title') ?? '').trim()
   const body = String(formData.get('body') ?? '').trim() || null
+  const categoryRaw = String(formData.get('category') ?? '')
+  const category = IDEA_CATEGORY_VALUES.includes(categoryRaw) ? categoryRaw : 'other'
   if (!title) return { error: 'タイトルを入力してください。' }
   if (title.length > 120) return { error: 'タイトルは120文字以内で入力してください。' }
   if (body && body.length > 1000) return { error: '本文は1000文字以内で入力してください。' }
 
   const { data: inserted, error } = await supabase
     .from('ideas')
-    .insert({ user_id: user.id, title, body })
+    .insert({ user_id: user.id, title, body, category })
     .select('id')
     .single()
   if (error || !inserted) return { error: '投稿に失敗しました。時間をおいて再度お試しください。' }
@@ -83,6 +86,12 @@ export async function setIdeaStatus(formData: FormData): Promise<void> {
   const id = Number(formData.get('id') ?? '')
   const status = String(formData.get('status') ?? '')
   if (!id || !['open', 'considering', 'done', 'declined'].includes(status)) return
+  // 変更前の投稿者・状態を取得（通知用）
+  const { data: before } = await supabase.from('ideas').select('user_id, status').eq('id', id).maybeSingle()
   await supabase.from('ideas').update({ status }).eq('id', id)
+  // 状態が変わったら投稿者に通知（フィードバックの輪を閉じる）
+  if (before?.user_id && before.status !== status && status !== 'open') {
+    await supabase.rpc('notify', { p_recipient: before.user_id as string, p_type: `idea_${status}` })
+  }
   revalidatePath('/ideas')
 }

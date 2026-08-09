@@ -283,6 +283,7 @@ export type Idea = {
   title: string
   body: string | null
   status: string
+  category: string
   created_at: string
 }
 export type IdeaVote = {

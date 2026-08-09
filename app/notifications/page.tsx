@@ -21,6 +21,9 @@ const VERB: Record<string, string> = {
   reply: 'があなたのコメントに返信しました',
   mention: 'がコメントであなたに言及しました',
   comment_like: 'があなたのコメントにいいねしました',
+  idea_considering: 'があなたの要望を「検討中」にしました',
+  idea_done: 'があなたの要望を「対応済み」にしました',
+  idea_declined: 'があなたの要望を「見送り」にしました',
 }
 
 const ICON: Record<string, string> = {
@@ -31,6 +34,9 @@ const ICON: Record<string, string> = {
   reply: '↩️',
   mention: '＠',
   comment_like: '❤️',
+  idea_considering: '🔎',
+  idea_done: '✅',
+  idea_declined: '📮',
 }
 
 export default async function NotificationsPage() {
@@ -57,9 +63,11 @@ export default async function NotificationsPage() {
         <ul className="mt-6 flex flex-col gap-2">
           {items.map((n) => {
             const name = actorName(n.actor)
-            const href = n.type === 'follow'
-              ? (n.actor?.username ? `/u/${n.actor.username}` : '/notifications')
-              : (n.mix ? `/mix/${n.mix.id}` : '/notifications')
+            const href = n.type.startsWith('idea')
+              ? '/ideas'
+              : n.type === 'follow'
+                ? (n.actor?.username ? `/u/${n.actor.username}` : '/notifications')
+                : (n.mix ? `/mix/${n.mix.id}` : '/notifications')
             return (
               <li key={n.id}>
                 <Link
