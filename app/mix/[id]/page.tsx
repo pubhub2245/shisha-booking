@@ -34,6 +34,7 @@ import { LockedNote } from '@/components/locked-note'
 import { MixCard } from '@/components/mix-card'
 import { deleteMix } from '@/actions/mixes'
 import { PinButton } from '@/components/pin-button'
+import { resolveMode } from '@/lib/mode'
 import { goHref } from '@/lib/go'
 import { comboKey, comboSlug } from '@/lib/combo'
 import type { MixWithRelations, MixAuthor } from '@/lib/types/database'
@@ -106,6 +107,8 @@ export default async function MixDetail({ params }: { params: Promise<{ id: stri
   const commentTotal = comments.reduce((n, c) => n + 1 + c.replies.length, 0)
   const isRep = repCats.length > 0
   const repLabel = repCats.join('・')
+  // 初心者モードでは作り方ノート（熱管理・器具）を折りたたむ
+  const mode = resolveMode(user?.profile)
 
   const flavors = mix.mix_flavors ?? []
   const isOwner = !!user && user.id === mix.author_id
@@ -343,7 +346,13 @@ export default async function MixDetail({ params }: { params: Promise<{ id: stri
         mix.pack_style ||
         mix.pack_photo_url) && (
         <section className="mt-8">
-          <h2 className="mb-3 text-sm eyebrow">How to make — 作り方ノート</h2>
+          <details open={mode !== 'simple'}>
+            <summary className="mb-3 cursor-pointer list-none text-sm eyebrow" style={{ color: 'var(--color-ash-dim)' }}>
+              How to make — 作り方ノート
+              {mode === 'simple' && (
+                <span style={{ color: 'var(--color-ember-hot)', fontWeight: 700 }}>　▼ 熱管理・器具など詳しい設定を見る</span>
+              )}
+            </summary>
 
           {(mix.hms_type || mix.charcoal_type || mix.charcoal_count != null || mix.steep_minutes != null || mix.steep_heat != null || mix.wind_cover != null || mix.bowl_type || mix.pack_style || mix.pack_photo_url) &&
             (locked('setup') ? (
@@ -504,6 +513,7 @@ export default async function MixDetail({ params }: { params: Promise<{ id: stri
             )}
           </div>
             ))}
+          </details>
         </section>
       )}
 

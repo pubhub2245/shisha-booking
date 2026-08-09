@@ -6,7 +6,7 @@ import { MixCard } from '@/components/mix-card'
 import { IconOrb } from '@/components/icon-orb'
 import { OnboardingCard } from '@/components/onboarding-card'
 import { ModeChooser } from '@/components/mode-chooser'
-import { needsModeChoice } from '@/lib/mode'
+import { needsModeChoice, resolveMode } from '@/lib/mode'
 
 export const dynamic = 'force-dynamic'
 
@@ -65,6 +65,7 @@ export default async function Home({
   const otherTags = allTags.filter((t) => !MOOD_TASTE.includes(t) && !MOOD_TYPE.includes(t))
   // 系統・タグのいずれかが選択中なら「もっと絞り込む」を開いた状態にする
   const advancedActive = activeTags.some((t) => !MOOD_TASTE.includes(t))
+  const mode = resolveMode(user?.profile)
 
   return (
     <div className="wrap py-8 sm:py-12">
@@ -83,6 +84,25 @@ export default async function Home({
         <p className="mt-2 text-sm" style={{ color: 'var(--color-ash-dim)' }}>
           気分で探す図鑑 ・ {combos.length}通りの組み合わせ ・ {flavors.length}種のフレーバー
         </p>
+        {/* モード連動のショートカット */}
+        <div className="mt-4 flex flex-wrap justify-center gap-2">
+          {mode === 'pro' ? (
+            <>
+              <Link href="/post" className="chip chip-active">🛠 フル投稿</Link>
+              <Link href="/national" className="chip">🇯🇵 日本代表</Link>
+              <Link href="/ranking" className="chip">🏆 ランキング</Link>
+              <Link href="/timeline" className="chip">🕒 タイムライン</Link>
+              <Link href="/shop/new" className="chip">🏠 店舗を登録</Link>
+            </>
+          ) : (
+            <>
+              <Link href="/national" className="chip chip-active">🇯🇵 日本代表</Link>
+              <Link href="/shelf" className="chip">🫙 あと1つで作れる</Link>
+              <Link href="/guide" className="chip">📖 作り方ガイド</Link>
+              <Link href="/post" className="chip">➕ かんたん投稿</Link>
+            </>
+          )}
+        </div>
       </section>
 
       {/* ---------- モード選択（初回・未設定ユーザー向け） ---------- */}
