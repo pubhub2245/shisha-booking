@@ -3,7 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { comboSlug } from '@/lib/combo'
 import { BOWL_OPTIONS, HMS_OPTIONS } from '@/lib/heat'
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://shisha-booking.vercel.app'
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://mixhub-jp.vercel.app'
 
 export const dynamic = 'force-dynamic'
 

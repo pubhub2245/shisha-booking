@@ -1,5 +1,5 @@
 /** サイトの絶対URL（OGP・QR・共有リンク用）。env が無ければ本番URLにフォールバック。 */
-export const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://shisha-booking.vercel.app'
+export const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://mixhub-jp.vercel.app'
 
 /**
  * メール機能（確認メール・パスワード再設定メール）が使えるか。

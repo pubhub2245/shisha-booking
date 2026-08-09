@@ -42,7 +42,7 @@ export async function unlockMix(mixId: string): Promise<{ url: string } | { erro
   const stripe = getStripe()
   if (!stripe) return { error: '決済機能は近日対応予定です。もう少しお待ちください。' }
 
-  const origin = process.env.NEXT_PUBLIC_SITE_URL || 'https://shisha-booking.vercel.app'
+  const origin = process.env.NEXT_PUBLIC_SITE_URL || 'https://mixhub-jp.vercel.app'
   try {
     const session = await stripe.checkout.sessions.create({
       mode: 'payment',

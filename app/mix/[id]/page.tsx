@@ -119,7 +119,7 @@ export default async function MixDetail({ params }: { params: Promise<{ id: stri
   const locked = (section: string) =>
     mix.premium && (mix.locked_sections ?? []).includes(section) && !entitled
 
-  const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://shisha-booking.vercel.app'
+  const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://mixhub-jp.vercel.app'
   const mixUrl = `${SITE_URL}/mix/${mix.id}`
   const flavorLine = flavors.map((f) => f.name).join(' × ')
   // 日本代表に選ばれていれば、その"自慢"をシェア文面に載せる（バイラルの起点）
