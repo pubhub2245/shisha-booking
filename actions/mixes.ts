@@ -215,6 +215,15 @@ async function parsePremium(
   return { premium: true, price: normalizePrice(formData.get('price')), locked_sections: locked }
 }
 
+/** 追加写真URL（自分のストレージ公開URLのみ・最大8枚） */
+function parseMixPhotoUrls(formData: FormData): string[] {
+  return formData
+    .getAll('mix_photo_url')
+    .map((v) => String(v).trim())
+    .filter((u) => u && isValidMixPhotoUrl(u))
+    .slice(0, 8)
+}
+
 export async function createMix(_prev: MixFormState, formData: FormData): Promise<MixFormState> {
   const supabase = await createClient()
   const {
@@ -276,6 +285,12 @@ export async function createMix(_prev: MixFormState, formData: FormData): Promis
   const { error: fErr } = await supabase.from('mix_flavors').insert(rows)
   if (fErr) console.error('[createMix flavors]', fErr.message)
 
+  // 追加写真
+  const photoUrls = parseMixPhotoUrls(formData)
+  if (photoUrls.length > 0) {
+    await supabase.from('mix_photos').insert(photoUrls.map((url, i) => ({ mix_id: mix.id as string, url, position: i })))
+  }
+
   revalidatePath('/')
   redirect(`/mix/${mix.id}`)
 }
@@ -336,6 +351,13 @@ export async function updateMix(_prev: MixFormState, formData: FormData): Promis
     affiliate_url: f.affiliate_url,
   }))
   await supabase.from('mix_flavors').insert(rows)
+
+  // 追加写真は総入れ替え
+  await supabase.from('mix_photos').delete().eq('mix_id', mixId)
+  const photoUrls = parseMixPhotoUrls(formData)
+  if (photoUrls.length > 0) {
+    await supabase.from('mix_photos').insert(photoUrls.map((url, i) => ({ mix_id: mixId, url, position: i })))
+  }
 
   revalidatePath('/')
   revalidatePath(`/mix/${mixId}`)

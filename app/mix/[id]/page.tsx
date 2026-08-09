@@ -9,6 +9,7 @@ import {
   getRelatedMixes,
   isMixUnlocked,
   getMadeStatus,
+  getMixPhotos,
 } from '@/lib/queries'
 import { getCurrentUser } from '@/lib/auth'
 import { LikeButton } from '@/components/like-button'
@@ -94,9 +95,10 @@ export default async function MixDetail({ params }: { params: Promise<{ id: stri
     isMixUnlocked(id),
   ])
   if (!mix) notFound()
-  const [related, madeStatus] = await Promise.all([
+  const [related, madeStatus, photos] = await Promise.all([
     getRelatedMixes(mix as MixWithRelations),
     getMadeStatus(id),
+    getMixPhotos(id),
   ])
   const commentTotal = comments.reduce((n, c) => n + 1 + c.replies.length, 0)
 
@@ -279,6 +281,26 @@ export default async function MixDetail({ params }: { params: Promise<{ id: stri
           ※ 購入リンクにはアフィリエイトを含む場合があります。
         </p>
       </section>
+
+      {/* ---------- PHOTOS（工程・追加写真） ---------- */}
+      {photos.length > 0 && (
+        <section className="mt-8">
+          <h2 className="mb-3 text-sm eyebrow">Photos — 工程・写真</h2>
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+            {photos.map((u, i) => (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                key={i}
+                src={u}
+                alt={`${mix.title} の写真 ${i + 1}`}
+                className="aspect-square w-full rounded-xl border object-cover"
+                style={{ borderColor: 'var(--line)' }}
+                loading="lazy"
+              />
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* ---------- BREW NOTES ---------- */}
       {(mix.heat_curve ||

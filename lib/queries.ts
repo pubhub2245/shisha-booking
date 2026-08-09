@@ -1084,6 +1084,22 @@ export async function markAllNotificationsRead(): Promise<void> {
   }
 }
 
+/** ミックスの追加写真URL（position順） */
+export async function getMixPhotos(mixId: string): Promise<string[]> {
+  try {
+    const supabase = await createClient()
+    const { data } = await supabase
+      .from('mix_photos')
+      .select('url, position')
+      .eq('mix_id', mixId)
+      .order('position', { ascending: true })
+      .limit(8)
+    return (data ?? []).map((r) => (r as { url: string }).url)
+  } catch {
+    return []
+  }
+}
+
 /** 盛り方写真がある最近のミックス（トップの写真ストリップ用） */
 export async function getRecentPhotoMixes(limit = 12): Promise<MixWithRelations[]> {
   try {

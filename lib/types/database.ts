@@ -83,6 +83,15 @@ export type Mix = {
   created_at: string
 }
 
+/** ミックスの追加写真（工程写真など） */
+export type MixPhoto = {
+  id: number
+  mix_id: string
+  url: string
+  position: number
+  created_at: string
+}
+
 /** 「作った！」記録 */
 export type MixMake = {
   mix_id: string
@@ -325,6 +334,7 @@ export type Database = {
       flavor_ratings: Tbl<FlavorRating>
       comment_likes: Tbl<CommentLike>
       flavor_logs: Tbl<FlavorLog>
+      mix_photos: Tbl<MixPhoto>
     }
     Views: Record<string, never>
     Functions: {

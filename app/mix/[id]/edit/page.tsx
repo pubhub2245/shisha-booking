@@ -1,6 +1,6 @@
 import { redirect, notFound } from 'next/navigation'
 import Link from 'next/link'
-import { getMixById, getFlavors } from '@/lib/queries'
+import { getMixById, getFlavors, getMixPhotos } from '@/lib/queries'
 import { getCurrentUser } from '@/lib/auth'
 import { MixForm, type MixFormInitial } from '@/components/mix-form'
 
@@ -9,7 +9,7 @@ export const metadata = { title: 'ミックスを編集 — MixHub' }
 
 export default async function EditMixPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
-  const [mix, user, flavors] = await Promise.all([getMixById(id), getCurrentUser(), getFlavors()])
+  const [mix, user, flavors, photos] = await Promise.all([getMixById(id), getCurrentUser(), getFlavors(), getMixPhotos(id)])
   if (!mix) notFound()
   if (!user) redirect(`/login?next=/mix/${id}/edit`)
   if (user.id !== mix.author_id) redirect(`/mix/${id}`)
@@ -32,6 +32,7 @@ export default async function EditMixPage({ params }: { params: Promise<{ id: st
     bowlType: mix.bowl_type ?? '',
     packStyle: mix.pack_style ?? '',
     packPhotoUrl: mix.pack_photo_url ?? '',
+    photos,
     placement: mix.placement_note ?? '',
     premium: mix.premium,
     price: mix.price != null ? String(mix.price) : '',

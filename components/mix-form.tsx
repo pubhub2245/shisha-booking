@@ -10,6 +10,7 @@ import { HmsPicker } from '@/components/hms-picker'
 import { BowlPicker } from '@/components/bowl-picker'
 import { PackPicker } from '@/components/pack-picker'
 import { PackPhotoInput } from '@/components/pack-photo-input'
+import { MultiPhotoInput } from '@/components/multi-photo-input'
 import { SourceLine } from '@/components/source-line'
 import { STEEP_SOURCES } from '@/lib/sources'
 import { TagPicker } from '@/components/tag-picker'
@@ -32,6 +33,7 @@ export type MixFormInitial = {
   bowlType: string
   packStyle: string
   packPhotoUrl: string
+  photos: string[]
   placement: string
   premium: boolean
   price: string
@@ -361,9 +363,15 @@ export function MixForm({
           <label>🍶 フレーバーの盛り方</label>
           <PackPicker name="pack_style" defaultValue={initial?.packStyle ?? ''} />
           <div className="mt-3">
-            <span className="text-xs" style={{ color: 'var(--color-ash-dim)' }}>盛り方の写真（任意）</span>
+            <span className="text-xs" style={{ color: 'var(--color-ash-dim)' }}>盛り方の写真（カバー・任意）</span>
             <div className="mt-1">
               <PackPhotoInput name="pack_photo_url" defaultValue={initial?.packPhotoUrl ?? ''} />
+            </div>
+          </div>
+          <div className="mt-3">
+            <span className="text-xs" style={{ color: 'var(--color-ash-dim)' }}>工程・追加写真（任意・最大8枚）</span>
+            <div className="mt-1">
+              <MultiPhotoInput name="mix_photo_url" defaultValue={initial?.photos ?? []} />
             </div>
           </div>
         </div>
