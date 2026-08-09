@@ -920,12 +920,26 @@ export async function getPublicFlavorLogs(flavorId: string): Promise<FlavorLogWi
     if (user) rows = rows.filter((r) => r.user_id !== user.id)
     if (rows.length === 0) return []
     const ids = [...new Set(rows.map((r) => r.user_id))]
-    const { data: authors } = await supabase
-      .from('profiles')
-      .select('id, username, display_name, is_shop, is_pro, shop_name')
-      .in('id', ids)
-    const map = new Map((authors ?? []).map((a) => [(a as MixAuthor).id, a as MixAuthor]))
-    return rows.map((r) => ({ ...r, author: map.get(r.user_id) ?? null }))
+    const logIds = rows.map((r) => r.id)
+    const [authorsRes, helpfulRes] = await Promise.all([
+      supabase.from('profiles').select('id, username, display_name, is_shop, is_pro, shop_name').in('id', ids),
+      supabase.from('flavor_log_helpful').select('log_id, user_id').in('log_id', logIds),
+    ])
+    const map = new Map((authorsRes.data ?? []).map((a) => [(a as MixAuthor).id, a as MixAuthor]))
+    const helpfulCount = new Map<number, number>()
+    const myHelpful = new Set<number>()
+    for (const h of (helpfulRes.data ?? []) as { log_id: number; user_id: string }[]) {
+      helpfulCount.set(h.log_id, (helpfulCount.get(h.log_id) ?? 0) + 1)
+      if (user && h.user_id === user.id) myHelpful.add(h.log_id)
+    }
+    return rows
+      .map((r) => ({
+        ...r,
+        author: map.get(r.user_id) ?? null,
+        helpful_count: helpfulCount.get(r.id) ?? 0,
+        my_helpful: myHelpful.has(r.id),
+      }))
+      .sort((a, b) => b.helpful_count - a.helpful_count || Number(b.is_best) - Number(a.is_best) || (b.rating ?? 0) - (a.rating ?? 0))
   } catch {
     return []
   }

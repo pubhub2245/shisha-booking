@@ -94,6 +94,35 @@ export async function togglePublicLog(formData: FormData): Promise<void> {
   revalidatePath(`/flavor/${flavorId}`)
 }
 
+/** 公開研究メモへの「参考になった」トグル。 */
+export async function toggleLogHelpful(
+  logId: number,
+  flavorId: string
+): Promise<{ helpful: boolean; count: number } | { error: string }> {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) return { error: 'ログインが必要です。' }
+  const { data: existing } = await supabase
+    .from('flavor_log_helpful')
+    .select('log_id')
+    .eq('log_id', logId)
+    .eq('user_id', user.id)
+    .maybeSingle()
+  let helpful: boolean
+  if (existing) {
+    await supabase.from('flavor_log_helpful').delete().eq('log_id', logId).eq('user_id', user.id)
+    helpful = false
+  } else {
+    await supabase.from('flavor_log_helpful').insert({ log_id: logId, user_id: user.id })
+    helpful = true
+  }
+  const { count } = await supabase.from('flavor_log_helpful').select('log_id', { count: 'exact', head: true }).eq('log_id', logId)
+  if (flavorId) revalidatePath(`/flavor/${flavorId}`)
+  return { helpful, count: count ?? 0 }
+}
+
 /** 練習ログを削除する（本人のみ）。 */
 export async function deleteFlavorLog(formData: FormData): Promise<void> {
   const supabase = await createClient()

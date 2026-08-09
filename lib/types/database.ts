@@ -118,8 +118,19 @@ export type FlavorLog = {
   created_at: string
 }
 
-/** 公開研究メモの表示用（投稿者付き） */
-export type FlavorLogWithAuthor = FlavorLog & { author: MixAuthor | null }
+/** 「参考になった」記録 */
+export type FlavorLogHelpful = {
+  log_id: number
+  user_id: string
+  created_at: string
+}
+
+/** 公開研究メモの表示用（投稿者＋参考になった） */
+export type FlavorLogWithAuthor = FlavorLog & {
+  author: MixAuthor | null
+  helpful_count: number
+  my_helpful: boolean
+}
 
 /** フレーバー評価（★1-5） */
 export type FlavorRating = {
@@ -339,6 +350,7 @@ export type Database = {
       flavor_ratings: Tbl<FlavorRating>
       comment_likes: Tbl<CommentLike>
       flavor_logs: Tbl<FlavorLog>
+      flavor_log_helpful: Tbl<FlavorLogHelpful>
       mix_photos: Tbl<MixPhoto>
     }
     Views: Record<string, never>

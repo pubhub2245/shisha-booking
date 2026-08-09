@@ -17,6 +17,7 @@ import { MixCard } from '@/components/mix-card'
 import { ShelfButton } from '@/components/shelf-button'
 import { FlavorRating } from '@/components/flavor-rating'
 import { FlavorLogForm } from '@/components/flavor-log-form'
+import { LogHelpfulButton } from '@/components/log-helpful-button'
 import { deleteFlavorLog, toggleBestLog, togglePublicLog } from '@/actions/flavor-log'
 import { hmsLabel, charcoalLabel, packLabel } from '@/lib/heat'
 import { Avatar } from '@/components/avatar'
@@ -63,6 +64,27 @@ export default async function FlavorDetail({ params }: { params: Promise<{ id: s
     : 0
   const scatter = logs.filter((l) => l.steep_heat != null && l.rating != null)
   const bestLog = logs.find((l) => l.is_best) ?? null
+  // 集合知：高評価(★4+)ログの到達火力から「みんなの好評ゾーン」を算出
+  const goodHeat = [...logs, ...publicLogs]
+    .filter((l) => l.steep_heat != null && (l.rating ?? 0) >= 4)
+    .map((l) => l.steep_heat as number)
+    .sort((a, b) => a - b)
+  const pct = (arr: number[], p: number) => {
+    if (arr.length === 0) return 0
+    const i = (arr.length - 1) * p
+    const lo = Math.floor(i)
+    const hi = Math.ceil(i)
+    return arr[lo] + (arr[hi] - arr[lo]) * (i - lo)
+  }
+  const heatZone =
+    goodHeat.length >= 3
+      ? {
+          lo: Math.round(pct(goodHeat, 0.25)),
+          mid: Math.round(pct(goodHeat, 0.5)),
+          hi: Math.round(pct(goodHeat, 0.75)),
+          n: goodHeat.length,
+        }
+      : null
   const buyUrl = goHref(flavor.affiliate_url, { f: flavor.id })
 
   // よく一緒に使われるフレーバー（共起）
@@ -136,6 +158,24 @@ export default async function FlavorDetail({ params }: { params: Promise<{ id: s
         <p className="mb-3 mt-1 text-sm" style={{ color: 'var(--color-ash-dim)' }}>
           同じフレーバーを繰り返し作って（“こする”）、得意な温度帯・味の出方を研究する非公開ノートです。
         </p>
+
+        {heatZone && (
+          <div className="card mb-4 p-5">
+            <div className="text-sm" style={{ fontWeight: 700 }}>🌡️ みんなの好評ゾーン（到達火力）</div>
+            <p className="mt-1 text-xs" style={{ color: 'var(--color-ash-dim)' }}>
+              高評価（★4以上）{heatZone.n}件から算出 ・ 中央値{' '}
+              <b style={{ color: 'var(--color-ember-hot)' }}>{heatZone.mid}</b> ／ 好評帯 {heatZone.lo}〜{heatZone.hi}
+            </p>
+            <svg viewBox="0 0 320 40" width="100%" style={{ maxWidth: 440 }} className="mt-2" role="img" aria-label="好評の火力帯">
+              <rect x="0" y="8" width="320" height="14" rx="7" fill="var(--line)" />
+              <rect x={(heatZone.lo / 100) * 320} y="8" width={((heatZone.hi - heatZone.lo) / 100) * 320} height="14" rx="7" fill="var(--color-ember)" fillOpacity="0.5" />
+              <line x1={(heatZone.mid / 100) * 320} x2={(heatZone.mid / 100) * 320} y1="4" y2="26" stroke="var(--color-ember-hot)" strokeWidth="2" />
+              {[0, 50, 100].map((t) => (
+                <text key={t} x={(t / 100) * 320} y="37" textAnchor={t === 0 ? 'start' : t === 100 ? 'end' : 'middle'} fontSize="8" fill="var(--color-ash-dim)">{t}</text>
+              ))}
+            </svg>
+          </div>
+        )}
 
         {user ? (
           <>
@@ -301,6 +341,15 @@ export default async function FlavorDetail({ params }: { params: Promise<{ id: s
                     {l.result_note && (
                       <p className="mt-2 whitespace-pre-wrap text-sm" style={{ color: 'var(--color-cream)' }}>{l.result_note}</p>
                     )}
+                    <div className="mt-2">
+                      <LogHelpfulButton
+                        logId={l.id}
+                        flavorId={flavor.id}
+                        initialCount={l.helpful_count}
+                        initialHelpful={l.my_helpful}
+                        isAuthed={!!user}
+                      />
+                    </div>
                   </div>
                 )
               })}
