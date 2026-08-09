@@ -111,7 +111,7 @@ export default async function PostPage({
         mode="create"
         initial={initial}
         flavors={flavors}
-        canAddFlavor={!!user.profile?.is_admin}
+        canAddFlavor={!!user.profile?.is_pro || !!user.profile?.is_founder || !!user.profile?.is_admin}
         canSell={!!user.profile?.is_pro || !!user.profile?.is_admin}
       />
     </div>

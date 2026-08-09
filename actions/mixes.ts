@@ -164,6 +164,16 @@ async function isProOrAdmin(
   return !!data && ((data as { is_pro?: boolean }).is_pro === true || (data as { is_admin?: boolean }).is_admin === true)
 }
 
+/** 信頼できる貢献者か（プロ認証者・創設メンバー・管理者）。フレーバー図鑑の拡充を許可する対象。 */
+async function isTrustedContributor(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  userId: string
+): Promise<boolean> {
+  const { data } = await supabase.from('profiles').select('is_pro, is_founder, is_admin').eq('id', userId).maybeSingle()
+  const p = (data ?? {}) as { is_pro?: boolean; is_founder?: boolean; is_admin?: boolean }
+  return p.is_pro === true || p.is_founder === true || p.is_admin === true
+}
+
 /**
  * 新規フレーバー（flavor_id 無し）を図鑑マスタに追加し、id を紐付ける。
  * 追加はプロ認証者（＋管理者）のみ。追加者を added_by に記録する。
@@ -176,8 +186,8 @@ async function growFlavorMaster(
 ): Promise<void> {
   const newOnes = flavors.filter((f) => !f.flavor_id && f.name)
   if (newOnes.length === 0) return
-  // フレーバー図鑑への追加は管理者のみ
-  if (!(await isAdmin(supabase, userId))) return
+  // フレーバー図鑑への追加は信頼できる貢献者（プロ・創設メンバー・管理者）のみ
+  if (!(await isTrustedContributor(supabase, userId))) return
   try {
     await supabase
       .from('flavors')

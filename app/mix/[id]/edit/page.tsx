@@ -59,7 +59,7 @@ export default async function EditMixPage({ params }: { params: Promise<{ id: st
         mixId={id}
         initial={initial}
         flavors={flavors}
-        canAddFlavor={!!user.profile?.is_admin}
+        canAddFlavor={!!user.profile?.is_pro || !!user.profile?.is_founder || !!user.profile?.is_admin}
         canSell={!!user.profile?.is_pro || !!user.profile?.is_admin}
       />
     </div>
