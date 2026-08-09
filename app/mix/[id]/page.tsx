@@ -33,6 +33,7 @@ import { ViewTracker } from '@/components/view-tracker'
 import { LockedNote } from '@/components/locked-note'
 import { MixCard } from '@/components/mix-card'
 import { deleteMix } from '@/actions/mixes'
+import { PinButton } from '@/components/pin-button'
 import { goHref } from '@/lib/go'
 import { comboKey, comboSlug } from '@/lib/combo'
 import type { MixWithRelations, MixAuthor } from '@/lib/types/database'
@@ -148,6 +149,7 @@ export default async function MixDetail({ params }: { params: Promise<{ id: stri
         </Link>
         {isOwner && (
           <div className="flex items-center gap-2">
+            <PinButton mixId={mix.id} initialPinned={user?.profile?.pinned_mix_id === mix.id} />
             <Link href={`/mix/${mix.id}/edit`} className="btn btn-ghost text-sm">編集</Link>
             <form action={deleteMix}>
               <input type="hidden" name="mix_id" value={mix.id} />

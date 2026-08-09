@@ -151,6 +151,24 @@ export default async function ProfilePage({ params }: { params: Promise<{ userna
         )}
       </div>
 
+      {/* ---------- 看板レシピ ---------- */}
+      {(() => {
+        const pinned = profile.pinned_mix_id ? mixes.find((m) => m.id === profile.pinned_mix_id) : null
+        if (!pinned) return null
+        return (
+          <section className="mt-8">
+            <h2 className="mb-3 flex items-center gap-1.5 text-lg" style={{ fontWeight: 700 }}>
+              📌 看板レシピ
+            </h2>
+            <div className="rounded-2xl p-0.5" style={{ background: 'linear-gradient(135deg, var(--color-ember), #d4a017)' }}>
+              <div className="rounded-[calc(1rem-1px)]" style={{ background: 'var(--surface)' }}>
+                <MixCard mix={pinned} liked={likedIds.has(pinned.id)} isAuthed={!!me} />
+              </div>
+            </div>
+          </section>
+        )
+      })()}
+
       {/* ---------- PHOTO GRID ---------- */}
       {mixes.some((m) => m.pack_photo_url) && (
         <section className="mt-8">

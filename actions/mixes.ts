@@ -388,6 +388,30 @@ export async function deleteMix(formData: FormData): Promise<void> {
   redirect('/mypage')
 }
 
+/**
+ * 看板レシピ（プロフィール上部の固定表示）を設定/解除する。
+ * 自分が投稿したミックスのみ設定可能。同じミックスを再度押すと解除。
+ */
+export async function togglePinnedMix(mixId: string): Promise<{ pinned: boolean } | { error: string }> {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) return { error: 'ログインが必要です。' }
+  // 自分の投稿か確認
+  const { data: mix } = await supabase.from('mixes').select('author_id').eq('id', mixId).maybeSingle()
+  if (!mix || (mix as { author_id: string | null }).author_id !== user.id) {
+    return { error: '自分のミックスのみ看板に設定できます。' }
+  }
+  const { data: prof } = await supabase.from('profiles').select('pinned_mix_id').eq('id', user.id).maybeSingle()
+  const current = (prof as { pinned_mix_id: string | null } | null)?.pinned_mix_id ?? null
+  const next = current === mixId ? null : mixId
+  await supabase.from('profiles').update({ pinned_mix_id: next }).eq('id', user.id)
+  revalidatePath(`/mix/${mixId}`)
+  if (user) revalidatePath('/mypage')
+  return { pinned: next === mixId }
+}
+
 /** いいねのトグル。戻り値で最新状態を返す（楽観的 UI 用）。 */
 export async function toggleLike(mixId: string): Promise<{ liked: boolean; count: number } | { error: string }> {
   const supabase = await createClient()

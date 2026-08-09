@@ -23,6 +23,7 @@ export type Profile = {
   shop_name: string | null
   shop_area: string | null
   shop_url: string | null
+  pinned_mix_id: string | null
   created_at: string
 }
 
