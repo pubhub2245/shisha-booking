@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { getCurrentUser } from '@/lib/auth'
 import { getUnreadNotificationCount } from '@/lib/queries'
 import { resolveMode } from '@/lib/mode'
+import { ModeSwitch } from '@/components/mode-switch'
 import { signOut } from '@/actions/auth'
 
 export async function SiteHeader() {
@@ -53,10 +54,11 @@ export async function SiteHeader() {
         </nav>
 
         <div className="flex items-center gap-3">
+          {user && <ModeSwitch mode={mode} />}
           <Link
             href="/search"
             aria-label="検索"
-            className="flex h-9 w-9 items-center justify-center rounded-full text-lg transition-colors hover:bg-[var(--accent-tint)]"
+            className="hidden h-9 w-9 items-center justify-center rounded-full text-lg transition-colors hover:bg-[var(--accent-tint)] sm:flex"
             style={{ color: 'var(--color-ash)' }}
           >
             🔍
