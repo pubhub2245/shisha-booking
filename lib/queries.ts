@@ -35,6 +35,8 @@ import type {
   IdeaCommentWithAuthor,
   IdeaArbitration,
   NationalRep,
+  MixName,
+  MixNameWithVotes,
 } from '@/lib/types/database'
 
 export type FeedOptions = {
@@ -1152,6 +1154,44 @@ export async function getAuthorStats(
     return { mixCount: rows.length, totalLikes, totalMakes, repCategories }
   } catch {
     return { mixCount: 0, totalLikes: 0, totalMakes: 0, repCategories: [] }
+  }
+}
+
+/** ミックスの公募ネーミング（名前案＋投票数）。得票の多い順。 */
+export async function getMixNames(mixId: string): Promise<MixNameWithVotes[]> {
+  try {
+    const supabase = await createClient()
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+    const { data } = await supabase.from('mix_names').select('*').eq('mix_id', mixId)
+    const names = (data ?? []) as MixName[]
+    if (names.length === 0) return []
+    const ids = names.map((n) => n.id)
+    const authorIds = [...new Set(names.map((n) => n.user_id).filter(Boolean) as string[])]
+    const [votesRes, authorsRes] = await Promise.all([
+      supabase.from('mix_name_votes').select('name_id, user_id').in('name_id', ids),
+      authorIds.length
+        ? supabase.from('profiles').select('id, username, display_name, is_shop, is_pro, shop_name').in('id', authorIds)
+        : Promise.resolve({ data: [] }),
+    ])
+    const count = new Map<number, number>()
+    const mine = new Set<number>()
+    for (const v of (votesRes.data ?? []) as { name_id: number; user_id: string }[]) {
+      count.set(v.name_id, (count.get(v.name_id) ?? 0) + 1)
+      if (user && v.user_id === user.id) mine.add(v.name_id)
+    }
+    const amap = new Map((authorsRes.data ?? []).map((a) => [(a as MixAuthor).id, a as MixAuthor]))
+    return names
+      .map((n) => ({
+        ...n,
+        author: n.user_id ? amap.get(n.user_id) ?? null : null,
+        votes: count.get(n.id) ?? 0,
+        myVote: mine.has(n.id),
+      }))
+      .sort((a, b) => b.votes - a.votes || (a.created_at < b.created_at ? -1 : 1))
+  } catch {
+    return []
   }
 }
 

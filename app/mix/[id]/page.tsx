@@ -11,6 +11,7 @@ import {
   getMadeStatus,
   getMixPhotos,
   getNationalRepCategories,
+  getMixNames,
 } from '@/lib/queries'
 import { getCurrentUser } from '@/lib/auth'
 import { LikeButton } from '@/components/like-button'
@@ -34,6 +35,7 @@ import { LockedNote } from '@/components/locked-note'
 import { MixCard } from '@/components/mix-card'
 import { deleteMix } from '@/actions/mixes'
 import { PinButton } from '@/components/pin-button'
+import { MixNaming } from '@/components/mix-naming'
 import { resolveMode } from '@/lib/mode'
 import { goHref } from '@/lib/go'
 import { comboKey, comboSlug } from '@/lib/combo'
@@ -99,15 +101,18 @@ export default async function MixDetail({ params }: { params: Promise<{ id: stri
     isMixUnlocked(id),
   ])
   if (!mix) notFound()
-  const [related, madeStatus, photos, repCats] = await Promise.all([
+  const [related, madeStatus, photos, repCats, mixNames] = await Promise.all([
     getRelatedMixes(mix as MixWithRelations),
     getMadeStatus(id),
     getMixPhotos(id),
     getNationalRepCategories(id),
+    getMixNames(id),
   ])
   const commentTotal = comments.reduce((n, c) => n + 1 + c.replies.length, 0)
   const isRep = repCats.length > 0
   const repLabel = repCats.join('・')
+  // 公募ネーミングの現愛称（最多得票・1票以上）
+  const nickname = mixNames.length > 0 && mixNames[0].votes > 0 ? mixNames[0].name : null
   // 初心者モードでは作り方ノート（熱管理・器具）を折りたたむ
   const mode = resolveMode(user?.profile)
 
@@ -180,8 +185,14 @@ export default async function MixDetail({ params }: { params: Promise<{ id: stri
 
       {/* ---------- HEADER ---------- */}
       <header className="mt-5 fade-up">
-        {/* 任意の一言（特徴） */}
-        {mix.title && (
+        {/* 公募で決まった愛称（あれば最優先で大きく） */}
+        {nickname && (
+          <p className="mb-1 text-lg" style={{ color: 'var(--color-ember-hot)', fontWeight: 800 }}>
+            「{nickname}」<span className="ml-1 text-xs" style={{ color: 'var(--color-ash-dim)', fontWeight: 600 }}>みんなで名付けた愛称</span>
+          </p>
+        )}
+        {/* 任意の一言（特徴）— 愛称が無いときのみ */}
+        {!nickname && mix.title && (
           <p className="mb-1 text-sm" style={{ color: 'var(--color-ember-hot)', fontWeight: 700 }}>{mix.title}</p>
         )}
         {/* フレーバー名＝正式名（主役） */}
@@ -521,6 +532,17 @@ export default async function MixDetail({ params }: { params: Promise<{ id: stri
             ))}
           </details>
         </section>
+      )}
+
+      {/* ---------- 公募ネーミング（日本代表のみ） ---------- */}
+      {isRep && (
+        <MixNaming
+          mixId={mix.id}
+          names={mixNames}
+          isAuthed={!!user}
+          currentUserId={user?.id ?? null}
+          isAdmin={!!user?.profile?.is_admin}
+        />
       )}
 
       {/* ---------- COMMENTS ---------- */}

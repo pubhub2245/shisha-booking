@@ -336,6 +336,21 @@ export type IdeaWithVotes = Idea & {
   arbitration: IdeaArbitration | null
 }
 
+/** 公募ネーミング：ミックスの愛称案 */
+export type MixName = {
+  id: number
+  mix_id: string
+  user_id: string | null
+  name: string
+  created_at: string
+}
+/** 表示用：名前案＋投票数＋自分の投票 */
+export type MixNameWithVotes = MixName & {
+  author: MixAuthor | null
+  votes: number
+  myVote: boolean
+}
+
 /** クリック計測（アフィリエイト等の送客ログ） */
 export type LinkClick = {
   id: number
@@ -427,6 +442,8 @@ export type Database = {
       idea_votes: Tbl<IdeaVote>
       idea_comments: Tbl<IdeaComment>
       idea_arbitrations: Tbl<IdeaArbitration>
+      mix_names: Tbl<MixName>
+      mix_name_votes: Tbl<{ name_id: number; user_id: string; created_at: string }>
     }
     Views: Record<string, never>
     Functions: {
