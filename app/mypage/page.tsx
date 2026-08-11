@@ -14,6 +14,8 @@ import {
   getMyShops,
 } from '@/lib/queries'
 import { MixCard } from '@/components/mix-card'
+import { Avatar } from '@/components/avatar'
+import { VerifiedBadge } from '@/components/verified-badge'
 import type { MixWithRelations } from '@/lib/types/database'
 import { ProfileForm } from './profile-form'
 import { ProApplicationForm } from './pro-application'
@@ -61,48 +63,82 @@ export default async function MyPage() {
     getMyShops(),
   ])
 
+  const displayName = user.profile?.display_name || (user.profile?.username ? `@${user.profile.username}` : 'あなた')
+  const username = user.profile?.username
+  const bio = user.profile?.bio
+  const avatarUrl = user.profile?.avatar_url
+
   return (
     <div className="wrap max-w-3xl py-10">
-      <div className="flex items-center justify-between gap-4">
-        <div>
-          <p className="eyebrow">My page</p>
-          <h1 className="mt-2 text-3xl" style={{ fontWeight: 800 }}>マイページ</h1>
-        </div>
-        <div className="flex flex-col items-end gap-2">
-          <Link href="/shelf" className="btn btn-ghost text-sm">
-            🫙 マイ棚
-          </Link>
-          <InviteButton />
-          {user.profile?.username && (
-            <Link href={`/u/${user.profile.username}`} className="btn btn-ghost text-sm">
-              公開プロフィール →
-            </Link>
-          )}
-          {/* モバイルではヘッダーにログアウトが無いため、ここに常設 */}
-          <form action={signOut} className="sm:hidden">
-            <button type="submit" className="btn btn-ghost text-sm">ログアウト</button>
-          </form>
-          {user.profile?.is_admin && (
-            <div className="flex flex-col items-end gap-1">
-              <Link href="/admin/pro" className="text-xs" style={{ color: 'var(--color-ember-hot)', fontWeight: 600 }}>
-                🛡 プロ認証の審査へ
-              </Link>
-              <Link href="/admin/clicks" className="text-xs" style={{ color: 'var(--color-ember-hot)', fontWeight: 600 }}>
-                📊 送客クリック集計
-              </Link>
-              <Link href="/admin/reports" className="text-xs" style={{ color: 'var(--color-ember-hot)', fontWeight: 600 }}>
-                🛡 通報の管理
-              </Link>
+      {/* ---------- プロフィールヘッダー（SNS風） ---------- */}
+      <div className="overflow-hidden rounded-2xl border" style={{ borderColor: 'var(--line)' }}>
+        {/* カバー画像 */}
+        <div
+          className="h-28 w-full sm:h-36"
+          style={{ background: 'linear-gradient(120deg, var(--color-coal), var(--color-ember) 58%, #d4a017)' }}
+        />
+        <div className="px-4 pb-4">
+          <div className="-mt-12 flex items-end justify-between gap-3">
+            {/* アバター */}
+            <div className="rounded-full p-1" style={{ background: 'var(--surface)' }}>
+              {avatarUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={avatarUrl} alt={displayName} className="h-20 w-20 rounded-full object-cover sm:h-24 sm:w-24" />
+              ) : (
+                <Avatar name={displayName} seed={user.id} size={88} />
+              )}
             </div>
-          )}
+            {/* アクション */}
+            <div className="mb-1 flex flex-wrap items-center justify-end gap-2">
+              {username && (
+                <Link href={`/u/${username}`} className="btn btn-ghost text-sm">公開プロフィール</Link>
+              )}
+              <a href="#profile-edit" className="btn btn-ember text-sm">プロフィールを編集</a>
+            </div>
+          </div>
+
+          {/* 名前・@・自己紹介 */}
+          <div className="mt-2">
+            <h1 className="flex items-center gap-1.5 text-2xl" style={{ fontWeight: 800 }}>
+              <span>{displayName}</span>
+              {user.profile?.is_pro && <VerifiedBadge size={18} />}
+            </h1>
+            {username && <div className="text-sm" style={{ color: 'var(--color-ash-dim)' }}>@{username}</div>}
+            {bio ? (
+              <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed" style={{ color: 'var(--color-ash)' }}>{bio}</p>
+            ) : (
+              <p className="mt-2 text-sm" style={{ color: 'var(--color-ash-dim)' }}>
+                自己紹介はまだありません。<a href="#profile-edit" style={{ color: 'var(--color-ember-hot)' }}>プロフィールを編集</a>して追加しましょう。
+              </p>
+            )}
+          </div>
+
+          {/* 実績 */}
+          <div className="mt-4 flex gap-5 text-sm">
+            <span><b>{myMixes.length}</b> <span style={{ color: 'var(--color-ash-dim)' }}>投稿</span></span>
+            <span><b>{counts.followers}</b> <span style={{ color: 'var(--color-ash-dim)' }}>フォロワー</span></span>
+            <span><b>{counts.following}</b> <span style={{ color: 'var(--color-ash-dim)' }}>フォロー中</span></span>
+          </div>
         </div>
       </div>
 
-      <div className="mt-4 flex gap-5 text-sm">
-        <span><b>{myMixes.length}</b> <span style={{ color: 'var(--color-ash-dim)' }}>投稿</span></span>
-        <span><b>{counts.followers}</b> <span style={{ color: 'var(--color-ash-dim)' }}>フォロワー</span></span>
-        <span><b>{counts.following}</b> <span style={{ color: 'var(--color-ash-dim)' }}>フォロー中</span></span>
+      {/* サブアクション */}
+      <div className="mt-3 flex flex-wrap items-center gap-2">
+        <Link href="/shelf" className="btn btn-ghost text-sm">🫙 マイ棚</Link>
+        <InviteButton />
+        <form action={signOut}>
+          <button type="submit" className="btn btn-ghost text-sm">ログアウト</button>
+        </form>
       </div>
+
+      {/* 管理者リンク */}
+      {user.profile?.is_admin && (
+        <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-xs">
+          <Link href="/admin/pro" style={{ color: 'var(--color-ember-hot)', fontWeight: 600 }}>🛡 プロ認証の審査</Link>
+          <Link href="/admin/clicks" style={{ color: 'var(--color-ember-hot)', fontWeight: 600 }}>📊 送客クリック集計</Link>
+          <Link href="/admin/reports" style={{ color: 'var(--color-ember-hot)', fontWeight: 600 }}>🛡 通報の管理</Link>
+        </div>
+      )}
 
       <section className="mt-8">
         <h2 className="text-sm" style={{ fontWeight: 700, color: 'var(--color-ash)' }}>表示モード</h2>
@@ -130,7 +166,7 @@ export default async function MyPage() {
         })()}
       </section>
 
-      <section className="mt-8">
+      <section id="profile-edit" className="mt-8 scroll-mt-20">
         <h2 className="text-sm" style={{ fontWeight: 700, color: 'var(--color-ash)' }}>プロフィール</h2>
         <ProfileForm profile={user.profile} />
       </section>
