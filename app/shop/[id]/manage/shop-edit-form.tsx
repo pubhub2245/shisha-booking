@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from 'react'
 import { updateShop } from '@/actions/shop'
+import { REGIONS } from '@/lib/regions'
 import type { Shop } from '@/lib/types/database'
 
 export function ShopEditForm({ shop }: { shop: Shop }) {
@@ -79,13 +80,26 @@ export function ShopEditForm({ shop }: { shop: Shop }) {
       </div>
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="field">
-          <label>エリア</label>
-          <input name="area" defaultValue={shop.area ?? ''} placeholder="東京・渋谷" />
+          <label>都道府県（地域別ランキング用）</label>
+          <select name="prefecture" defaultValue={shop.prefecture ?? ''}>
+            <option value="">未設定</option>
+            {REGIONS.map((r) => (
+              <optgroup key={r.key} label={`${r.emoji} ${r.key}`}>
+                {r.prefs.map((p) => (
+                  <option key={p} value={p}>{p}</option>
+                ))}
+              </optgroup>
+            ))}
+          </select>
         </div>
         <div className="field">
-          <label>Web / SNS リンク</label>
-          <input name="url" defaultValue={shop.url ?? ''} placeholder="https://..." />
+          <label>エリア（自由記入）</label>
+          <input name="area" defaultValue={shop.area ?? ''} placeholder="渋谷・道玄坂" />
         </div>
+      </div>
+      <div className="field">
+        <label>Web / SNS リンク</label>
+        <input name="url" defaultValue={shop.url ?? ''} placeholder="https://..." />
       </div>
       <div className="field">
         <label>お店の紹介</label>

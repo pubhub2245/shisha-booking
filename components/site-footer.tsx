@@ -15,6 +15,7 @@ export function SiteFooter() {
         <nav className="flex flex-wrap gap-x-6 gap-y-2 text-sm" style={{ color: 'var(--color-ash)' }}>
           <Link href="/" className="hover:text-[var(--color-cream)]">図鑑</Link>
           <Link href="/national" className="hover:text-[var(--color-cream)]">🇯🇵 日本代表</Link>
+          <Link href="/areas" className="hover:text-[var(--color-cream)]">地域別ランキング</Link>
           <Link href="/flavors" className="hover:text-[var(--color-cream)]">フレーバー</Link>
           <Link href="/ranking" className="hover:text-[var(--color-cream)]">ランキング</Link>
           <Link href="/guide" className="hover:text-[var(--color-cream)]">作り方ガイド</Link>

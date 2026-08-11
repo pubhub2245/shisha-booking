@@ -65,7 +65,9 @@ export default async function ShopPage({ params }: { params: Promise<{ id: strin
             <span className="chip chip-active mb-2 inline-flex">🏠 店頭メニュー</span>
             <h1 className="truncate text-2xl" style={{ fontWeight: 800 }}>{shop.name}</h1>
             <div className="mt-1 flex flex-wrap items-center gap-x-3 text-sm" style={{ color: 'var(--color-ash-dim)' }}>
-              {shop.area && <span>📍 {shop.area}</span>}
+              {(shop.area || shop.prefecture) && (
+                <span>📍 {[shop.prefecture, shop.area].filter(Boolean).join('・')}</span>
+              )}
               {shop.url && (
                 <a href={shop.url} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--color-ember-hot)' }}>
                   お店のリンク →

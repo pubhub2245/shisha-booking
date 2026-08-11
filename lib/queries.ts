@@ -3,6 +3,7 @@ import { comboKey, comboSlug, comboKeyFromSlug, flavorKey } from '@/lib/combo'
 import { mixQuality, mixCompleteness } from '@/lib/quality'
 import { searchVariants } from '@/lib/kana'
 import { TYPE_TAGS } from '@/lib/tags'
+import { REGIONS, regionOf, REGION_EMOJI, type RegionKey } from '@/lib/regions'
 import type {
   MixWithRelations,
   Mix,
@@ -38,6 +39,9 @@ import type {
   MixName,
   MixNameWithVotes,
   OnsiteContext,
+  ShopRankItem,
+  RegionMix,
+  RegionRanking,
 } from '@/lib/types/database'
 
 export type FeedOptions = {
@@ -1212,6 +1216,179 @@ export async function getNationalRepCategories(mixId: string): Promise<string[]>
   try {
     const team = await getNationalTeam()
     return team.filter((r) => r.mix.id === mixId && !r.sample).map((r) => r.category)
+  } catch {
+    return []
+  }
+}
+
+/**
+ * 地域別ランキング。都会ほどいいねが集まる偏りを避けるため、地方（地域）ごとに
+ * ・お店ランキング（旅行者向け「その地域で美味しいお店」）
+ * ・ミックスランキング
+ * を出す。お店スコアは実地評価を最重視（onsite×5＋いいね＋作った×2）。
+ * ミックスの地域は「投稿者が承認所属し、都道府県を登録している店」で決まる。
+ */
+export async function getAreaRankings(opts: { shopsPerRegion?: number; mixesPerRegion?: number } = {}): Promise<
+  RegionRanking[]
+> {
+  const shopsPerRegion = opts.shopsPerRegion ?? 5
+  const mixesPerRegion = opts.mixesPerRegion ?? 4
+  try {
+    const supabase = await createClient()
+
+    // 1) 都道府県を登録済みのお店
+    const { data: shopRows } = await supabase.from('shops').select('*').not('prefecture', 'is', null)
+    const shops = (shopRows ?? []) as Shop[]
+
+    // 2) 承認所属メンバー（お店 ↔ 作り手）
+    const shopIds = shops.map((s) => s.id)
+    const { data: memRows } = shopIds.length
+      ? await supabase.from('shop_members').select('shop_id, user_id, role').eq('status', 'approved').in('shop_id', shopIds)
+      : { data: [] as { shop_id: string; user_id: string; role: string }[] }
+    const members = (memRows ?? []) as { shop_id: string; user_id: string; role: string }[]
+
+    // 3) 全ミックス・作った・実地評価
+    const [{ data: mixRows }, { data: makeRows }, { data: onsiteRows }] = await Promise.all([
+      supabase.from('mixes').select('*').eq('hidden', false).limit(2000),
+      supabase.from('mix_makes').select('mix_id').limit(20000),
+      supabase.from('mix_onsite_ratings').select('mix_id, shop_id').limit(20000),
+    ])
+    const mixes = (mixRows ?? []) as Mix[]
+    const makes = new Map<string, number>()
+    for (const r of makeRows ?? []) {
+      const id = (r as { mix_id: string }).mix_id
+      makes.set(id, (makes.get(id) ?? 0) + 1)
+    }
+    const onsiteByMix = new Map<string, number>()
+    const onsiteByShop = new Map<string, number>()
+    for (const r of onsiteRows ?? []) {
+      const mid = (r as { mix_id: string }).mix_id
+      const sid = (r as { shop_id: string | null }).shop_id
+      onsiteByMix.set(mid, (onsiteByMix.get(mid) ?? 0) + 1)
+      if (sid) onsiteByShop.set(sid, (onsiteByShop.get(sid) ?? 0) + 1)
+    }
+    const mixScore = (m: Mix) => m.like_count + (makes.get(m.id) ?? 0) * 2 + (onsiteByMix.get(m.id) ?? 0) * 5
+    const mixById = new Map(mixes.map((m) => [m.id, m]))
+
+    // 作り手 → 所属お店（複数可）／作り手 → 都道府県（オーナー優先→最初）
+    const shopById = new Map(shops.map((s) => [s.id, s]))
+    const memberMixesByShop = new Map<string, string[]>() // shop_id → mix_ids（所属作り手の作品）
+    const authorPref = new Map<string, string>()
+    // authorId → 所属shopの配列
+    const shopsByAuthor = new Map<string, { shop_id: string; role: string }[]>()
+    for (const m of members) {
+      const arr = shopsByAuthor.get(m.user_id) ?? []
+      arr.push({ shop_id: m.shop_id, role: m.role })
+      shopsByAuthor.set(m.user_id, arr)
+    }
+    for (const [uid, arr] of shopsByAuthor) {
+      // 都道府県：オーナーの店を優先、それ以外は先頭
+      const owner = arr.find((a) => a.role === 'owner')
+      const chosen = owner ?? arr[0]
+      const pref = shopById.get(chosen.shop_id)?.prefecture
+      if (pref) authorPref.set(uid, pref)
+    }
+    // お店ごとの所属作り手の作品を集める
+    const authorsByShop = new Map<string, string[]>()
+    for (const m of members) {
+      const arr = authorsByShop.get(m.shop_id) ?? []
+      arr.push(m.user_id)
+      authorsByShop.set(m.shop_id, arr)
+    }
+    const mixesByAuthor = new Map<string, string[]>()
+    for (const m of mixes) {
+      if (!m.author_id) continue
+      const arr = mixesByAuthor.get(m.author_id) ?? []
+      arr.push(m.id)
+      mixesByAuthor.set(m.author_id, arr)
+    }
+    for (const s of shops) {
+      const ids: string[] = []
+      for (const uid of authorsByShop.get(s.id) ?? []) ids.push(...(mixesByAuthor.get(uid) ?? []))
+      memberMixesByShop.set(s.id, [...new Set(ids)])
+    }
+
+    // 4) お店スコア
+    type ShopCalc = { shop: Shop; onsite: number; supporters: number; score: number; topMixId: string | null; region: RegionKey }
+    const shopItems: ShopCalc[] = []
+    for (const s of shops) {
+      const region = regionOf(s.prefecture)
+      if (!region) continue
+      const memMixIds = memberMixesByShop.get(s.id) ?? []
+      let likes = 0
+      let makesN = 0
+      let topMixId: string | null = null
+      let topScore = -1
+      for (const mid of memMixIds) {
+        const mm = mixById.get(mid)
+        if (!mm) continue
+        likes += mm.like_count
+        makesN += makes.get(mid) ?? 0
+        const sc = mixScore(mm)
+        if (sc > topScore) {
+          topScore = sc
+          topMixId = mm.id
+        }
+      }
+      const onsite = onsiteByShop.get(s.id) ?? 0
+      const score = onsite * 5 + likes + makesN * 2
+      shopItems.push({ shop: s, onsite, supporters: likes + makesN, score, topMixId, region })
+    }
+
+    // 5) 地域別ミックス
+    const regionMixesRaw = new Map<RegionKey, { mix: Mix; score: number; onsite: number; prefecture: string }[]>()
+    for (const m of mixes) {
+      if (!m.author_id) continue
+      const pref = authorPref.get(m.author_id)
+      if (!pref) continue
+      const region = regionOf(pref)
+      if (!region) continue
+      const arr = regionMixesRaw.get(region) ?? []
+      arr.push({ mix: m, score: mixScore(m), onsite: onsiteByMix.get(m.id) ?? 0, prefecture: pref })
+      regionMixesRaw.set(region, arr)
+    }
+
+    // 6) 必要なミックスにリレーションを付与（topMix ＋ 地域ミックス上位）
+    const neededIds = new Set<string>()
+    for (const it of shopItems) {
+      if (it.topMixId) neededIds.add(it.topMixId)
+    }
+    for (const [region, arr] of regionMixesRaw) {
+      arr.sort((a, b) => b.score - a.score || (a.mix.created_at < b.mix.created_at ? 1 : -1))
+      regionMixesRaw.set(region, arr.slice(0, mixesPerRegion))
+      for (const x of regionMixesRaw.get(region)!) neededIds.add(x.mix.id)
+    }
+    const needed = [...neededIds].map((id) => mixById.get(id)).filter((m): m is Mix => !!m)
+    const withRel = await attachRelations(supabase, needed)
+    const relById = new Map(withRel.map((m) => [m.id, m]))
+
+    // 7) 地方ごとに組み立て
+    const shopsByRegion = new Map<RegionKey, ShopRankItem[]>()
+    for (const it of shopItems) {
+      const clean: ShopRankItem = {
+        shop: it.shop,
+        onsite: it.onsite,
+        supporters: it.supporters,
+        score: it.score,
+        topMix: it.topMixId ? relById.get(it.topMixId) ?? null : null,
+      }
+      const arr = shopsByRegion.get(it.region) ?? []
+      arr.push(clean)
+      shopsByRegion.set(it.region, arr)
+    }
+
+    const result: RegionRanking[] = []
+    for (const r of REGIONS) {
+      const shopList = (shopsByRegion.get(r.key) ?? [])
+        .sort((a, b) => b.score - a.score || b.onsite - a.onsite)
+        .slice(0, shopsPerRegion)
+      const mixList: RegionMix[] = (regionMixesRaw.get(r.key) ?? [])
+        .map((x) => ({ mix: relById.get(x.mix.id)!, score: x.score, onsite: x.onsite, prefecture: x.prefecture }))
+        .filter((x) => x.mix)
+      if (shopList.length === 0 && mixList.length === 0) continue
+      result.push({ region: r.key, emoji: REGION_EMOJI.get(r.key) ?? '📍', shops: shopList, mixes: mixList })
+    }
+    return result
   } catch {
     return []
   }

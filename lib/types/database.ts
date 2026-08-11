@@ -228,10 +228,31 @@ export type Shop = {
   url: string | null
   description: string | null
   owner_id: string
+  prefecture: string | null
   lat: number | null
   lng: number | null
   geo_radius_m: number
   created_at: string
+}
+
+/** 地域別ランキングのお店1件（実地評価＋所属作り手の支持からスコア化） */
+export type ShopRankItem = {
+  shop: Shop
+  onsite: number // このお店で記録された実地評価の総数
+  supporters: number // 所属作り手のミックスのいいね＋作った（表示用）
+  score: number // onsite×5 + いいね + 作った×2
+  topMix: MixWithRelations | null // このお店の代表作（最高スコアのミックス）
+}
+
+/** 地域別ミックス1件（スコア付き） */
+export type RegionMix = { mix: MixWithRelations; score: number; onsite: number; prefecture: string }
+
+/** 1地方ぶんのランキング */
+export type RegionRanking = {
+  region: string
+  emoji: string
+  shops: ShopRankItem[]
+  mixes: RegionMix[]
 }
 
 export type ShopMemberRole = 'owner' | 'staff'

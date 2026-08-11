@@ -37,6 +37,13 @@ export default async function RankingPage({ searchParams }: { searchParams: Prom
       <p className="mt-2 text-sm" style={{ color: 'var(--color-ash)' }}>
         みんなの「いいね」が多い順。迷ったら上位から試すのがおすすめ。
       </p>
+      <Link
+        href="/areas"
+        className="mt-3 inline-flex items-center gap-1 text-sm"
+        style={{ color: 'var(--color-ember-hot)', fontWeight: 600 }}
+      >
+        📍 地域別ランキングを見る（旅行先で美味しいお店を探す）→
+      </Link>
 
       <div className="mt-4 flex flex-wrap gap-2">
         {PERIODS.map((p) => (

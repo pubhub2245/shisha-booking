@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
+import { isPrefecture } from '@/lib/regions'
 
 export type ShopFormState = { error?: string } | null
 
@@ -53,6 +54,11 @@ export async function updateShop(shopId: string, formData: FormData): Promise<{ 
   const description = String(formData.get('description') ?? '').trim() || null
 
   const update: Record<string, unknown> = { name, area, url, description }
+  // 都道府県（地域別ランキングの集計キー）。有効な値のみ採用、'' なら未設定に。
+  if (formData.has('prefecture')) {
+    const pref = String(formData.get('prefecture') ?? '').trim()
+    update.prefecture = isPrefecture(pref) ? pref : null
+  }
   // 位置情報（実地評価の近接判定に使用）。空なら未登録として据え置き。
   const latRaw = String(formData.get('lat') ?? '').trim()
   const lngRaw = String(formData.get('lng') ?? '').trim()
