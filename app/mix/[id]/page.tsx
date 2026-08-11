@@ -40,6 +40,7 @@ import { PinButton } from '@/components/pin-button'
 import { MixNaming } from '@/components/mix-naming'
 import { OnsiteRating } from '@/components/onsite-rating'
 import { resolveMode } from '@/lib/mode'
+import { SITE_URL } from '@/lib/site'
 import { goHref } from '@/lib/go'
 import { comboKey, comboSlug } from '@/lib/combo'
 import type { MixWithRelations, MixAuthor } from '@/lib/types/database'
@@ -130,7 +131,6 @@ export default async function MixDetail({ params }: { params: Promise<{ id: stri
   const locked = (section: string) =>
     mix.premium && (mix.locked_sections ?? []).includes(section) && !entitled
 
-  const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://mixhub-jp.vercel.app'
   const mixUrl = `${SITE_URL}/mix/${mix.id}`
   const flavorLine = flavors.map((f) => f.name).join(' × ')
   // 表示名＝フレーバー名。title は任意の一言（あれば添える）
@@ -357,7 +357,7 @@ export default async function MixDetail({ params }: { params: Promise<{ id: stri
               <img
                 key={i}
                 src={u}
-                alt={`${mix.title} の写真 ${i + 1}`}
+                alt={`${headingLine} の写真 ${i + 1}`}
                 className="aspect-square w-full rounded-xl border object-cover"
                 style={{ borderColor: 'var(--line)' }}
                 loading="lazy"

@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import { getCurrentUser } from '@/lib/auth'
 import { getComboBySlug, getFlavors, getMixById } from '@/lib/queries'
 import { MixForm, type MixFormInitial } from '@/components/mix-form'
+import { mixHeading } from '@/lib/mix'
 import { SimpleMixForm } from '@/components/simple-mix-form'
 import { ModeToggle } from '@/components/mode-toggle'
 import { resolveMode } from '@/lib/mode'
@@ -31,7 +32,7 @@ export default async function PostPage({
     getCurrentUser(),
     getFlavors(),
   ])
-  if (!user) redirect('/post')
+  if (!user) redirect('/login?next=/post')
 
   let initial: MixFormInitial | undefined
   let heading = 'ミックスを投稿'
@@ -42,7 +43,7 @@ export default async function PostPage({
     const base = await getMixById(from)
     if (base) {
       heading = 'この作り方をベースに投稿'
-      lead = `「${base.title}」をベースにしています。自分好みに調整して投稿しましょう。`
+      lead = `「${mixHeading(base)}」をベースにしています。自分好みに調整して投稿しましょう。`
       initial = {
         title: base.title,
         description: base.description ?? '',

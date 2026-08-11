@@ -23,7 +23,7 @@ const notoSansJp = Noto_Sans_JP({
   variable: "--font-noto-sans-jp",
 });
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://mixhub-jp.vercel.app";
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://shisha-booking.vercel.app";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
