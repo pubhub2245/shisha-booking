@@ -5,6 +5,7 @@ import { MixCard } from '@/components/mix-card'
 import { NearbyShops } from '@/components/nearby-shops'
 import { Avatar } from '@/components/avatar'
 import { RankingTabs } from '@/components/ranking-tabs'
+import { EmptyState } from '@/components/empty-state'
 import { flavorLine } from '@/lib/mix'
 
 export const dynamic = 'force-dynamic'
@@ -45,11 +46,13 @@ export default async function AreasPage() {
       <NearbyShops shops={nearby} />
 
       {regions.length === 0 ? (
-        <div className="card mt-8 p-8 text-center text-sm" style={{ color: 'var(--color-ash)' }}>
-          まだ地域別のデータがありません。
-          <br />
+        <EmptyState
+          icon="🗾"
+          title="まだ地域別のデータがありません"
+          action={<Link href="/shops" className="btn btn-ghost">お店一覧へ</Link>}
+        >
           お店の管理画面から<b>都道府県</b>を登録すると、その地域のランキングに載ります。
-        </div>
+        </EmptyState>
       ) : (
         <>
           {/* 地方ジャンプ */}

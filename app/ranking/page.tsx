@@ -3,6 +3,7 @@ import { getRankedMixes, getLikedMixIds } from '@/lib/queries'
 import { getCurrentUser } from '@/lib/auth'
 import { MixCard } from '@/components/mix-card'
 import { RankingTabs } from '@/components/ranking-tabs'
+import { EmptyState } from '@/components/empty-state'
 
 export const dynamic = 'force-dynamic'
 export const metadata = {
@@ -54,9 +55,13 @@ export default async function RankingPage({ searchParams }: { searchParams: Prom
       </div>
 
       {mixes.length === 0 ? (
-        <div className="card mt-8 p-8 text-center text-sm" style={{ color: 'var(--color-ash)' }}>
-          {period === 'all' ? 'まだランキングデータがありません。' : `この期間の「いいね」はまだありません。`}
-        </div>
+        <EmptyState
+          icon="🏆"
+          title={period === 'all' ? 'まだランキングデータがありません' : 'この期間の「いいね」はまだありません'}
+          action={<Link href="/post" className="btn btn-ember">＋ ミックスを投稿</Link>}
+        >
+          ミックスに👍が集まると、人気順に並びます。
+        </EmptyState>
       ) : (
         <>
           {/* TOP3 */}

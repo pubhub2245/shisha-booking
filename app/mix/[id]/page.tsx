@@ -39,6 +39,7 @@ import { deleteMix } from '@/actions/mixes'
 import { PinButton } from '@/components/pin-button'
 import { MixNaming } from '@/components/mix-naming'
 import { OnsiteRating } from '@/components/onsite-rating'
+import { SectionTabs, type SectionTab } from '@/components/section-tabs'
 import { resolveMode } from '@/lib/mode'
 import { SITE_URL } from '@/lib/site'
 import { goHref } from '@/lib/go'
@@ -300,9 +301,6 @@ export default async function MixDetail({ params }: { params: Promise<{ id: stri
         </p>
       )}
 
-      {/* ---------- 実地評価（現地でのGPS検証つき） ---------- */}
-      {!isSample && <OnsiteRating mixId={mix.id} ctx={onsite} isAuthed={!!user} />}
-
       {/* ---------- FLAVORS + AFFILIATE ---------- */}
       <section className="mt-8">
         <h2 className="mb-3 text-sm eyebrow">Flavors — 使用フレーバー</h2>
@@ -553,25 +551,42 @@ export default async function MixDetail({ params }: { params: Promise<{ id: stri
         </section>
       )}
 
-      {/* ---------- 公募ネーミング（日本代表のみ） ---------- */}
-      {isRep && (
-        <MixNaming
-          mixId={mix.id}
-          names={mixNames}
-          isAuthed={!!user}
-          currentUserId={user?.id ?? null}
-          isAdmin={!!user?.profile?.is_admin}
-        />
-      )}
-
-      {/* ---------- COMMENTS ---------- */}
-      <section className="mt-10">
-        <h2 className="mb-3 text-sm eyebrow">Comments — コメント（{commentTotal}）</h2>
-        <CommentThread comments={comments} mixId={mix.id} isAuthed={!!user} currentUserId={user?.id} />
-        <div className="mt-4">
-          <CommentForm mixId={mix.id} isAuthed={!!user} />
-        </div>
-      </section>
+      {/* ---------- 評価・ネーミング・コメント（タブで集約） ---------- */}
+      <SectionTabs
+        initial={!isSample ? 'onsite' : 'comments'}
+        tabs={[
+          !isSample && {
+            id: 'onsite',
+            label: '📍 実地評価',
+            content: <OnsiteRating mixId={mix.id} ctx={onsite} isAuthed={!!user} />,
+          },
+          isRep && {
+            id: 'naming',
+            label: '📛 公募ネーミング',
+            content: (
+              <MixNaming
+                mixId={mix.id}
+                names={mixNames}
+                isAuthed={!!user}
+                currentUserId={user?.id ?? null}
+                isAdmin={!!user?.profile?.is_admin}
+              />
+            ),
+          },
+          {
+            id: 'comments',
+            label: `💬 コメント（${commentTotal}）`,
+            content: (
+              <div>
+                <CommentThread comments={comments} mixId={mix.id} isAuthed={!!user} currentUserId={user?.id} />
+                <div className="mt-4">
+                  <CommentForm mixId={mix.id} isAuthed={!!user} />
+                </div>
+              </div>
+            ),
+          },
+        ].filter(Boolean) as SectionTab[]}
+      />
 
       {/* ---------- RELATED ---------- */}
       {related.length > 0 && (

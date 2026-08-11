@@ -6,6 +6,7 @@ import { MixCard } from '@/components/mix-card'
 import { ShareBar } from '@/components/share-bar'
 import { SITE_URL } from '@/lib/site'
 import { RankingTabs } from '@/components/ranking-tabs'
+import { EmptyState } from '@/components/empty-state'
 import { flavorLine } from '@/lib/mix'
 
 export const dynamic = 'force-dynamic'
@@ -56,16 +57,19 @@ export default async function NationalTeamPage() {
       </div>
 
       {team.length === 0 ? (
-        <div className="card mt-10 p-10 text-center">
-          <p className="text-base" style={{ fontWeight: 700 }}>まだ代表が決まっていません</p>
-          <p className="mt-2 text-sm" style={{ color: 'var(--color-ash)' }}>
-            ミックスに👍や「作った！」が集まると、系統ごとの日本代表が選出されます。
-          </p>
-          <div className="mt-5 flex justify-center gap-3">
-            <Link href="/" className="btn btn-ghost">図鑑を見る</Link>
-            <Link href="/post" className="btn btn-ember">＋ ミックスを投稿</Link>
-          </div>
-        </div>
+        <EmptyState
+          icon="🇯🇵"
+          title="まだ代表が決まっていません"
+          className="mt-10"
+          action={
+            <>
+              <Link href="/" className="btn btn-ghost">図鑑を見る</Link>
+              <Link href="/post" className="btn btn-ember">＋ ミックスを投稿</Link>
+            </>
+          }
+        >
+          ミックスに👍・「作った！」・📍実地評価が集まると、系統ごとの日本代表が選出されます。
+        </EmptyState>
       ) : (
         <>
           <div className="mt-8 flex items-center justify-center gap-2 text-xs" style={{ color: 'var(--color-ash-dim)' }}>

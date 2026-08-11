@@ -107,10 +107,9 @@ export default async function Home({
             </>
           )}
         </div>
-        {user && (
+        {user && mode === 'simple' && (
           <p className="mt-3 text-center text-xs" style={{ color: 'var(--color-ash-dim)' }}>
-            {mode === 'pro' ? '🛠 プロモードで表示中（すべての機能）' : '🔰 かんたんモードで表示中（シンプル表示）'}
-            <Link href="/mypage" className="ml-1 underline" style={{ color: 'var(--color-ember-hot)' }}>切替</Link>
+            🔰 かんたん表示中。上部の <b style={{ color: 'var(--color-ash)' }}>🛠 プロ</b> で、熱管理・ランキング・タイムラインなどが使えます。
           </p>
         )}
       </section>
