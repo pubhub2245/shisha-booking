@@ -126,7 +126,7 @@ export default async function MyPage() {
       <div className="mt-3 flex flex-wrap items-center gap-2">
         <Link href="/shelf" className="btn btn-ghost text-sm">🫙 マイ棚</Link>
         <InviteButton />
-        <form action={signOut}>
+        <form action={signOut} className="md:hidden">
           <button type="submit" className="btn btn-ghost text-sm">ログアウト</button>
         </form>
       </div>

@@ -58,7 +58,7 @@ export async function SiteHeader() {
           <Link
             href="/search"
             aria-label="検索"
-            className="hidden h-9 w-9 items-center justify-center rounded-full text-lg transition-colors hover:bg-[var(--accent-tint)] sm:flex"
+            className="hidden h-9 w-9 items-center justify-center rounded-full text-lg transition-colors hover:bg-[var(--accent-tint)] md:flex"
             style={{ color: 'var(--color-ash)' }}
           >
             🔍
@@ -81,17 +81,17 @@ export async function SiteHeader() {
                   </span>
                 )}
               </Link>
-              <Link href="/post" className="btn btn-ember hidden text-sm sm:inline-flex">
+              <Link href="/post" className="btn btn-ember hidden text-sm md:inline-flex">
                 ミックスを投稿
               </Link>
               <Link
                 href="/mypage"
-                className="hidden max-w-[9rem] truncate text-sm transition-colors hover:text-[var(--color-ember-hot)] sm:inline-block"
+                className="hidden max-w-[9rem] truncate text-sm transition-colors hover:text-[var(--color-ember-hot)] md:inline-block"
                 title={displayName}
               >
                 @{user.profile?.username || displayName}
               </Link>
-              <form action={signOut} className="hidden sm:block">
+              <form action={signOut} className="hidden md:block">
                 <button type="submit" className="text-sm" style={{ color: 'var(--color-ash-dim)' }}>
                   ログアウト
                 </button>
