@@ -12,6 +12,7 @@ import {
 } from '@/lib/queries'
 import { getCurrentUser } from '@/lib/auth'
 import { MixCard } from '@/components/mix-card'
+import { flavorLine } from '@/lib/mix'
 import { FollowButton } from '@/components/follow-button'
 import { VerifiedBadge } from '@/components/verified-badge'
 import { Avatar } from '@/components/avatar'
@@ -181,7 +182,7 @@ export default async function ProfilePage({ params }: { params: Promise<{ userna
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={m.pack_photo_url!}
-                    alt={`${m.title} の盛り方`}
+                    alt={`${flavorLine(m.mix_flavors)} の盛り方`}
                     className="aspect-square w-full object-cover transition-transform group-hover:scale-105"
                     loading="lazy"
                   />

@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import type { MixWithRelations } from '@/lib/types/database'
+import { flavorLine } from '@/lib/mix'
 import { LikeButton } from '@/components/like-button'
 import { VerifiedBadge } from '@/components/verified-badge'
 import { CompletenessBadge } from '@/components/completeness'
@@ -27,29 +28,30 @@ export function MixCard({
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={mix.pack_photo_url}
-              alt={`${mix.title} の盛り方`}
+              alt={`${flavorLine(flavors)} の盛り方`}
               className="aspect-[4/3] w-full object-cover"
               loading="lazy"
             />
           </div>
         )}
         <div className="flex flex-1 flex-col p-5">
-        {/* flavor combo line */}
-        <div className="mb-3 flex flex-wrap items-center gap-x-2 gap-y-1">
+        {/* フレーバー名＝正式名（主役） */}
+        <h3 className="flex flex-wrap items-center gap-x-2 gap-y-1 text-lg leading-snug" style={{ fontWeight: 700 }}>
           {flavors.slice(0, 4).map((f, i) => (
             <span key={f.id} className="flex items-center gap-2">
-              {i > 0 && <span style={{ color: 'var(--color-ember)' }}>×</span>}
-              <span style={{ fontWeight: 600 }}>{f.name}</span>
+              {i > 0 && <span style={{ color: 'var(--color-ember)', fontWeight: 400 }}>×</span>}
+              <span>{f.name}</span>
             </span>
           ))}
           {flavors.length > 4 && (
             <span style={{ color: 'var(--color-ash-dim)', fontSize: '0.8rem' }}>+{flavors.length - 4}</span>
           )}
-        </div>
-
-        <h3 className="text-lg leading-snug" style={{ fontWeight: 700 }}>
-          {mix.title}
         </h3>
+
+        {/* 任意の一言（特徴） */}
+        {mix.title && (
+          <p className="mt-1 text-sm" style={{ color: 'var(--color-ash-dim)', fontWeight: 600 }}>{mix.title}</p>
+        )}
 
         {mix.description && (
           <p

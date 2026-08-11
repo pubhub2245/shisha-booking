@@ -48,11 +48,14 @@ export default async function ComboPage({ params }: { params: Promise<{ slug: st
   const curveSeries: CurveSeries[] = combo.methods
     .filter((m) => canSeeCurve(m) && Array.isArray(m.heat_curve) && m.heat_curve.length >= 2)
     .slice(0, 6)
-    .map((m, i) => ({
-      label: m.title.length > 16 ? m.title.slice(0, 16) + '…' : m.title,
-      color: CURVE_COLORS[i % CURVE_COLORS.length],
-      points: m.heat_curve!,
-    }))
+    .map((m, i) => {
+      const raw = m.title || `作り方${i + 1}`
+      return {
+        label: raw.length > 16 ? raw.slice(0, 16) + '…' : raw,
+        color: CURVE_COLORS[i % CURVE_COLORS.length],
+        points: m.heat_curve!,
+      }
+    })
 
   return (
     <div className="wrap max-w-3xl py-10">

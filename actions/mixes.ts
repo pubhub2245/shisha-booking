@@ -241,7 +241,8 @@ export async function createMix(_prev: MixFormState, formData: FormData): Promis
   } = await supabase.auth.getUser()
   if (!user) redirect('/login?next=/post')
 
-  const title = String(formData.get('title') ?? '').trim()
+  // タイトルは任意の「一言（特徴）」。正式名はフレーバー名なので空でもOK。
+  const title = String(formData.get('title') ?? '').trim().slice(0, 40) || null
   const description = String(formData.get('description') ?? '').trim() || null
   const heat = String(formData.get('heat_management') ?? '').trim() || null
   const placement = String(formData.get('placement_note') ?? '').trim() || null
@@ -252,7 +253,6 @@ export async function createMix(_prev: MixFormState, formData: FormData): Promis
   const heatEvents = parseHeatEvents(formData)
   const heatSetup = parseHeatSetup(formData)
 
-  if (!title) return { error: 'ミックスのタイトルを入力してください。' }
   if (flavors.length < 1) return { error: 'フレーバーを1つ以上追加してください。' }
 
   await growFlavorMaster(supabase, flavors, user.id)
@@ -306,7 +306,7 @@ export async function createMix(_prev: MixFormState, formData: FormData): Promis
 }
 
 function parseMixFields(formData: FormData) {
-  const title = String(formData.get('title') ?? '').trim()
+  const title = String(formData.get('title') ?? '').trim().slice(0, 40) || null
   const description = String(formData.get('description') ?? '').trim() || null
   const heat = String(formData.get('heat_management') ?? '').trim() || null
   const placement = String(formData.get('placement_note') ?? '').trim() || null
@@ -333,7 +333,6 @@ export async function updateMix(_prev: MixFormState, formData: FormData): Promis
   const heatCurve = parseHeatCurve(formData)
   const heatEvents = parseHeatEvents(formData)
   const heatSetup = parseHeatSetup(formData)
-  if (!title) return { error: 'ミックスのタイトルを入力してください。' }
   if (flavors.length < 1) return { error: 'フレーバーを1つ以上追加してください。' }
 
   await growFlavorMaster(supabase, flavors, user.id)

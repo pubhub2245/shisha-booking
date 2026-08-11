@@ -44,7 +44,7 @@ export default async function PostPage({
       heading = 'この作り方をベースに投稿'
       lead = `「${base.title}」をベースにしています。自分好みに調整して投稿しましょう。`
       initial = {
-        title: `${base.title}（アレンジ）`,
+        title: base.title,
         description: base.description ?? '',
         tasteTags: base.taste_tags ?? [],
         heat: base.heat_management ?? '',

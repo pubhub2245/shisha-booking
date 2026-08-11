@@ -78,12 +78,13 @@ export async function generateMetadata({
   const images = mix.pack_photo_url
     ? [{ url: mix.pack_photo_url }]
     : [{ url: '/og-default.png', width: 1200, height: 630 }]
-  const desc = mix.description ?? flavorLine ?? 'シーシャのミックスレシピ'
+  const heading = flavorLine || mix.title || 'ミックス'
+  const desc = mix.description ?? (mix.title ? `${mix.title}｜${flavorLine}` : flavorLine) ?? 'シーシャのミックスレシピ'
   return {
-    title: `${mix.title} — MixHub`,
+    title: `${heading} — MixHub`,
     description: desc,
-    openGraph: { title: mix.title, description: desc, images },
-    twitter: { card: 'summary_large_image', title: mix.title, description: desc, images },
+    openGraph: { title: heading, description: desc, images },
+    twitter: { card: 'summary_large_image', title: heading, description: desc, images },
   }
 }
 
@@ -122,16 +123,19 @@ export default async function MixDetail({ params }: { params: Promise<{ id: stri
   const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://mixhub-jp.vercel.app'
   const mixUrl = `${SITE_URL}/mix/${mix.id}`
   const flavorLine = flavors.map((f) => f.name).join(' × ')
+  // 表示名＝フレーバー名。title は任意の一言（あれば添える）
+  const headingLine = flavorLine || mix.title || 'ミックス'
+  const taglineSuffix = mix.title ? `（${mix.title}）` : ''
   // 日本代表に選ばれていれば、その"自慢"をシェア文面に載せる（バイラルの起点）
   const shareText = isRep
-    ? `🇯🇵 ${repLabel}系の日本代表に選ばれました！\n${mix.title}${flavorLine ? `｜${flavorLine}` : ''}\n#シーシャ #MixHub #日本代表シーシャ図鑑`
-    : `${mix.title}${flavorLine ? `｜${flavorLine}` : ''}\n#シーシャ #MixHub`
+    ? `🇯🇵 ${repLabel}系の日本代表に選ばれました！\n${headingLine}${taglineSuffix}\n#シーシャ #MixHub #日本代表シーシャ図鑑`
+    : `${headingLine}${taglineSuffix}\n#シーシャ #MixHub`
 
   // 構造化データ（有料・非公開の熱管理データは含めない）
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'Recipe',
-    name: mix.title,
+    name: headingLine,
     description: mix.description ?? flavorLine,
     recipeIngredient: flavors.map((f) => `${f.brand ? `${f.brand} ` : ''}${f.name}`),
     recipeCategory: 'Shisha Mix',
@@ -176,16 +180,18 @@ export default async function MixDetail({ params }: { params: Promise<{ id: stri
 
       {/* ---------- HEADER ---------- */}
       <header className="mt-5 fade-up">
-        <div className="mb-3 flex flex-wrap items-center gap-x-2 gap-y-1 text-xl" style={{ fontWeight: 700 }}>
+        {/* 任意の一言（特徴） */}
+        {mix.title && (
+          <p className="mb-1 text-sm" style={{ color: 'var(--color-ember-hot)', fontWeight: 700 }}>{mix.title}</p>
+        )}
+        {/* フレーバー名＝正式名（主役） */}
+        <h1 className="flex flex-wrap items-center gap-x-2 gap-y-1 text-3xl leading-tight sm:text-4xl" style={{ fontWeight: 800 }}>
           {flavors.map((f, i) => (
             <span key={f.id} className="flex items-center gap-2">
-              {i > 0 && <span style={{ color: 'var(--color-ember)' }}>×</span>}
+              {i > 0 && <span style={{ color: 'var(--color-ember)', fontWeight: 400 }}>×</span>}
               <span>{f.name}</span>
             </span>
           ))}
-        </div>
-        <h1 className="text-3xl leading-tight sm:text-4xl" style={{ fontWeight: 800 }}>
-          {mix.title}
         </h1>
         {isRep && (
           <Link

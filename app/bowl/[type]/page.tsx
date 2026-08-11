@@ -4,6 +4,7 @@ import type { Metadata } from 'next'
 import { getMixesByBowlType, getLikedMixIds } from '@/lib/queries'
 import { getCurrentUser } from '@/lib/auth'
 import { MixCard } from '@/components/mix-card'
+import { flavorLine } from '@/lib/mix'
 import { BowlIcon } from '@/components/bowl-icon'
 import { BOWL_OPTIONS, bowlOption, HMS_OPTIONS } from '@/lib/heat'
 import { SourceLine } from '@/components/source-line'
@@ -77,10 +78,10 @@ export default async function BowlTypePage({ params }: { params: Promise<{ type:
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={m.pack_photo_url!}
-                  alt={`${m.title} の盛り方`}
+                  alt={`${flavorLine(m.mix_flavors)} の盛り方`}
                   className="aspect-square w-full object-cover transition-transform group-hover:scale-105"
                 />
-                <div className="truncate px-2 py-1.5 text-xs" style={{ color: 'var(--color-ash)' }}>{m.title}</div>
+                <div className="truncate px-2 py-1.5 text-xs" style={{ color: "var(--color-ash)" }}>{flavorLine(m.mix_flavors)}</div>
               </Link>
             ))}
           </div>

@@ -104,7 +104,7 @@ export default async function NotificationsPage() {
                         <span style={{ color: 'var(--color-ash)' }}>{VERB[n.type] ?? 'の通知'}</span>
                       </p>
                     )}
-                    {n.mix && (
+                    {n.mix?.title && (
                       <p className="truncate text-xs" style={{ color: 'var(--color-ash-dim)' }}>「{n.mix.title}」</p>
                     )}
                   </div>

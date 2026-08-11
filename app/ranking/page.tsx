@@ -62,15 +62,17 @@ export default async function RankingPage({ searchParams }: { searchParams: Prom
               <Link key={m.id} href={`/mix/${m.id}`} className="card card-hover flex items-center gap-4 p-5">
                 <span className="text-3xl">{MEDALS[i]}</span>
                 <div className="min-w-0 flex-1">
-                  <div className="mb-1 flex flex-wrap items-center gap-x-1.5 text-sm" style={{ color: 'var(--color-ash)' }}>
+                  <div className="flex flex-wrap items-center gap-x-1.5 leading-snug" style={{ fontWeight: 700 }}>
                     {(m.mix_flavors ?? []).slice(0, 3).map((f, j) => (
                       <span key={f.id}>
-                        {j > 0 && <span style={{ color: 'var(--color-ember)' }}> × </span>}
+                        {j > 0 && <span style={{ color: 'var(--color-ember)', fontWeight: 400 }}> × </span>}
                         {f.name}
                       </span>
                     ))}
                   </div>
-                  <div className="line-clamp-2 leading-snug" style={{ fontWeight: 700 }}>{m.title}</div>
+                  {m.title && (
+                    <div className="mt-0.5 text-sm" style={{ color: 'var(--color-ash-dim)' }}>{m.title}</div>
+                  )}
                 </div>
                 <span className="shrink-0 text-sm" style={{ color: 'var(--color-ember-hot)', fontWeight: 700 }}>
                   ❤️ {m.like_count}

@@ -4,6 +4,7 @@ import type { Metadata } from 'next'
 import { getMixesByHmsType, getLikedMixIds } from '@/lib/queries'
 import { getCurrentUser } from '@/lib/auth'
 import { MixCard } from '@/components/mix-card'
+import { flavorLine } from '@/lib/mix'
 import { HmsIcon } from '@/components/hms-icon'
 import { BowlIcon } from '@/components/bowl-icon'
 import { HMS_OPTIONS, hmsOption, hmsBowls } from '@/lib/heat'
@@ -88,11 +89,11 @@ export default async function HmsTypePage({ params }: { params: Promise<{ type: 
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={m.pack_photo_url!}
-                  alt={`${m.title} の盛り方`}
+                  alt={`${flavorLine(m.mix_flavors)} の盛り方`}
                   className="aspect-square w-full object-cover transition-transform group-hover:scale-105"
                   loading="lazy"
                 />
-                <div className="truncate px-2 py-1.5 text-xs" style={{ color: 'var(--color-ash)' }}>{m.title}</div>
+                <div className="truncate px-2 py-1.5 text-xs" style={{ color: "var(--color-ash)" }}>{flavorLine(m.mix_flavors)}</div>
               </Link>
             ))}
           </div>

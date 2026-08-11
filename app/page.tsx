@@ -7,6 +7,7 @@ import { IconOrb } from '@/components/icon-orb'
 import { OnboardingCard } from '@/components/onboarding-card'
 import { ModeChooser } from '@/components/mode-chooser'
 import { needsModeChoice, resolveMode } from '@/lib/mode'
+import { flavorLine } from '@/lib/mix'
 
 export const dynamic = 'force-dynamic'
 
@@ -273,12 +274,12 @@ export default async function Home({
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={m.pack_photo_url!}
-                    alt={`${m.title} の盛り方`}
+                    alt={`${flavorLine(m.mix_flavors)} の盛り方`}
                     className="aspect-square w-full object-cover transition-transform group-hover:scale-105"
                     loading="lazy"
                   />
                 </div>
-                <div className="mt-1 truncate text-xs" style={{ color: 'var(--color-ash)' }}>{m.title}</div>
+                <div className="mt-1 truncate text-xs" style={{ color: 'var(--color-ash)' }}>{flavorLine(m.mix_flavors)}</div>
               </Link>
             ))}
           </div>

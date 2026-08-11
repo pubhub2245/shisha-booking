@@ -42,8 +42,11 @@ export function SimpleMixForm({
   return (
     <form action={action} className="mt-6 flex flex-col gap-6">
       <div className="field">
-        <label>タイトル <span style={{ color: 'var(--color-ember-hot)' }}>必須</span></label>
-        <input name="title" required maxLength={80} placeholder="例：王道スッキリ｜ダブルアップル × ミント" />
+        <label>特徴・ひとこと（任意）</label>
+        <input name="title" maxLength={40} placeholder="例：王道スッキリ（空でもOK）" />
+        <p className="mt-1 text-xs" style={{ color: 'var(--color-ash-dim)' }}>
+          名前はフレーバーで自動的に付きます。ひとことだけ添えたいときにどうぞ。
+        </p>
       </div>
 
       <div>

@@ -5,6 +5,7 @@ import { getCurrentUser } from '@/lib/auth'
 import { MixCard } from '@/components/mix-card'
 import { ShareBar } from '@/components/share-bar'
 import { SITE_URL } from '@/lib/site'
+import { flavorLine } from '@/lib/mix'
 
 export const dynamic = 'force-dynamic'
 export const metadata: Metadata = {
@@ -112,7 +113,7 @@ export default async function NationalTeamPage() {
                     <div className="px-1">
                       <ShareBar
                         url={`${SITE_URL}/mix/${rep.mix.id}`}
-                        text={`🇯🇵 ${meta.label}の日本代表はこれ！\n${rep.mix.title}\n#シーシャ #MixHub #日本代表シーシャ図鑑`}
+                        text={`🇯🇵 ${meta.label}の日本代表はこれ！\n${flavorLine(rep.mix.mix_flavors)}${rep.mix.title ? `（${rep.mix.title}）` : ''}\n#シーシャ #MixHub #日本代表シーシャ図鑑`}
                       />
                     </div>
                   )}
