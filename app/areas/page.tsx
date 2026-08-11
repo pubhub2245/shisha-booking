@@ -1,7 +1,8 @@
 import Link from 'next/link'
-import { getAreaRankings, getLikedMixIds } from '@/lib/queries'
+import { getAreaRankings, getNearbyShops, getLikedMixIds } from '@/lib/queries'
 import { getCurrentUser } from '@/lib/auth'
 import { MixCard } from '@/components/mix-card'
+import { NearbyShops } from '@/components/nearby-shops'
 import { Avatar } from '@/components/avatar'
 import { flavorLine } from '@/lib/mix'
 
@@ -15,8 +16,9 @@ export const metadata = {
 const MEDALS = ['🥇', '🥈', '🥉']
 
 export default async function AreasPage() {
-  const [regions, likedIds, user] = await Promise.all([
+  const [regions, nearby, likedIds, user] = await Promise.all([
     getAreaRankings(),
+    getNearbyShops(),
     getLikedMixIds(),
     getCurrentUser(),
   ])
@@ -34,6 +36,9 @@ export default async function AreasPage() {
       <p className="mt-1 text-xs" style={{ color: 'var(--color-ash-dim)' }}>
         お店の順位は <b>実地評価（現地で吸った票）</b>を最重視して算出しています。
       </p>
+
+      {/* 現在地から近い高評価店（旅行者導線） */}
+      <NearbyShops shops={nearby} />
 
       {regions.length === 0 ? (
         <div className="card mt-8 p-8 text-center text-sm" style={{ color: 'var(--color-ash)' }}>
@@ -75,7 +80,14 @@ export default async function AreasPage() {
                           </span>
                           <Avatar name={it.shop.name} seed={it.shop.id} size={40} />
                           <div className="min-w-0 flex-1">
-                            <div className="truncate" style={{ fontWeight: 700 }}>{it.shop.name}</div>
+                            <div className="flex items-center gap-1.5">
+                              <span className="truncate" style={{ fontWeight: 700 }}>{it.shop.name}</span>
+                              {i === 0 && it.score > 0 && (
+                                <span className="shrink-0 rounded-full px-1.5 py-0.5 text-[0.62rem]" style={{ background: 'var(--accent-tint)', color: 'var(--color-ember-hot)', fontWeight: 800 }}>
+                                  🏅 地域No.1
+                                </span>
+                              )}
+                            </div>
                             <div className="mt-0.5 flex flex-wrap items-center gap-x-2 text-xs" style={{ color: 'var(--color-ash-dim)' }}>
                               <span>📍 {it.shop.area || it.shop.prefecture}</span>
                               {it.onsite > 0 && (
@@ -100,8 +112,18 @@ export default async function AreasPage() {
                   <div className="mt-6">
                     <h3 className="mb-2 text-sm eyebrow">Mixes — この地域の注目ミックス</h3>
                     <div className="grid gap-5 sm:grid-cols-2">
-                      {r.mixes.map((x) => (
-                        <MixCard key={x.mix.id} mix={x.mix} liked={likedIds.has(x.mix.id)} isAuthed={!!user} />
+                      {r.mixes.map((x, i) => (
+                        <div key={x.mix.id} className="relative">
+                          {i === 0 && x.score >= 1 && (
+                            <span
+                              className="absolute -top-2 left-3 z-10 rounded-full px-2 py-0.5 text-[0.62rem]"
+                              style={{ background: 'linear-gradient(90deg, var(--color-ember), var(--color-ember-deep))', color: '#fff', fontWeight: 800, boxShadow: '0 4px 10px -4px rgb(224 85 42 / 0.6)' }}
+                            >
+                              🏅 {r.region}代表
+                            </span>
+                          )}
+                          <MixCard mix={x.mix} liked={likedIds.has(x.mix.id)} isAuthed={!!user} />
+                        </div>
                       ))}
                     </div>
                   </div>

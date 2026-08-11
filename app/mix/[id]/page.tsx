@@ -13,6 +13,7 @@ import {
   getNationalRepCategories,
   getMixNames,
   getOnsiteContext,
+  getRegionRepLabel,
 } from '@/lib/queries'
 import { getCurrentUser } from '@/lib/auth'
 import { LikeButton } from '@/components/like-button'
@@ -103,13 +104,14 @@ export default async function MixDetail({ params }: { params: Promise<{ id: stri
     isMixUnlocked(id),
   ])
   if (!mix) notFound()
-  const [related, madeStatus, photos, repCats, mixNames, onsite] = await Promise.all([
+  const [related, madeStatus, photos, repCats, mixNames, onsite, regionRep] = await Promise.all([
     getRelatedMixes(mix as MixWithRelations),
     getMadeStatus(id),
     getMixPhotos(id),
     getNationalRepCategories(id),
     getMixNames(id),
     getOnsiteContext(mix),
+    getRegionRepLabel(id),
   ])
   const commentTotal = comments.reduce((n, c) => n + 1 + c.replies.length, 0)
   const isRep = repCats.length > 0
@@ -207,15 +209,26 @@ export default async function MixDetail({ params }: { params: Promise<{ id: stri
             </span>
           ))}
         </h1>
-        {isRep && (
-          <Link
-            href="/national"
-            className="mt-2 inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs"
-            style={{ background: 'linear-gradient(90deg, #bc002d, #e60033)', color: '#fff', fontWeight: 800, letterSpacing: '0.03em' }}
-          >
-            🇯🇵 {repLabel}系の日本代表
-          </Link>
-        )}
+        <div className="mt-2 flex flex-wrap items-center gap-2">
+          {isRep && (
+            <Link
+              href="/national"
+              className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs"
+              style={{ background: 'linear-gradient(90deg, #bc002d, #e60033)', color: '#fff', fontWeight: 800, letterSpacing: '0.03em' }}
+            >
+              🇯🇵 {repLabel}系の日本代表
+            </Link>
+          )}
+          {regionRep && (
+            <Link
+              href={`/areas#${regionRep}`}
+              className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs"
+              style={{ background: 'var(--accent-tint)', color: 'var(--color-ember-hot)', fontWeight: 800, border: '1px solid var(--color-ember)' }}
+            >
+              🏅 {regionRep}代表
+            </Link>
+          )}
+        </div>
         {mix.premium && (mix.locked_sections ?? []).length > 0 && (
           <div className="mt-2 inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs"
             style={{ background: 'var(--accent-tint)', color: 'var(--color-ember-hot)', fontWeight: 700 }}>

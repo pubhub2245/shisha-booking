@@ -4,6 +4,7 @@ import { mixQuality, mixCompleteness } from '@/lib/quality'
 import { searchVariants } from '@/lib/kana'
 import { TYPE_TAGS } from '@/lib/tags'
 import { REGIONS, regionOf, REGION_EMOJI, type RegionKey } from '@/lib/regions'
+import { mixSupportScore, shopSupportScore } from '@/lib/score'
 import type {
   MixWithRelations,
   Mix,
@@ -1094,7 +1095,7 @@ export async function getNationalTeam(): Promise<NationalRep[]> {
       const id = (r as { mix_id: string }).mix_id
       onsite.set(id, (onsite.get(id) ?? 0) + 1)
     }
-    const scoreOf = (m: Mix) => m.like_count + (makes.get(m.id) ?? 0) * 2 + (onsite.get(m.id) ?? 0) * 5
+    const scoreOf = (m: Mix) => mixSupportScore(m.like_count, makes.get(m.id) ?? 0, onsite.get(m.id) ?? 0)
 
     // 系統ごとに代表を選ぶ。ルール：
     //  1) 支持スコア(いいね+作った×2)が1以上あること（無支持のサンプルを代表にしない）
@@ -1267,7 +1268,7 @@ export async function getAreaRankings(opts: { shopsPerRegion?: number; mixesPerR
       onsiteByMix.set(mid, (onsiteByMix.get(mid) ?? 0) + 1)
       if (sid) onsiteByShop.set(sid, (onsiteByShop.get(sid) ?? 0) + 1)
     }
-    const mixScore = (m: Mix) => m.like_count + (makes.get(m.id) ?? 0) * 2 + (onsiteByMix.get(m.id) ?? 0) * 5
+    const mixScore = (m: Mix) => mixSupportScore(m.like_count, makes.get(m.id) ?? 0, onsiteByMix.get(m.id) ?? 0)
     const mixById = new Map(mixes.map((m) => [m.id, m]))
 
     // 作り手 → 所属お店（複数可）／作り手 → 都道府県（オーナー優先→最初）
@@ -1331,7 +1332,7 @@ export async function getAreaRankings(opts: { shopsPerRegion?: number; mixesPerR
         }
       }
       const onsite = onsiteByShop.get(s.id) ?? 0
-      const score = onsite * 5 + likes + makesN * 2
+      const score = shopSupportScore(onsite, likes, makesN)
       shopItems.push({ shop: s, onsite, supporters: likes + makesN, score, topMixId, region })
     }
 
@@ -1389,6 +1390,115 @@ export async function getAreaRankings(opts: { shopsPerRegion?: number; mixesPerR
       result.push({ region: r.key, emoji: REGION_EMOJI.get(r.key) ?? '📍', shops: shopList, mixes: mixList })
     }
     return result
+  } catch {
+    return []
+  }
+}
+
+/** このミックスが「地方代表」（所属都道府県が属する地方で最高スコア／支持1以上）ならその地方名を返す。 */
+export async function getRegionRepLabel(mixId: string): Promise<string | null> {
+  try {
+    const regions = await getAreaRankings({ mixesPerRegion: 1 })
+    for (const r of regions) {
+      const top = r.mixes[0]
+      if (top && top.mix.id === mixId && top.score >= 1) return r.region
+    }
+    return null
+  } catch {
+    return null
+  }
+}
+
+/**
+ * 位置を登録済みの全お店を、支持スコア付き・代表作リレーション付きで返す（距離順の並べ替えはクライアント側）。
+ * 「現在地から近い高評価店」導線に使用。
+ */
+export async function getNearbyShops(): Promise<ShopRankItem[]> {
+  try {
+    const supabase = await createClient()
+    const { data: shopRows } = await supabase
+      .from('shops')
+      .select('*')
+      .not('lat', 'is', null)
+      .not('lng', 'is', null)
+    const shops = (shopRows ?? []) as Shop[]
+    if (shops.length === 0) return []
+    const shopIds = shops.map((s) => s.id)
+
+    const [{ data: memRows }, { data: mixRows }, { data: makeRows }, { data: onsiteRows }] = await Promise.all([
+      supabase.from('shop_members').select('shop_id, user_id').eq('status', 'approved').in('shop_id', shopIds),
+      supabase.from('mixes').select('*').eq('hidden', false).limit(2000),
+      supabase.from('mix_makes').select('mix_id').limit(20000),
+      supabase.from('mix_onsite_ratings').select('mix_id, shop_id').limit(20000),
+    ])
+    const members = (memRows ?? []) as { shop_id: string; user_id: string }[]
+    const mixes = (mixRows ?? []) as Mix[]
+    const mixById = new Map(mixes.map((m) => [m.id, m]))
+    const makes = new Map<string, number>()
+    for (const r of makeRows ?? []) {
+      const id = (r as { mix_id: string }).mix_id
+      makes.set(id, (makes.get(id) ?? 0) + 1)
+    }
+    const onsiteByMix = new Map<string, number>()
+    const onsiteByShop = new Map<string, number>()
+    for (const r of onsiteRows ?? []) {
+      const mid = (r as { mix_id: string }).mix_id
+      const sid = (r as { shop_id: string | null }).shop_id
+      onsiteByMix.set(mid, (onsiteByMix.get(mid) ?? 0) + 1)
+      if (sid) onsiteByShop.set(sid, (onsiteByShop.get(sid) ?? 0) + 1)
+    }
+    const mixScore = (m: Mix) => mixSupportScore(m.like_count, makes.get(m.id) ?? 0, onsiteByMix.get(m.id) ?? 0)
+
+    const mixesByAuthor = new Map<string, string[]>()
+    for (const m of mixes) {
+      if (!m.author_id) continue
+      const arr = mixesByAuthor.get(m.author_id) ?? []
+      arr.push(m.id)
+      mixesByAuthor.set(m.author_id, arr)
+    }
+    const authorsByShop = new Map<string, string[]>()
+    for (const m of members) {
+      const arr = authorsByShop.get(m.shop_id) ?? []
+      arr.push(m.user_id)
+      authorsByShop.set(m.shop_id, arr)
+    }
+
+    const items: (Omit<ShopRankItem, 'topMix'> & { topMixId: string | null })[] = []
+    for (const s of shops) {
+      const memMixIds = new Set<string>()
+      for (const uid of authorsByShop.get(s.id) ?? []) for (const mid of mixesByAuthor.get(uid) ?? []) memMixIds.add(mid)
+      let likes = 0
+      let makesN = 0
+      let topMixId: string | null = null
+      let topScore = -1
+      for (const mid of memMixIds) {
+        const mm = mixById.get(mid)
+        if (!mm) continue
+        likes += mm.like_count
+        makesN += makes.get(mid) ?? 0
+        const sc = mixScore(mm)
+        if (sc > topScore) {
+          topScore = sc
+          topMixId = mm.id
+        }
+      }
+      const onsite = onsiteByShop.get(s.id) ?? 0
+      items.push({ shop: s, onsite, supporters: likes + makesN, score: shopSupportScore(onsite, likes, makesN), topMixId })
+    }
+
+    const needed = [...new Set(items.map((i) => i.topMixId).filter((v): v is string => !!v))]
+      .map((id) => mixById.get(id))
+      .filter((m): m is Mix => !!m)
+    const withRel = await attachRelations(supabase, needed)
+    const relById = new Map(withRel.map((m) => [m.id, m]))
+
+    return items.map((i) => ({
+      shop: i.shop,
+      onsite: i.onsite,
+      supporters: i.supporters,
+      score: i.score,
+      topMix: i.topMixId ? relById.get(i.topMixId) ?? null : null,
+    }))
   } catch {
     return []
   }
