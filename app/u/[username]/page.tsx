@@ -54,7 +54,7 @@ export default async function ProfilePage({ params }: { params: Promise<{ userna
       <div className="card p-6 fade-up">
         <div className="flex items-start justify-between gap-4">
           <div className="flex min-w-0 items-start gap-3">
-            <Avatar name={profile.display_name || profile.username} seed={profile.id} size={52} />
+            <Avatar name={profile.display_name || profile.username} seed={profile.id} size={52} src={profile.avatar_url} />
             <div className="min-w-0">
             <div className="mb-2 flex flex-wrap items-center gap-1.5">
               {profile.is_founder && (
