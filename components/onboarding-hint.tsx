@@ -34,7 +34,7 @@ export function OnboardingHint({ isAuthed }: { isAuthed: boolean }) {
           </p>
           <div className="mt-2 flex flex-wrap gap-2">
             <Link href="#mood" className="chip chip-active">気分で探す</Link>
-            <Link href={isAuthed ? '/shelf' : '/signup'} className="chip">🫙 マイ棚</Link>
+            <Link href={isAuthed ? '/shelf' : '/signup'} className="chip">🫙 マイフレーバー</Link>
             <Link href="/for-shops" className="chip">🏠 店舗の方へ</Link>
           </div>
         </div>

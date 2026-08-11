@@ -9,7 +9,7 @@ import type { Flavor } from '@/lib/types/database'
 
 export const dynamic = 'force-dynamic'
 export const metadata = {
-  title: 'マイ棚 — MixHub',
+  title: 'マイフレーバー — MixHub',
   description: '持っているフレーバーを登録すると、いま手元で作れるミックスだけが表示されます。',
 }
 
@@ -41,7 +41,7 @@ export default async function ShelfPage() {
     <div className="wrap max-w-3xl py-10">
       <p className="eyebrow">My Shelf</p>
       <h1 className="mt-2 flex items-center gap-2 text-3xl" style={{ fontWeight: 800 }}>
-        <span aria-hidden>🫙</span> マイ棚
+        <span aria-hidden>🫙</span> マイフレーバー
       </h1>
       <p className="mt-2 text-sm" style={{ color: 'var(--color-ash)' }}>
         持っているフレーバーを選ぶと、<b>いま手元だけで作れるミックス</b>が下に表示されます。

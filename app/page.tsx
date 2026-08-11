@@ -236,11 +236,11 @@ export default async function Home({
           </p>
           <p className="mt-2 text-sm" style={{ color: 'var(--color-ash)' }}>
             {makeableOnly
-              ? 'マイ棚に持っているフレーバーを追加すると、作れるミックスが増えます。'
+              ? 'マイフレーバーに持っているものを追加すると、作れるミックスが増えます。'
               : `${hasFilters ? '条件をゆるめるか、' : ''}この組み合わせの作り方を、あなたが最初に投稿しませんか？`}
           </p>
           <div className="mt-5 flex flex-wrap justify-center gap-3">
-            {makeableOnly && <Link href="/shelf" className="btn btn-ghost">🫙 マイ棚を編集</Link>}
+            {makeableOnly && <Link href="/shelf" className="btn btn-ghost">🫙 マイフレーバーを編集</Link>}
             {hasFilters && <Link href="/" className="btn btn-ghost">条件をクリア</Link>}
             <Link href="/post" className="btn btn-ember">＋ ミックスを投稿</Link>
           </div>

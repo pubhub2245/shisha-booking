@@ -1,24 +1,18 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { getCurrentUser } from '@/lib/auth'
-import { resolveMode } from '@/lib/mode'
-import { ModeToggle } from '@/components/mode-toggle'
-import { signOut } from '@/actions/auth'
 import {
   getMixesByAuthor,
   getLikedMixIds,
   getBookmarkedMixes,
   getLikedMixes,
   getFollowCounts,
-  getMyProApplication,
   getMyShops,
 } from '@/lib/queries'
 import { MixCard } from '@/components/mix-card'
 import { Avatar } from '@/components/avatar'
 import { VerifiedBadge } from '@/components/verified-badge'
 import type { MixWithRelations } from '@/lib/types/database'
-import { ProfileForm } from './profile-form'
-import { ProApplicationForm } from './pro-application'
 import { InviteButton } from '@/components/invite-button'
 
 export const dynamic = 'force-dynamic'
@@ -53,13 +47,12 @@ export default async function MyPage() {
   const user = await getCurrentUser()
   if (!user) redirect('/login?next=/mypage')
 
-  const [myMixes, likedIds, bookmarked, liked, counts, proApp, myShops] = await Promise.all([
+  const [myMixes, likedIds, bookmarked, liked, counts, myShops] = await Promise.all([
     getMixesByAuthor(user.id),
     getLikedMixIds(),
     getBookmarkedMixes(),
     getLikedMixes(),
     getFollowCounts(user.id),
-    getMyProApplication(),
     getMyShops(),
   ])
 
@@ -93,7 +86,7 @@ export default async function MyPage() {
               {username && (
                 <Link href={`/u/${username}`} className="btn btn-ghost text-sm">公開プロフィール</Link>
               )}
-              <a href="#profile-edit" className="btn btn-ember text-sm">プロフィールを編集</a>
+              <Link href="/mypage/edit" className="btn btn-ember text-sm">プロフィールを編集</Link>
             </div>
           </div>
 
@@ -108,7 +101,7 @@ export default async function MyPage() {
               <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed" style={{ color: 'var(--color-ash)' }}>{bio}</p>
             ) : (
               <p className="mt-2 text-sm" style={{ color: 'var(--color-ash-dim)' }}>
-                自己紹介はまだありません。<a href="#profile-edit" style={{ color: 'var(--color-ember-hot)' }}>プロフィールを編集</a>して追加しましょう。
+                自己紹介はまだありません。<Link href="/mypage/edit" style={{ color: 'var(--color-ember-hot)' }}>プロフィールを編集</Link>して追加しましょう。
               </p>
             )}
           </div>
@@ -124,52 +117,10 @@ export default async function MyPage() {
 
       {/* サブアクション */}
       <div className="mt-3 flex flex-wrap items-center gap-2">
-        <Link href="/shelf" className="btn btn-ghost text-sm">🫙 マイ棚</Link>
+        <Link href="/shelf" className="btn btn-ghost text-sm">🫙 マイフレーバー</Link>
         <InviteButton />
-        <form action={signOut} className="md:hidden">
-          <button type="submit" className="btn btn-ghost text-sm">ログアウト</button>
-        </form>
+        <Link href="/mypage/edit" className="btn btn-ghost text-sm">⚙️ 設定</Link>
       </div>
-
-      {/* 管理者リンク */}
-      {user.profile?.is_admin && (
-        <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-xs">
-          <Link href="/admin/pro" style={{ color: 'var(--color-ember-hot)', fontWeight: 600 }}>🛡 プロ認証の審査</Link>
-          <Link href="/admin/clicks" style={{ color: 'var(--color-ember-hot)', fontWeight: 600 }}>📊 送客クリック集計</Link>
-          <Link href="/admin/reports" style={{ color: 'var(--color-ember-hot)', fontWeight: 600 }}>🛡 通報の管理</Link>
-        </div>
-      )}
-
-      <section className="mt-8">
-        <h2 className="text-sm" style={{ fontWeight: 700, color: 'var(--color-ash)' }}>表示モード</h2>
-        {(() => {
-          const mode = resolveMode(user.profile)
-          return (
-            <div className="card mt-2 flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <p className="text-sm" style={{ fontWeight: 700 }}>
-                  {mode === 'pro' ? '🛠 プロモード' : '🔰 かんたんモード'}
-                </p>
-                <p className="mt-1 text-xs" style={{ color: 'var(--color-ash-dim)' }}>
-                  {mode === 'pro'
-                    ? '熱管理・器具・蒸らし・練習ログまで、すべての機能が使えます。'
-                    : 'フレーバーと味わい中心のシンプルな表示。細かい設定は隠れています。'}
-                </p>
-              </div>
-              {mode === 'pro' ? (
-                <ModeToggle target="simple" label="🔰 かんたんモードにする" className="btn btn-ghost shrink-0 text-sm" />
-              ) : (
-                <ModeToggle target="pro" label="🛠 プロモードにする" className="btn btn-ember shrink-0 text-sm" />
-              )}
-            </div>
-          )
-        })()}
-      </section>
-
-      <section id="profile-edit" className="mt-8 scroll-mt-20">
-        <h2 className="text-sm" style={{ fontWeight: 700, color: 'var(--color-ash)' }}>プロフィール</h2>
-        <ProfileForm profile={user.profile} />
-      </section>
 
       <section className="mt-8">
         <div className="mb-3 flex items-center justify-between">
@@ -197,15 +148,6 @@ export default async function MyPage() {
             から働いているお店に参加申請できます。
           </div>
         )}
-      </section>
-
-      <section className="mt-8">
-        <h2 className="mb-3 text-sm" style={{ fontWeight: 700, color: 'var(--color-ash)' }}>プロ認証（シーシャ店スタッフ）</h2>
-        <ProApplicationForm
-          isPro={user.profile?.is_pro ?? false}
-          application={proApp}
-          shops={myShops.map((s) => ({ id: s.id, name: s.name }))}
-        />
       </section>
 
       <div className="divider my-10" />

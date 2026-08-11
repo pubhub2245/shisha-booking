@@ -30,7 +30,7 @@ export function OnboardingCard({
 
   const steps: Step[] = [
     { key: 'profile', label: 'プロフィールを設定', href: '/mypage', done: hasProfile },
-    { key: 'shelf', label: 'マイ棚にフレーバーを登録', href: '/shelf', done: hasShelf },
+    { key: 'shelf', label: 'マイフレーバーを登録', href: '/shelf', done: hasShelf },
     // かんたんモードでは「最初のミックスを投稿」は初心者にハードルが高いのでガイドから外す
     ...(mode === 'simple'
       ? []

@@ -45,7 +45,7 @@ export async function SiteHeader() {
           <Link href="/flavors" className="transition-colors hover:text-[var(--color-cream)]">フレーバー</Link>
           {/* プロは深掘り導線、初心者は学習導線 */}
           {isPro ? (
-            user && <Link href="/shelf" className="transition-colors hover:text-[var(--color-cream)]">マイ棚</Link>
+            user && <Link href="/shelf" className="transition-colors hover:text-[var(--color-cream)]">マイフレーバー</Link>
           ) : (
             <Link href="/guide" className="transition-colors hover:text-[var(--color-cream)]">作り方</Link>
           )}
