@@ -4,6 +4,7 @@ import type { Metadata } from 'next'
 import { getCurrentUser } from '@/lib/auth'
 import { getFlavors } from '@/lib/queries'
 import { FlavorAddForms } from '@/components/flavor-add-forms'
+import { FlavorImport } from '@/components/flavor-import'
 
 export const dynamic = 'force-dynamic'
 export const metadata: Metadata = { title: 'フレーバーを図鑑に追加 — MixHub' }
@@ -41,6 +42,12 @@ export default async function AddFlavorPage() {
       <p className="mt-2 text-sm leading-relaxed" style={{ color: 'var(--color-ash)' }}>
         実際に使うフレーバーを図鑑に登録できます。正確な情報でお願いします（現在 {flavors.length} 種）。
       </p>
+
+      {isAdmin && (
+        <div className="mt-6">
+          <FlavorImport />
+        </div>
+      )}
 
       <FlavorAddForms isAdmin={isAdmin} brands={brands} />
     </div>
