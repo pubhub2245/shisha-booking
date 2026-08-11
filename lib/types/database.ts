@@ -77,6 +77,16 @@ export type Mix = {
   pack_style: string | null
   pack_photo_url: string | null
   placement_note: string | null
+  // 機材・ギア（投稿映え）
+  gear_stem: string | null
+  gear_bowl_name: string | null
+  gear_hms_name: string | null
+  gear_charcoal: string | null
+  base_liquid: string | null
+  // こだわり・核心（ロック対象になりうる）
+  prep_note: string | null
+  ratio_reason: string | null
+  serve_note: string | null
   like_count: number
   view_count: number
   combo_key: string

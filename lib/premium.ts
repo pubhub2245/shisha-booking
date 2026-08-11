@@ -5,6 +5,8 @@ export const LOCKABLE_SECTIONS = [
   { v: 'heat_curve', l: '熱管理カーブ（グラフ）', icon: '🔥' },
   { v: 'heat_notes', l: '熱管理の補足・置き方', icon: '📝' },
   { v: 'setup', l: 'セットアップ（炭・HMS等）', icon: '🪨' },
+  { v: 'gear', l: '機材・ギア（本体/ボウル/炭など）', icon: '🛠' },
+  { v: 'secrets', l: 'こだわり・核心（下処理/配合の狙い等）', icon: '🔒' },
 ] as const
 
 export type LockableSection = (typeof LOCKABLE_SECTIONS)[number]['v']

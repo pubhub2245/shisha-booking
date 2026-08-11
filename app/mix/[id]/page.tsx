@@ -139,7 +139,10 @@ export default async function MixDetail({ params }: { params: Promise<{ id: stri
     !!(mix.hms_type || mix.charcoal_type || mix.charcoal_count != null || mix.steep_minutes != null || mix.steep_heat != null || mix.wind_cover != null || mix.bowl_type || mix.pack_style || mix.pack_photo_url)
   const hasCurve = !hiddenSec('heat_curve') && !!((mix.heat_curve && mix.heat_curve.length >= 2) || mix.heat_events)
   const hasNotes = !hiddenSec('heat_notes') && !!(mix.heat_management || mix.placement_note)
-  const showBrew = hasSetup || hasCurve || hasNotes
+  const hasGear =
+    !hiddenSec('gear') && !!(mix.gear_stem || mix.gear_bowl_name || mix.gear_hms_name || mix.gear_charcoal || mix.base_liquid)
+  const hasSecrets = !hiddenSec('secrets') && !!(mix.prep_note || mix.ratio_reason || mix.serve_note)
+  const showBrew = hasSetup || hasCurve || hasNotes || hasGear || hasSecrets
   const showPhotos = !hiddenSec('photos') && photos.length > 0
 
   const mixUrl = `${SITE_URL}/mix/${mix.id}`
@@ -544,6 +547,53 @@ export default async function MixDetail({ params }: { params: Promise<{ id: stri
               </div>
             )}
           </div>
+            ))}
+
+          {/* 機材・ギア */}
+          {hasGear &&
+            (locked('gear') ? (
+              <div className="mt-4"><LockedNote mixId={mix.id} title="機材・ギア" icon="🛠" price={mix.price} isAuthed={!!user} /></div>
+            ) : (
+              <div className="card mt-4 p-5">
+                <div className="mb-3 text-sm" style={{ fontWeight: 700 }}>🛠 機材・ギア</div>
+                <dl className="grid grid-cols-2 gap-x-4 gap-y-3 text-sm sm:grid-cols-3">
+                  {[
+                    { k: '本体・パイプ', v: mix.gear_stem },
+                    { k: 'ボウル', v: mix.gear_bowl_name },
+                    { k: 'HMS', v: mix.gear_hms_name },
+                    { k: '炭', v: mix.gear_charcoal },
+                    { k: 'ベース', v: mix.base_liquid },
+                  ]
+                    .filter((x) => x.v)
+                    .map((x) => (
+                      <div key={x.k}>
+                        <dt className="text-xs" style={{ color: 'var(--color-ash-dim)' }}>{x.k}</dt>
+                        <dd style={{ fontWeight: 600 }}>{x.v}</dd>
+                      </div>
+                    ))}
+                </dl>
+              </div>
+            ))}
+
+          {/* こだわり・核心 */}
+          {hasSecrets &&
+            (locked('secrets') ? (
+              <div className="mt-4"><LockedNote mixId={mix.id} title="こだわり・核心" icon="🔒" price={mix.price} isAuthed={!!user} /></div>
+            ) : (
+              <div className="mt-4 grid gap-4 sm:grid-cols-3">
+                {[
+                  { t: '下処理', v: mix.prep_note, icon: '🧪' },
+                  { t: '配合の狙い', v: mix.ratio_reason, icon: '⚖️' },
+                  { t: '提供・吸い方のコツ', v: mix.serve_note, icon: '💨' },
+                ]
+                  .filter((x) => x.v)
+                  .map((x) => (
+                    <div key={x.t} className="card p-5">
+                      <div className="mb-2 text-sm" style={{ fontWeight: 700 }}>{x.icon} {x.t}</div>
+                      <p className="whitespace-pre-wrap text-sm leading-relaxed" style={{ color: 'var(--color-ash)' }}>{x.v}</p>
+                    </div>
+                  ))}
+              </div>
             ))}
           </details>
         </section>

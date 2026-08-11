@@ -36,6 +36,14 @@ export type MixFormInitial = {
   packPhotoUrl: string
   photos: string[]
   placement: string
+  gearStem: string
+  gearBowlName: string
+  gearHmsName: string
+  gearCharcoal: string
+  baseLiquid: string
+  prepNote: string
+  ratioReason: string
+  serveNote: string
   premium: boolean
   price: string
   lockedSections: string[]
@@ -445,6 +453,32 @@ export function MixForm({
       <div className="field">
         <label>🍃 フレーバーの置き方</label>
         <textarea name="placement_note" defaultValue={initial?.placement} placeholder="例：ダブルアップルを底に厚め、ミントは表面に薄く散らす。" maxLength={600} />
+      </div>
+
+      {/* 機材・ギア（投稿映え） */}
+      <div className="mt-2 rounded-xl border p-4" style={{ borderColor: 'var(--line)' }}>
+        <div className="text-sm" style={{ fontWeight: 700 }}>🛠 機材・ギア</div>
+        <p className="mt-0.5 text-xs" style={{ color: 'var(--color-ash-dim)' }}>使っている機材を書くほど再現しやすく、投稿の説得力も増します。</p>
+        <div className="mt-3 grid gap-3 sm:grid-cols-2">
+          <div className="field"><label>本体・パイプ</label><input name="gear_stem" defaultValue={initial?.gearStem} placeholder="例：Wookah / Steamulation" maxLength={120} /></div>
+          <div className="field"><label>ボウルの製品名</label><input name="gear_bowl_name" defaultValue={initial?.gearBowlName} placeholder="例：Oblako Phunnel M" maxLength={120} /></div>
+          <div className="field"><label>HMS/ヒートマネジメント</label><input name="gear_hms_name" defaultValue={initial?.gearHmsName} placeholder="例：Kaloud Lotus II" maxLength={120} /></div>
+          <div className="field"><label>炭のブランド・サイズ</label><input name="gear_charcoal" defaultValue={initial?.gearCharcoal} placeholder="例：Coco Nara 26mm" maxLength={120} /></div>
+          <div className="field sm:col-span-2"><label>ベースの液体</label><input name="base_liquid" defaultValue={initial?.baseLiquid} placeholder="例：水＋氷多め / 冷やした緑茶" maxLength={120} /></div>
+        </div>
+      </div>
+
+      {/* こだわり・核心（ロック対象になりうる） */}
+      <div className="mt-3 rounded-xl border p-4" style={{ borderColor: 'var(--line)' }}>
+        <div className="text-sm" style={{ fontWeight: 700 }}>🔒 こだわり・核心</div>
+        <p className="mt-0.5 text-xs" style={{ color: 'var(--color-ash-dim)' }}>
+          あなたの「秘密」になる部分。書いておいて、下の有料ノートで<b>この項目だけロック</b>することもできます。
+        </p>
+        <div className="mt-3 flex flex-col gap-3">
+          <div className="field"><label>下処理（タバコの手入れ・シロップ切り等）</label><textarea name="prep_note" defaultValue={initial?.prepNote} placeholder="例：開封後に軽くほぐし、余分なシロップを切る。○分置く、など。" maxLength={800} /></div>
+          <div className="field"><label>配合の狙い（なぜこの比率か）</label><textarea name="ratio_reason" defaultValue={initial?.ratioReason} placeholder="例：ミントを1割に抑えて甘さを主役に。冷涼感は氷で補う。" maxLength={800} /></div>
+          <div className="field"><label>提供・吸い方のコツ</label><textarea name="serve_note" defaultValue={initial?.serveNote} placeholder="例：最初の数吸いはゆっくり。○分ごとに炭をローテ。" maxLength={800} /></div>
+        </div>
       </div>
         </div>
       </details>

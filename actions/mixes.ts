@@ -147,6 +147,21 @@ function parseHeatSetup(formData: FormData) {
   }
 }
 
+/** 機材・ギア＆こだわり系の自由記入項目をパース（作り方の情報量を増やす拡張項目）。 */
+function parseExtraFields(formData: FormData) {
+  const t = (k: string, max: number) => String(formData.get(k) ?? '').trim().slice(0, max) || null
+  return {
+    gear_stem: t('gear_stem', 120),
+    gear_bowl_name: t('gear_bowl_name', 120),
+    gear_hms_name: t('gear_hms_name', 120),
+    gear_charcoal: t('gear_charcoal', 120),
+    base_liquid: t('base_liquid', 120),
+    prep_note: t('prep_note', 800),
+    ratio_reason: t('ratio_reason', 800),
+    serve_note: t('serve_note', 800),
+  }
+}
+
 /** ログインユーザーが管理者か（フレーバー追加・購入リンク設定用） */
 async function isAdmin(
   supabase: Awaited<ReturnType<typeof createClient>>,
@@ -284,6 +299,7 @@ export async function createMix(_prev: MixFormState, formData: FormData): Promis
       heat_events: heatEvents,
       ...heatSetup,
       placement_note: placement,
+      ...parseExtraFields(formData),
       combo_key: comboKey(flavors),
       hidden_sections: parseHiddenSections(formData),
       ...premiumFields,
@@ -354,7 +370,7 @@ export async function updateMix(_prev: MixFormState, formData: FormData): Promis
 
   const { error } = await supabase
     .from('mixes')
-    .update({ title, description, taste_tags: tasteTags, heat_management: heat, heat_curve: heatCurve, heat_events: heatEvents, ...heatSetup, placement_note: placement, combo_key: comboKey(flavors), hidden_sections: parseHiddenSections(formData), ...premiumFields })
+    .update({ title, description, taste_tags: tasteTags, heat_management: heat, heat_curve: heatCurve, heat_events: heatEvents, ...heatSetup, placement_note: placement, ...parseExtraFields(formData), combo_key: comboKey(flavors), hidden_sections: parseHiddenSections(formData), ...premiumFields })
     .eq('id', mixId)
   if (error) {
     console.error('[updateMix]', error.message)
