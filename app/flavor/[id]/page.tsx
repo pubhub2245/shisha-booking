@@ -7,6 +7,7 @@ import {
   getLikedMixIds,
   getMyShelfFlavorIds,
   getShopsWithFlavor,
+  getMyShops,
   getFlavorAdder,
   getFlavorRating,
   getFlavorLogs,
@@ -46,7 +47,7 @@ export default async function FlavorDetail({ params }: { params: Promise<{ id: s
   const flavor = await getFlavorById(id)
   if (!flavor) notFound()
 
-  const [mixes, likedIds, user, shelfIds, shops, adder, rating, logs, publicLogs] = await Promise.all([
+  const [mixes, likedIds, user, shelfIds, shops, adder, rating, logs, publicLogs, myShops] = await Promise.all([
     getMixesUsingFlavor(flavor),
     getLikedMixIds(),
     getCurrentUser(),
@@ -56,6 +57,7 @@ export default async function FlavorDetail({ params }: { params: Promise<{ id: s
     getFlavorRating(flavor.id),
     getFlavorLogs(flavor.id),
     getPublicFlavorLogs(flavor.id),
+    getMyShops(),
   ])
   // 練習ログのサマリー・散布図データ
   const ratedLogs = logs.filter((l) => l.rating != null)
@@ -237,7 +239,7 @@ export default async function FlavorDetail({ params }: { params: Promise<{ id: s
               </div>
             )}
 
-            <FlavorLogForm flavorId={flavor.id} />
+            <FlavorLogForm flavorId={flavor.id} shops={myShops.map((s) => ({ id: s.id, name: s.name }))} />
 
             {logs.length > 0 && (
               <div className="mt-3 flex flex-col gap-2">

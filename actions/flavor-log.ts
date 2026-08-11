@@ -26,6 +26,43 @@ function enumOrNull(formData: FormData, key: string, allowed: string[]): string 
   return allowed.includes(s) ? s : null
 }
 
+/** ユーザーが承認済みメンバーの店なら shopId を返す。そうでなければ null。 */
+async function approvedShopId(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  userId: string,
+  shopId: string
+): Promise<string | null> {
+  const { data } = await supabase
+    .from('shop_members')
+    .select('status')
+    .eq('shop_id', shopId)
+    .eq('user_id', userId)
+    .maybeSingle()
+  return data && (data as { status: string }).status === 'approved' ? shopId : null
+}
+
+/** 既存ログの「店に共有」を切り替える（本人のみ）。 */
+export async function toggleLogShopShare(formData: FormData): Promise<void> {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) return
+  const id = Number(formData.get('id') ?? '')
+  const flavorId = String(formData.get('flavor_id') ?? '')
+  const shopIdRaw = String(formData.get('shop_id') ?? '').trim()
+  if (!id) return
+  const { data: cur } = await supabase.from('flavor_logs').select('shop_id').eq('id', id).eq('user_id', user.id).maybeSingle()
+  if (!cur) return
+  // すでに共有中なら解除、そうでなければ指定店に共有（承認済みのみ）
+  let next: string | null = null
+  if (!(cur as { shop_id: string | null }).shop_id && shopIdRaw) {
+    next = await approvedShopId(supabase, user.id, shopIdRaw)
+  }
+  await supabase.from('flavor_logs').update({ shop_id: next }).eq('id', id).eq('user_id', user.id)
+  if (flavorId) revalidatePath(`/flavor/${flavorId}`)
+}
+
 /** 練習ログを1件追加する。 */
 export async function addFlavorLog(_prev: FlavorLogState, formData: FormData): Promise<FlavorLogState> {
   const supabase = await createClient()
@@ -36,6 +73,10 @@ export async function addFlavorLog(_prev: FlavorLogState, formData: FormData): P
 
   const flavorId = String(formData.get('flavor_id') ?? '')
   if (!flavorId) return { error: '対象が不明です。' }
+
+  // 賄いとして店に共有する場合、その店の承認済みメンバーか検証
+  const shopIdRaw = String(formData.get('shop_id') ?? '').trim()
+  const shopId = shopIdRaw ? await approvedShopId(supabase, user.id, shopIdRaw) : null
 
   const row: Record<string, unknown> = {
     user_id: user.id,
@@ -48,6 +89,7 @@ export async function addFlavorLog(_prev: FlavorLogState, formData: FormData): P
     rating: numOrNull(formData, 'rating', 1, 5, true),
     result_note: strOrNull(formData, 'result_note', 500),
     change_note: strOrNull(formData, 'change_note', 300),
+    shop_id: shopId,
   }
   const loggedAt = String(formData.get('logged_at') ?? '').trim()
   if (loggedAt) row.logged_at = loggedAt

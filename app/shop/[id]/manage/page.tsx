@@ -9,13 +9,17 @@ import {
   getShopFlavorIds,
   getShopMembers,
   getPendingMembers,
+  getShopMakanaiLogs,
 } from '@/lib/queries'
 import { ShopFlavorChip } from '@/components/shop-flavor-chip'
 import { MemberActions } from '@/components/member-actions'
 import { TransferOwnerButton } from '@/components/transfer-owner-button'
 import { VerifiedBadge } from '@/components/verified-badge'
+import { Avatar } from '@/components/avatar'
 import { ShopEditForm } from './shop-edit-form'
 import { SITE_URL } from '@/lib/site'
+import { relativeTime } from '@/lib/time'
+import { hmsOption, charcoalLabel, packOption } from '@/lib/heat'
 import type { Flavor } from '@/lib/types/database'
 
 export const dynamic = 'force-dynamic'
@@ -35,11 +39,12 @@ export default async function ShopManagePage({ params }: { params: Promise<{ id:
   if (membership?.status !== 'approved') redirect(`/shop/${shop.id}`)
   const isOwner = membership.role === 'owner'
 
-  const [flavors, stockIds, members, pending] = await Promise.all([
+  const [flavors, stockIds, members, pending, makanai] = await Promise.all([
     getFlavorsWithUsage(),
     getShopFlavorIds(shop.id),
     getShopMembers(shop.id),
     isOwner ? getPendingMembers(shop.id) : Promise.resolve([]),
+    getShopMakanaiLogs(shop.id),
   ])
   const stockCount = stockIds.size
 
@@ -68,6 +73,54 @@ export default async function ShopManagePage({ params }: { params: Promise<{ id:
       <p className="mt-2 text-sm" style={{ color: 'var(--color-ash)' }}>
         在庫棚を更新すれば、店頭QRメニューにそのまま反映されます。{isOwner ? 'オーナー権限で店舗情報・スタッフ承認もできます。' : '（在庫の編集ができます）'}
       </p>
+
+      {/* ---------- 賄いシーシャの記録 ---------- */}
+      <section className="card mt-8 p-6">
+        <div className="flex items-baseline justify-between gap-2">
+          <h2 className="flex items-center gap-2 text-lg" style={{ fontWeight: 800 }}>
+            🍵 賄いシーシャの記録
+          </h2>
+          <span className="text-xs" style={{ color: 'var(--color-ash-dim)' }}>{makanai.length}件</span>
+        </div>
+        <p className="mt-1 text-xs leading-relaxed" style={{ color: 'var(--color-ash)' }}>
+          スタッフが「賄い」として共有した練習記録です。誰が・いつ・どのフレーバーを・どんな設定で作ったかを確認できます。
+        </p>
+        {makanai.length === 0 ? (
+          <div className="mt-4 rounded-lg border border-dashed p-5 text-center text-sm" style={{ borderColor: 'var(--line-strong)', color: 'var(--color-ash-dim)' }}>
+            まだ記録がありません。スタッフがフレーバー図鑑の「今日のこすり」で <b>賄いとしてこのお店に共有</b> すると、ここに並びます。
+          </div>
+        ) : (
+          <ul className="mt-4 flex flex-col gap-2">
+            {makanai.map((log) => (
+              <li key={log.id} className="rounded-xl border p-3" style={{ borderColor: 'var(--line)' }}>
+                <div className="flex flex-wrap items-center gap-2 text-sm">
+                  <Avatar name={log.author?.display_name || log.author?.username || '?'} seed={log.user_id} size={22} />
+                  <span style={{ fontWeight: 700 }}>
+                    {log.author?.display_name || (log.author?.username ? `@${log.author.username}` : 'スタッフ')}
+                  </span>
+                  {log.flavor && (
+                    <Link href={`/flavor/${log.flavor_id}`} className="hover:underline" style={{ color: 'var(--color-ember-hot)', fontWeight: 600 }}>
+                      {log.flavor.brand} {log.flavor.name}
+                    </Link>
+                  )}
+                  {log.rating != null && <span title="出来">{'★'.repeat(log.rating)}</span>}
+                  <span className="ml-auto text-xs" style={{ color: 'var(--color-ash-dim)' }}>{relativeTime(log.logged_at)}</span>
+                </div>
+                <div className="mt-1.5 flex flex-wrap gap-x-3 gap-y-0.5 text-xs" style={{ color: 'var(--color-ash)' }}>
+                  {log.steep_minutes != null && <span>♨️ 蒸らし {log.steep_minutes}分</span>}
+                  {log.steep_heat != null && <span>🔥 到達 {log.steep_heat}</span>}
+                  {log.hms_type && <span>{hmsOption(log.hms_type)?.l ?? log.hms_type}</span>}
+                  {log.charcoal_type && <span>炭：{charcoalLabel(log.charcoal_type)}</span>}
+                  {log.pack_style && <span>{packOption(log.pack_style)?.l ?? log.pack_style}</span>}
+                </div>
+                {log.result_note && (
+                  <p className="mt-1.5 whitespace-pre-wrap text-xs" style={{ color: 'var(--color-ash)' }}>{log.result_note}</p>
+                )}
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
 
       {/* ---------- 店頭QR ---------- */}
       <section className="card mt-8 flex flex-col items-center gap-4 p-6 sm:flex-row sm:gap-6">

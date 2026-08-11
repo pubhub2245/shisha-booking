@@ -28,6 +28,7 @@ import type {
   Report,
   FlavorLog,
   FlavorLogWithAuthor,
+  MakanaiLog,
   Idea,
   IdeaWithVotes,
   IdeaComment,
@@ -221,6 +222,37 @@ export async function getShopFlavors(shopId: string): Promise<Flavor[]> {
     if (ids.length === 0) return []
     const { data } = await supabase.from('flavors').select('*').in('id', ids).order('brand').order('name')
     return (data ?? []) as Flavor[]
+  } catch {
+    return []
+  }
+}
+
+/** 店に共有された賄いシーシャの練習記録（オーナー／承認スタッフ閲覧用）。 */
+export async function getShopMakanaiLogs(shopId: string): Promise<MakanaiLog[]> {
+  try {
+    const supabase = await createClient()
+    const { data } = await supabase
+      .from('flavor_logs')
+      .select('*')
+      .eq('shop_id', shopId)
+      .order('logged_at', { ascending: false })
+      .limit(200)
+    const logs = (data ?? []) as FlavorLog[]
+    if (logs.length === 0) return []
+    const userIds = [...new Set(logs.map((l) => l.user_id))]
+    const flavorIds = [...new Set(logs.map((l) => l.flavor_id))]
+    const [authorsRes, flavorsRes] = await Promise.all([
+      supabase.from('profiles').select('id, username, display_name, is_shop, is_pro, shop_name').in('id', userIds),
+      supabase.from('flavors').select('id, brand, name').in('id', flavorIds),
+    ])
+    const amap = new Map((authorsRes.data ?? []).map((a) => [(a as MixAuthor).id, a as MixAuthor]))
+    const fmap = new Map(
+      (flavorsRes.data ?? []).map((f) => {
+        const r = f as { id: string; brand: string; name: string }
+        return [r.id, { brand: r.brand, name: r.name }]
+      })
+    )
+    return logs.map((l) => ({ ...l, author: amap.get(l.user_id) ?? null, flavor: fmap.get(l.flavor_id) ?? null }))
   } catch {
     return []
   }

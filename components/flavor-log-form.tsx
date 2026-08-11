@@ -5,7 +5,13 @@ import { useRouter } from 'next/navigation'
 import { addFlavorLog, type FlavorLogState } from '@/actions/flavor-log'
 import { HMS_OPTIONS, CHARCOAL_OPTIONS, PACK_OPTIONS } from '@/lib/heat'
 
-export function FlavorLogForm({ flavorId }: { flavorId: string }) {
+export function FlavorLogForm({
+  flavorId,
+  shops = [],
+}: {
+  flavorId: string
+  shops?: { id: string; name: string }[]
+}) {
   const router = useRouter()
   const [state, action, pending] = useActionState<FlavorLogState, FormData>(addFlavorLog, null)
   const formRef = useRef<HTMLFormElement>(null)
@@ -105,6 +111,21 @@ export function FlavorLogForm({ flavorId }: { flavorId: string }) {
           <label>前回からの変更点（任意）</label>
           <input name="change_note" placeholder="例：到達火力を5上げた／蒸らしを1分短く" maxLength={300} />
         </div>
+
+        {shops.length > 0 && (
+          <div className="field">
+            <label>🍵 賄いとしてお店に記録（任意）</label>
+            <select name="shop_id" defaultValue="">
+              <option value="">共有しない（自分だけの記録）</option>
+              {shops.map((s) => (
+                <option key={s.id} value={s.id}>{s.name} に共有</option>
+              ))}
+            </select>
+            <p className="mt-1 text-xs" style={{ color: 'var(--color-ash-dim)' }}>
+              選ぶと、この記録がお店のオーナー・スタッフに見えます（賄いシーシャの練習記録）。
+            </p>
+          </div>
+        )}
 
         <button type="submit" disabled={pending} className="btn btn-ember self-end text-sm">
           {pending ? '記録中…' : '記録する'}

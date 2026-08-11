@@ -119,7 +119,14 @@ export type FlavorLog = {
   change_note: string | null
   is_best: boolean
   is_public: boolean
+  shop_id: string | null
   created_at: string
+}
+
+/** 賄いシーシャの記録（店に共有された練習ログ・オーナー閲覧用） */
+export type MakanaiLog = FlavorLog & {
+  author: MixAuthor | null
+  flavor: { brand: string; name: string } | null
 }
 
 /** 「参考になった」記録 */
