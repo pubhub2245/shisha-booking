@@ -119,7 +119,7 @@ export default async function Home({
 
       {/* ---------- オンボーディング（初回ユーザー向け） ---------- */}
       {user && (
-        <OnboardingCard hasProfile={hasProfile} hasShelf={onboarding.hasShelf} hasPosted={onboarding.hasPosted} />
+        <OnboardingCard hasProfile={hasProfile} hasShelf={onboarding.hasShelf} hasPosted={onboarding.hasPosted} mode={mode} />
       )}
 
       {/* ---------- 気分で探す（デフォルトは味わい＋検索、詳細は折りたたみ） ---------- */}

@@ -13,10 +13,12 @@ export function OnboardingCard({
   hasProfile,
   hasShelf,
   hasPosted,
+  mode = 'pro',
 }: {
   hasProfile: boolean
   hasShelf: boolean
   hasPosted: boolean
+  mode?: 'simple' | 'pro'
 }) {
   const [dismissed, setDismissed] = useState(true) // 初期は隠す（ハイドレーション後に判定）
 
@@ -29,7 +31,10 @@ export function OnboardingCard({
   const steps: Step[] = [
     { key: 'profile', label: 'プロフィールを設定', href: '/mypage', done: hasProfile },
     { key: 'shelf', label: 'マイ棚にフレーバーを登録', href: '/shelf', done: hasShelf },
-    { key: 'post', label: '最初のミックスを投稿', href: '/post', done: hasPosted },
+    // かんたんモードでは「最初のミックスを投稿」は初心者にハードルが高いのでガイドから外す
+    ...(mode === 'simple'
+      ? []
+      : [{ key: 'post', label: '最初のミックスを投稿', href: '/post', done: hasPosted } as Step]),
   ]
   const doneCount = steps.filter((s) => s.done).length
 
