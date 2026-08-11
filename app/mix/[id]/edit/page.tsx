@@ -37,6 +37,7 @@ export default async function EditMixPage({ params }: { params: Promise<{ id: st
     premium: mix.premium,
     price: mix.price != null ? String(mix.price) : '',
     lockedSections: mix.locked_sections ?? [],
+    hiddenSections: mix.hidden_sections ?? [],
     flavors: (mix.mix_flavors ?? []).map((f) => ({
       flavorId: f.flavor_id ?? '',
       name: f.name,

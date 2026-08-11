@@ -6,6 +6,7 @@ import type { Flavor, HeatPoint, HeatEvent } from '@/lib/types/database'
 import { HeatCurveEditor } from '@/components/heat-curve-editor'
 import { CHARCOAL_OPTIONS, CHARCOAL_ORIENTATION_OPTIONS } from '@/lib/heat'
 import { LOCKABLE_SECTIONS } from '@/lib/premium'
+import { MIX_DISPLAY_SECTIONS } from '@/lib/mix-sections'
 import { HmsPicker } from '@/components/hms-picker'
 import { BowlPicker } from '@/components/bowl-picker'
 import { PackPicker } from '@/components/pack-picker'
@@ -38,6 +39,7 @@ export type MixFormInitial = {
   premium: boolean
   price: string
   lockedSections: string[]
+  hiddenSections: string[]
   flavors: { flavorId: string; name: string; brand: string; ratio: string; url: string }[]
 }
 
@@ -494,6 +496,33 @@ export function MixForm({
           </div>
         </>
       )}
+
+      {/* この投稿に載せる項目（投稿者が自由に選べる） */}
+      <div className="divider" />
+      <div className="card flex flex-col gap-2 p-5">
+        <div style={{ fontWeight: 700 }}>🧩 この投稿に載せる項目</div>
+        <p className="text-xs" style={{ color: 'var(--color-ash-dim)' }}>
+          チェックした項目だけを詳細ページに表示します。入力しても「載せない」を選べば非表示にできます。
+        </p>
+        <input type="hidden" name="section_control" value="1" />
+        <div className="mt-1 flex flex-col gap-1.5">
+          {MIX_DISPLAY_SECTIONS.map((s) => (
+            <label key={s.v} className="flex cursor-pointer items-start gap-2 text-sm">
+              <input
+                type="checkbox"
+                name="show_section"
+                value={s.v}
+                defaultChecked={!(initial?.hiddenSections ?? []).includes(s.v)}
+                className="mt-0.5"
+              />
+              <span>
+                {s.label}
+                <span className="ml-1 text-xs" style={{ color: 'var(--color-ash-dim)' }}>（{s.hint}）</span>
+              </span>
+            </label>
+          ))}
+        </div>
+      </div>
 
       <button type="submit" disabled={pending} className="btn btn-ember self-start">
         {pending ? '保存中…' : mode === 'edit' ? '変更を保存する' : 'ミックスを投稿する'}

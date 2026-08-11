@@ -84,6 +84,7 @@ export type Mix = {
   premium: boolean
   price: number | null
   locked_sections: string[]
+  hidden_sections: string[]
   created_at: string
 }
 

@@ -6,6 +6,7 @@ import { redirect } from 'next/navigation'
 import type { HeatPoint, HeatEvent } from '@/lib/types/database'
 import { comboKey } from '@/lib/combo'
 import { normalizePrice, LOCKABLE_SECTIONS } from '@/lib/premium'
+import { MIX_DISPLAY_SECTION_KEYS } from '@/lib/mix-sections'
 import { ALL_TASTE_TAGS } from '@/lib/tags'
 import { isValidMixPhotoUrl } from '@/lib/storage'
 
@@ -225,6 +226,17 @@ async function parsePremium(
   return { premium: true, price: normalizePrice(formData.get('price')), locked_sections: locked }
 }
 
+/**
+ * 「載せる項目」を解釈し、非表示にするセクションのキー配列を返す。
+ * フォームに項目コントロールがある(section_control=1)ときだけ有効。
+ * チェック(show_section)された項目＝表示、未チェック＝非表示。
+ */
+function parseHiddenSections(formData: FormData): string[] {
+  if (formData.get('section_control') !== '1') return []
+  const shown = new Set(formData.getAll('show_section').map(String))
+  return MIX_DISPLAY_SECTION_KEYS.filter((s) => !shown.has(s))
+}
+
 /** 追加写真URL（自分のストレージ公開URLのみ・最大8枚） */
 function parseMixPhotoUrls(formData: FormData): string[] {
   return formData
@@ -273,6 +285,7 @@ export async function createMix(_prev: MixFormState, formData: FormData): Promis
       ...heatSetup,
       placement_note: placement,
       combo_key: comboKey(flavors),
+      hidden_sections: parseHiddenSections(formData),
       ...premiumFields,
     })
     .select('id')
@@ -341,7 +354,7 @@ export async function updateMix(_prev: MixFormState, formData: FormData): Promis
 
   const { error } = await supabase
     .from('mixes')
-    .update({ title, description, taste_tags: tasteTags, heat_management: heat, heat_curve: heatCurve, heat_events: heatEvents, ...heatSetup, placement_note: placement, combo_key: comboKey(flavors), ...premiumFields })
+    .update({ title, description, taste_tags: tasteTags, heat_management: heat, heat_curve: heatCurve, heat_events: heatEvents, ...heatSetup, placement_note: placement, combo_key: comboKey(flavors), hidden_sections: parseHiddenSections(formData), ...premiumFields })
     .eq('id', mixId)
   if (error) {
     console.error('[updateMix]', error.message)

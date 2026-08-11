@@ -132,6 +132,16 @@ export default async function MixDetail({ params }: { params: Promise<{ id: stri
   const locked = (section: string) =>
     mix.premium && (mix.locked_sections ?? []).includes(section) && !entitled
 
+  // 投稿者が「載せる項目」で非表示にしたセクション
+  const hiddenSec = (s: string) => (mix.hidden_sections ?? []).includes(s)
+  const hasSetup =
+    !hiddenSec('setup') &&
+    !!(mix.hms_type || mix.charcoal_type || mix.charcoal_count != null || mix.steep_minutes != null || mix.steep_heat != null || mix.wind_cover != null || mix.bowl_type || mix.pack_style || mix.pack_photo_url)
+  const hasCurve = !hiddenSec('heat_curve') && !!((mix.heat_curve && mix.heat_curve.length >= 2) || mix.heat_events)
+  const hasNotes = !hiddenSec('heat_notes') && !!(mix.heat_management || mix.placement_note)
+  const showBrew = hasSetup || hasCurve || hasNotes
+  const showPhotos = !hiddenSec('photos') && photos.length > 0
+
   const mixUrl = `${SITE_URL}/mix/${mix.id}`
   const flavorLine = flavors.map((f) => f.name).join(' × ')
   // 表示名＝フレーバー名。title は任意の一言（あれば添える）
@@ -346,7 +356,7 @@ export default async function MixDetail({ params }: { params: Promise<{ id: stri
       </section>
 
       {/* ---------- PHOTOS（工程・追加写真） ---------- */}
-      {photos.length > 0 && (
+      {showPhotos && (
         <section className="mt-8">
           <h2 className="mb-3 text-sm eyebrow">Photos — 工程・写真</h2>
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
@@ -366,19 +376,7 @@ export default async function MixDetail({ params }: { params: Promise<{ id: stri
       )}
 
       {/* ---------- BREW NOTES ---------- */}
-      {(mix.heat_curve ||
-        mix.heat_events ||
-        mix.heat_management ||
-        mix.placement_note ||
-        mix.hms_type ||
-        mix.charcoal_type ||
-        mix.charcoal_count != null ||
-        mix.steep_minutes != null ||
-        mix.steep_heat != null ||
-        mix.wind_cover != null ||
-        mix.bowl_type ||
-        mix.pack_style ||
-        mix.pack_photo_url) && (
+      {showBrew && (
         <section className="mt-8">
           <details open={mode !== 'simple'}>
             <summary className="mb-3 cursor-pointer list-none text-sm eyebrow" style={{ color: 'var(--color-ash-dim)' }}>
@@ -388,7 +386,7 @@ export default async function MixDetail({ params }: { params: Promise<{ id: stri
               )}
             </summary>
 
-          {(mix.hms_type || mix.charcoal_type || mix.charcoal_count != null || mix.steep_minutes != null || mix.steep_heat != null || mix.wind_cover != null || mix.bowl_type || mix.pack_style || mix.pack_photo_url) &&
+          {hasSetup &&
             (locked('setup') ? (
               <div className="mb-4">
                 <LockedNote mixId={mix.id} title="セットアップ" icon="🪨" price={mix.price} isAuthed={!!user} />
@@ -509,7 +507,7 @@ export default async function MixDetail({ params }: { params: Promise<{ id: stri
             </div>
             ))}
 
-          {((mix.heat_curve && mix.heat_curve.length >= 2) || mix.heat_events) &&
+          {hasCurve &&
             (locked('heat_curve') ? (
               <div className="mb-4">
                 <LockedNote mixId={mix.id} title="熱管理カーブ" icon="🔥" price={mix.price} isAuthed={!!user} />
@@ -524,7 +522,7 @@ export default async function MixDetail({ params }: { params: Promise<{ id: stri
             </div>
             ))}
 
-          {(mix.heat_management || mix.placement_note) &&
+          {hasNotes &&
             (locked('heat_notes') ? (
               <LockedNote mixId={mix.id} title="熱管理の補足・置き方" icon="📝" price={mix.price} isAuthed={!!user} />
             ) : (
