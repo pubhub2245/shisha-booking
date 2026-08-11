@@ -103,6 +103,12 @@ export default async function Home({
             </>
           )}
         </div>
+        {user && (
+          <p className="mt-3 text-center text-xs" style={{ color: 'var(--color-ash-dim)' }}>
+            {mode === 'pro' ? '🛠 プロモードで表示中（すべての機能）' : '🔰 かんたんモードで表示中（シンプル表示）'}
+            <Link href="/mypage" className="ml-1 underline" style={{ color: 'var(--color-ember-hot)' }}>切替</Link>
+          </p>
+        )}
       </section>
 
       {/* ---------- モード選択（初回・未設定ユーザー向け） ---------- */}
@@ -126,7 +132,8 @@ export default async function Home({
           ))}
         </div>
 
-        {/* もっと絞り込む（系統・タグ） */}
+        {/* もっと絞り込む（系統・タグ）＝プロモードのみ。かんたんモードは味わいだけでシンプルに */}
+        {mode === 'pro' && (
         <details className="mt-3" open={advancedActive}>
           <summary
             className="cursor-pointer list-none text-xs [&::-webkit-details-marker]:hidden"
@@ -151,6 +158,7 @@ export default async function Home({
             )}
           </div>
         </details>
+        )}
 
         {/* キーワード検索 */}
         <form action="/" method="get" className="mt-4 flex gap-2">
@@ -172,7 +180,9 @@ export default async function Home({
         <div className="flex flex-wrap gap-2">
           <Link href={href({ sort: 'new' })} className={`chip ${sort === 'new' ? 'chip-active' : ''}`}>新着</Link>
           <Link href={href({ sort: 'popular' })} className={`chip ${sort === 'popular' ? 'chip-active' : ''}`}>人気順</Link>
-          <Link href={href({ sort: 'detailed' })} className={`chip ${sort === 'detailed' ? 'chip-active' : ''}`}>詳しい順</Link>
+          {mode === 'pro' && (
+            <Link href={href({ sort: 'detailed' })} className={`chip ${sort === 'detailed' ? 'chip-active' : ''}`}>詳しい順</Link>
+          )}
           {user && (
             <Link href={href({ makeable: !makeableOnly })} className={`chip ${makeableOnly ? 'chip-active' : ''}`}>
               🫙 棚で作れる

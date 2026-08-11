@@ -7,14 +7,18 @@ import { setUiMode } from '@/actions/profile'
 export function ModeChooser() {
   const [pending, start] = useTransition()
   const [picked, setPicked] = useState<'simple' | 'pro' | null>(null)
+  const [gone, setGone] = useState(false)
 
   function choose(mode: 'simple' | 'pro') {
     setPicked(mode)
+    setGone(true) // 選択後は即カードを畳む
     start(async () => {
       await setUiMode(mode)
       window.location.reload()
     })
   }
+
+  if (gone) return null
 
   return (
     <div className="card mb-8 p-6">
