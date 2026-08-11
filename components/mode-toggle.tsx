@@ -1,7 +1,6 @@
 'use client'
 
 import { useTransition } from 'react'
-import { useRouter } from 'next/navigation'
 import { setUiMode } from '@/actions/profile'
 
 /** 表示モードを切り替えるボタン（初心者=simple / プロ=pro）。 */
@@ -14,13 +13,13 @@ export function ModeToggle({
   label: string
   className?: string
 }) {
-  const router = useRouter()
   const [pending, start] = useTransition()
 
   function go() {
     start(async () => {
       await setUiMode(target)
-      router.refresh()
+      // 全ルート（ナビ・ホーム含む）へ確実に反映するため再読込
+      window.location.reload()
     })
   }
 

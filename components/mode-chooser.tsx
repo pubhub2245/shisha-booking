@@ -1,12 +1,10 @@
 'use client'
 
 import { useTransition, useState } from 'react'
-import { useRouter } from 'next/navigation'
 import { setUiMode } from '@/actions/profile'
 
 /** 初回にモードを選ばせるカード（ui_mode 未設定のときだけ表示）。 */
 export function ModeChooser() {
-  const router = useRouter()
   const [pending, start] = useTransition()
   const [picked, setPicked] = useState<'simple' | 'pro' | null>(null)
 
@@ -14,7 +12,7 @@ export function ModeChooser() {
     setPicked(mode)
     start(async () => {
       await setUiMode(mode)
-      router.refresh()
+      window.location.reload()
     })
   }
 

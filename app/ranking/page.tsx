@@ -70,7 +70,7 @@ export default async function RankingPage({ searchParams }: { searchParams: Prom
                       </span>
                     ))}
                   </div>
-                  <div className="truncate" style={{ fontWeight: 700 }}>{m.title}</div>
+                  <div className="line-clamp-2 leading-snug" style={{ fontWeight: 700 }}>{m.title}</div>
                 </div>
                 <span className="shrink-0 text-sm" style={{ color: 'var(--color-ember-hot)', fontWeight: 700 }}>
                   ❤️ {m.like_count}

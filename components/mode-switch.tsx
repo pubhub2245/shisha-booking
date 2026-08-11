@@ -1,19 +1,17 @@
 'use client'
 
 import { useTransition } from 'react'
-import { useRouter } from 'next/navigation'
 import { setUiMode } from '@/actions/profile'
 
 /** ヘッダー常設の即切替スイッチ（🔰 かんたん / 🛠 プロ）。 */
 export function ModeSwitch({ mode }: { mode: 'simple' | 'pro' }) {
-  const router = useRouter()
   const [pending, start] = useTransition()
 
   function set(m: 'simple' | 'pro') {
     if (m === mode || pending) return
     start(async () => {
       await setUiMode(m)
-      router.refresh()
+      window.location.reload()
     })
   }
 
