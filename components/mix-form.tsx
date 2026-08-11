@@ -82,8 +82,43 @@ export function MixForm({
 }) {
   const action0 = mode === 'edit' ? updateMix : createMix
   const [state, action, pending] = useActionState<MixFormState, FormData>(action0, null)
-  const [premium, setPremium] = useState(initial?.premium ?? false)
   const [charcoalType, setCharcoalType] = useState(initial?.charcoalType ?? '')
+
+  // 「大事にするポイント」＝投稿に載せるセクション。選んだ項目だけ入力＆表示され、🔒でロックできる。
+  const LOCKABLE_KEYS = LOCKABLE_SECTIONS.map((s) => s.v) as string[]
+  const ALL_SECTION_KEYS = MIX_DISPLAY_SECTIONS.map((s) => s.v)
+  const initialShown =
+    initial != null ? ALL_SECTION_KEYS.filter((k) => !(initial.hiddenSections ?? []).includes(k)) : ALL_SECTION_KEYS
+  const [shown, setShown] = useState<Set<string>>(new Set(initialShown))
+  const [lockedSet, setLockedSet] = useState<Set<string>>(
+    new Set(initial?.premium ? initial?.lockedSections ?? [] : [])
+  )
+  const premium = lockedSet.size > 0
+  function toggleShown(k: string) {
+    setShown((prev) => {
+      const n = new Set(prev)
+      if (n.has(k)) {
+        n.delete(k)
+        setLockedSet((l) => {
+          const nl = new Set(l)
+          nl.delete(k)
+          return nl
+        })
+      } else {
+        n.add(k)
+      }
+      return n
+    })
+  }
+  function toggleLocked(k: string) {
+    setLockedSet((prev) => {
+      const n = new Set(prev)
+      if (n.has(k)) n.delete(k)
+      else n.add(k)
+      return n
+    })
+  }
+
   const [steepMin, setSteepMin] = useState(initial?.steepMinutes ?? '')
   const [steepHeat, setSteepHeat] = useState(initial?.steepHeat ?? '')
   // 既存投稿の編集などで詳細が入っていれば、詳細設定を開いた状態にする
@@ -313,13 +348,74 @@ export function MixForm({
       </div>
 
       <div className="divider" />
-      <details open={hasAdvanced}>
+
+      {/* 大事にするポイントの選択（載せる項目＋ロック項目） */}
+      <div className="card flex flex-col gap-2 p-5">
+        <div className="text-base" style={{ fontWeight: 800 }}>🎯 あなたがシーシャ作りで大事にしているポイントは？</div>
+        <p className="text-xs leading-relaxed" style={{ color: 'var(--color-ash-dim)' }}>
+          選んだ項目を投稿に載せられます（フレーバーと味わいは常に表示）。
+          {canSell && <> 特に<b>こだわり／秘密</b>にしたい項目は <b>🔒</b> で<b>ロック（有料）</b>にもできます。</>}
+        </p>
+        <div className="mt-2 flex flex-wrap gap-2">
+          {MIX_DISPLAY_SECTIONS.map((s) => {
+            const on = shown.has(s.v)
+            const lockable = canSell && LOCKABLE_KEYS.includes(s.v)
+            return (
+              <span key={s.v} className="inline-flex items-center">
+                <button
+                  type="button"
+                  onClick={() => toggleShown(s.v)}
+                  className={`chip ${on ? 'chip-active' : ''} ${lockable && on ? 'rounded-r-none' : ''}`}
+                  title={s.hint}
+                >
+                  {on ? '✓ ' : ''}{s.label}
+                </button>
+                {lockable && on && (
+                  <button
+                    type="button"
+                    onClick={() => toggleLocked(s.v)}
+                    title={lockedSet.has(s.v) ? 'ロック中（有料）。クリックで解除' : 'クリックでロック（有料）にする'}
+                    className="rounded-full rounded-l-none border border-l-0 px-2 py-1 text-xs"
+                    style={
+                      lockedSet.has(s.v)
+                        ? { borderColor: 'var(--color-ember)', background: 'var(--color-ember)', color: '#fff', fontWeight: 700 }
+                        : { borderColor: 'var(--line-strong)', color: 'var(--color-ash-dim)' }
+                    }
+                  >
+                    {lockedSet.has(s.v) ? '🔒' : '🔓'}
+                  </button>
+                )}
+              </span>
+            )
+          })}
+        </div>
+        {premium && canSell && (
+          <div className="field mt-3" style={{ maxWidth: 220 }}>
+            <label>ロックの価格（円）</label>
+            <input name="price" inputMode="numeric" defaultValue={initial?.price || '300'} placeholder="300" />
+            <p className="mt-1 text-xs" style={{ color: 'var(--color-ash-dim)' }}>
+              ※ 決済機能は近日対応予定。今は「ロック表示」までが有効になります。
+            </p>
+          </div>
+        )}
+        {/* 送信用の隠しフィールド（チップ選択と連動） */}
+        <input type="hidden" name="section_control" value="1" />
+        {[...shown].map((k) => (
+          <input key={k} type="hidden" name="show_section" value={k} />
+        ))}
+        {[...lockedSet].map((k) => (
+          <input key={`lock-${k}`} type="hidden" name="locked_sections" value={k} />
+        ))}
+        <input type="hidden" name="premium" value={premium ? 'on' : ''} />
+      </div>
+
+      <details open={hasAdvanced || shown.size > 0}>
         <summary className="cursor-pointer list-none [&::-webkit-details-marker]:hidden">
           <span className="inline-flex items-center gap-2 text-sm" style={{ color: 'var(--color-ember-hot)', fontWeight: 700 }}>
-            🔧 くわしく設定する（任意）
+            🔧 選んだ項目を入力する（任意）
           </span>
           <span className="mt-1 block text-xs" style={{ color: 'var(--color-ash-dim)' }}>
-            熱管理カーブ・炭・HMS・ボウル・盛り方・写真など。作り方までこだわる人向け（あとから編集でも追加できます）。
+            上で選んだポイントの中身を入力します。入力しても、上でチップを外した項目は投稿に表示されません。
           </span>
         </summary>
         <div className="mt-4 flex flex-col gap-6">
@@ -472,7 +568,7 @@ export function MixForm({
       <div className="mt-3 rounded-xl border p-4" style={{ borderColor: 'var(--line)' }}>
         <div className="text-sm" style={{ fontWeight: 700 }}>🔒 こだわり・核心</div>
         <p className="mt-0.5 text-xs" style={{ color: 'var(--color-ash-dim)' }}>
-          あなたの「秘密」になる部分。書いておいて、下の有料ノートで<b>この項目だけロック</b>することもできます。
+          あなたの「秘密」になる部分。上のチップの <b>🔒</b> で<b>この項目だけロック（有料）</b>にできます。
         </p>
         <div className="mt-3 flex flex-col gap-3">
           <div className="field"><label>下処理（タバコの手入れ・シロップ切り等）</label><textarea name="prep_note" defaultValue={initial?.prepNote} placeholder="例：開封後に軽くほぐし、余分なシロップを切る。○分置く、など。" maxLength={800} /></div>
@@ -482,81 +578,6 @@ export function MixForm({
       </div>
         </div>
       </details>
-
-      {/* 有料ノート（プロ認証者のみ） */}
-      {canSell && (
-        <>
-          <div className="divider" />
-          <div className="card flex flex-col gap-3 p-5">
-            <label className="flex cursor-pointer items-center gap-3">
-              <input type="checkbox" name="premium" checked={premium} onChange={(e) => setPremium(e.target.checked)} />
-              <span style={{ fontWeight: 700 }}>💎 一部を有料ノートにする</span>
-            </label>
-            <p className="text-xs" style={{ color: 'var(--color-ash-dim)' }}>
-              こだわりの熱管理などを、購入した人だけが見られるようにできます（プロ認証者のみ）。
-            </p>
-            {premium && (
-              <div className="flex flex-col gap-3">
-                <div className="field" style={{ maxWidth: 200 }}>
-                  <label>価格（円）</label>
-                  <input
-                    name="price"
-                    inputMode="numeric"
-                    defaultValue={initial?.price || '300'}
-                    placeholder="300"
-                  />
-                </div>
-                <div>
-                  <div className="mb-1 text-xs" style={{ color: 'var(--color-ash)', fontWeight: 600 }}>有料にするパーツ</div>
-                  <div className="flex flex-col gap-1.5">
-                    {LOCKABLE_SECTIONS.map((s) => (
-                      <label key={s.v} className="flex cursor-pointer items-center gap-2 text-sm">
-                        <input
-                          type="checkbox"
-                          name="locked_sections"
-                          value={s.v}
-                          defaultChecked={(initial?.lockedSections ?? ['heat_curve']).includes(s.v)}
-                        />
-                        <span>{s.icon} {s.l}</span>
-                      </label>
-                    ))}
-                  </div>
-                  <p className="mt-1 text-xs" style={{ color: 'var(--color-ash-dim)' }}>
-                    ※ 決済機能は近日対応予定。今は「ロック表示」までが有効になります。
-                  </p>
-                </div>
-              </div>
-            )}
-          </div>
-        </>
-      )}
-
-      {/* この投稿に載せる項目（投稿者が自由に選べる） */}
-      <div className="divider" />
-      <div className="card flex flex-col gap-2 p-5">
-        <div style={{ fontWeight: 700 }}>🧩 この投稿に載せる項目</div>
-        <p className="text-xs" style={{ color: 'var(--color-ash-dim)' }}>
-          チェックした項目だけを詳細ページに表示します。入力しても「載せない」を選べば非表示にできます。
-        </p>
-        <input type="hidden" name="section_control" value="1" />
-        <div className="mt-1 flex flex-col gap-1.5">
-          {MIX_DISPLAY_SECTIONS.map((s) => (
-            <label key={s.v} className="flex cursor-pointer items-start gap-2 text-sm">
-              <input
-                type="checkbox"
-                name="show_section"
-                value={s.v}
-                defaultChecked={!(initial?.hiddenSections ?? []).includes(s.v)}
-                className="mt-0.5"
-              />
-              <span>
-                {s.label}
-                <span className="ml-1 text-xs" style={{ color: 'var(--color-ash-dim)' }}>（{s.hint}）</span>
-              </span>
-            </label>
-          ))}
-        </div>
-      </div>
 
       <button type="submit" disabled={pending} className="btn btn-ember self-start">
         {pending ? '保存中…' : mode === 'edit' ? '変更を保存する' : 'ミックスを投稿する'}
