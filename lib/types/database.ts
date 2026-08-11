@@ -410,8 +410,11 @@ export type NationalRep = {
 
 /** 実地評価の表示コンテキスト（ミックス詳細で使用） */
 export type OnsiteContext = {
-  count: number // 実地評価の総数
-  myRated: boolean // 自分がすでに実地評価済みか
+  count: number // 確定した評価の数（採点済み）
+  avg: number | null // 平均★（採点済みのみ）
+  myState: 'none' | 'waiting' | 'can_rate' | 'rated' // 自分の状態
+  myScore: number | null // 自分がつけた★（採点済みのとき）
+  availableAt: string | null // waiting のとき、採点できるようになる時刻(ISO)
   isOwn: boolean // 自分の投稿か（自己評価は不可）
   isSample: boolean // 編集部サンプルか
   shops: { id: string; name: string; area: string | null }[] // 位置登録済みの投稿者の店
@@ -478,7 +481,15 @@ export type Database = {
       idea_arbitrations: Tbl<IdeaArbitration>
       mix_names: Tbl<MixName>
       mix_name_votes: Tbl<{ name_id: number; user_id: string; created_at: string }>
-      mix_onsite_ratings: Tbl<{ mix_id: string; user_id: string; shop_id: string | null; created_at: string }>
+      mix_onsite_ratings: Tbl<{
+        mix_id: string
+        user_id: string
+        shop_id: string | null
+        created_at: string
+        rated_at: string | null
+        score: number | null
+        comment: string | null
+      }>
     }
     Views: Record<string, never>
     Functions: {
@@ -489,8 +500,12 @@ export type Database = {
       notify: { Args: { p_recipient: string; p_type: string; p_mix?: string; p_comment?: string }; Returns: undefined }
       save_arbitration: { Args: { p_idea_id: number; p_summary: string }; Returns: undefined }
       refresh_national_reps: { Args: Record<string, never>; Returns: undefined }
-      record_onsite_rating: {
+      onsite_checkin: {
         Args: { p_mix_id: string; p_lat: number; p_lng: number }
+        Returns: Record<string, unknown>
+      }
+      onsite_rate: {
+        Args: { p_mix_id: string; p_score: number; p_comment: string | null }
         Returns: Record<string, unknown>
       }
     }

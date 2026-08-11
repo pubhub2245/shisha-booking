@@ -1081,7 +1081,8 @@ export async function getNationalTeam(): Promise<NationalRep[]> {
 
     const [{ data: makesRows }, { data: onsiteRows }] = await Promise.all([
       supabase.from('mix_makes').select('mix_id').limit(10000),
-      supabase.from('mix_onsite_ratings').select('mix_id').limit(10000),
+      // 支持シグナルは「採点済み(rated_at)かつ★4以上」の実地評価のみ
+      supabase.from('mix_onsite_ratings').select('mix_id').not('rated_at', 'is', null).gte('score', 4).limit(10000),
     ])
     const makes = new Map<string, number>()
     for (const r of makesRows ?? []) {
@@ -1252,7 +1253,7 @@ export async function getAreaRankings(opts: { shopsPerRegion?: number; mixesPerR
     const [{ data: mixRows }, { data: makeRows }, { data: onsiteRows }] = await Promise.all([
       supabase.from('mixes').select('*').eq('hidden', false).limit(2000),
       supabase.from('mix_makes').select('mix_id').limit(20000),
-      supabase.from('mix_onsite_ratings').select('mix_id, shop_id').limit(20000),
+      supabase.from('mix_onsite_ratings').select('mix_id, shop_id').not('rated_at', 'is', null).gte('score', 4).limit(20000),
     ])
     const mixes = (mixRows ?? []) as Mix[]
     const makes = new Map<string, number>()
@@ -1429,7 +1430,7 @@ export async function getNearbyShops(): Promise<ShopRankItem[]> {
       supabase.from('shop_members').select('shop_id, user_id').eq('status', 'approved').in('shop_id', shopIds),
       supabase.from('mixes').select('*').eq('hidden', false).limit(2000),
       supabase.from('mix_makes').select('mix_id').limit(20000),
-      supabase.from('mix_onsite_ratings').select('mix_id, shop_id').limit(20000),
+      supabase.from('mix_onsite_ratings').select('mix_id, shop_id').not('rated_at', 'is', null).gte('score', 4).limit(20000),
     ])
     const members = (memRows ?? []) as { shop_id: string; user_id: string }[]
     const mixes = (mixRows ?? []) as Mix[]
@@ -1506,27 +1507,48 @@ export async function getNearbyShops(): Promise<ShopRankItem[]> {
 
 /** 実地評価の表示コンテキスト（総数・自分の評価済み・投稿者の位置登録済み店舗）。 */
 export async function getOnsiteContext(mix: Mix): Promise<OnsiteContext> {
-  const empty: OnsiteContext = { count: 0, myRated: false, isOwn: false, isSample: mix.author_id === null, shops: [] }
+  const empty: OnsiteContext = {
+    count: 0,
+    avg: null,
+    myState: 'none',
+    myScore: null,
+    availableAt: null,
+    isOwn: false,
+    isSample: mix.author_id === null,
+    shops: [],
+  }
   try {
     const supabase = await createClient()
     const {
       data: { user },
     } = await supabase.auth.getUser()
 
-    const { count } = await supabase
+    const { data: rowData } = await supabase
       .from('mix_onsite_ratings')
-      .select('mix_id', { count: 'exact', head: true })
+      .select('user_id, created_at, rated_at, score')
       .eq('mix_id', mix.id)
+    const rows = (rowData ?? []) as { user_id: string; created_at: string; rated_at: string | null; score: number | null }[]
 
-    let myRated = false
-    if (user) {
-      const { data: mine } = await supabase
-        .from('mix_onsite_ratings')
-        .select('mix_id')
-        .eq('mix_id', mix.id)
-        .eq('user_id', user.id)
-        .maybeSingle()
-      myRated = !!mine
+    // 確定（採点済み）の集計
+    const rated = rows.filter((r) => r.rated_at && r.score != null)
+    const count = rated.length
+    const avg = count > 0 ? rated.reduce((s, r) => s + (r.score ?? 0), 0) / count : null
+
+    // 自分の状態
+    const DELAY_MS = 24 * 60 * 60 * 1000
+    let myState: OnsiteContext['myState'] = 'none'
+    let myScore: number | null = null
+    let availableAt: string | null = null
+    const mine = user ? rows.find((r) => r.user_id === user.id) : undefined
+    if (mine) {
+      if (mine.rated_at) {
+        myState = 'rated'
+        myScore = mine.score
+      } else {
+        const unlock = new Date(mine.created_at).getTime() + DELAY_MS
+        availableAt = new Date(unlock).toISOString()
+        myState = Date.now() >= unlock ? 'can_rate' : 'waiting'
+      }
     }
 
     const isOwn = !!user && !!mix.author_id && user.id === mix.author_id
@@ -1552,7 +1574,7 @@ export async function getOnsiteContext(mix: Mix): Promise<OnsiteContext> {
       }
     }
 
-    return { count: count ?? 0, myRated, isOwn, isSample, shops }
+    return { count, avg, myState, myScore, availableAt, isOwn, isSample, shops }
   } catch {
     return empty
   }
