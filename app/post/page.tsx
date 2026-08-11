@@ -76,6 +76,7 @@ export default async function PostPage({
         price: '',
         lockedSections: [],
         hiddenSections: base.hidden_sections ?? [],
+        unlockAt: null,
         flavors: mapFlavors(base, true),
       }
     }
@@ -119,6 +120,7 @@ export default async function PostPage({
         price: '',
         lockedSections: [],
         hiddenSections: [],
+        unlockAt: null,
         flavors: mapFlavors(combo.methods[0], false),
       }
     }

@@ -48,6 +48,7 @@ export type MixFormInitial = {
   price: string
   lockedSections: string[]
   hiddenSections: string[]
+  unlockAt: string | null
   flavors: { flavorId: string; name: string; brand: string; ratio: string; url: string }[]
 }
 
@@ -389,12 +390,32 @@ export function MixForm({
             )
           })}
         </div>
+        {canSell && (
+          <div className="mt-2 rounded-lg px-3 py-2 text-xs leading-relaxed" style={{ background: 'var(--accent-tint)', color: 'var(--color-ash)' }}>
+            🔒 ロックした投稿は<b>日本代表・地方代表の選出対象外</b>になります（標準＝みんなの図鑑は公開レシピで作るため）。
+            ロックは核心の<b>「最後のひと工夫」だけ</b>に絞るのがおすすめ。
+          </div>
+        )}
         {premium && canSell && (
-          <div className="field mt-3" style={{ maxWidth: 220 }}>
-            <label>ロックの価格（円）</label>
-            <input name="price" inputMode="numeric" defaultValue={initial?.price || '300'} placeholder="300" />
-            <p className="mt-1 text-xs" style={{ color: 'var(--color-ash-dim)' }}>
-              ※ 決済機能は近日対応予定。今は「ロック表示」までが有効になります。
+          <div className="mt-3 flex flex-wrap items-end gap-4">
+            <div className="field" style={{ maxWidth: 160 }}>
+              <label>ロックの価格（円）</label>
+              <input name="price" inputMode="numeric" defaultValue={initial?.price || '300'} placeholder="300" />
+            </div>
+            <div className="field" style={{ maxWidth: 260 }}>
+              <label>⏳ 時限公開（いずれ全公開）</label>
+              <select name="unlock_months" defaultValue={mode === 'edit' && initial?.unlockAt ? '' : '0'}>
+                {mode === 'edit' && initial?.unlockAt && (
+                  <option value="">変更しない（現在: {new Date(initial.unlockAt).toLocaleDateString('ja-JP')}）</option>
+                )}
+                <option value="0">自動公開しない</option>
+                <option value="1">1ヶ月後に全公開</option>
+                <option value="3">3ヶ月後に全公開</option>
+                <option value="6">6ヶ月後に全公開</option>
+              </select>
+            </div>
+            <p className="w-full text-xs" style={{ color: 'var(--color-ash-dim)' }}>
+              ※ 決済機能は近日対応予定（今は「ロック表示」まで有効）。時限公開にすると、先行の優位を守りつつ、いずれ図鑑（みんなの標準）に還元できます。全公開後は日本代表の選出対象になります。
             </p>
           </div>
         )}

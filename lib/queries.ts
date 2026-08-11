@@ -5,6 +5,7 @@ import { searchVariants } from '@/lib/kana'
 import { TYPE_TAGS } from '@/lib/tags'
 import { REGIONS, regionOf, REGION_EMOJI, type RegionKey } from '@/lib/regions'
 import { mixSupportScore, shopSupportScore } from '@/lib/score'
+import { isActivelyLocked } from '@/lib/lock'
 import type {
   MixWithRelations,
   Mix,
@@ -1104,7 +1105,8 @@ export async function getNationalTeam(): Promise<NationalRep[]> {
     //  （汎用性の高い名ミックスは複数ポジションを兼任しうる＝重複を許容）
     const reps: { category: string; mix: Mix; score: number; sample: boolean }[] = []
     for (const cat of TYPE_TAGS) {
-      const inCat = mixes.filter((m) => (m.taste_tags ?? []).includes(cat) && scoreOf(m) >= 1)
+      // 日本代表は「いま公開されているレシピ」だけが対象（ロック中は選出対象外）
+      const inCat = mixes.filter((m) => (m.taste_tags ?? []).includes(cat) && scoreOf(m) >= 1 && !isActivelyLocked(m))
       if (inCat.length === 0) continue
       const real = inCat.filter((m) => m.author_id)
       const pool = real.length > 0 ? real : inCat
@@ -1341,6 +1343,7 @@ export async function getAreaRankings(opts: { shopsPerRegion?: number; mixesPerR
     const regionMixesRaw = new Map<RegionKey, { mix: Mix; score: number; onsite: number; prefecture: string }[]>()
     for (const m of mixes) {
       if (!m.author_id) continue
+      if (isActivelyLocked(m)) continue // 地方代表も公開レシピのみ
       const pref = authorPref.get(m.author_id)
       if (!pref) continue
       const region = regionOf(pref)

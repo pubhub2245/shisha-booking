@@ -41,6 +41,7 @@ import { MixNaming } from '@/components/mix-naming'
 import { OnsiteRating } from '@/components/onsite-rating'
 import { SectionTabs, type SectionTab } from '@/components/section-tabs'
 import { resolveMode } from '@/lib/mode'
+import { unlockPassed, isActivelyLocked } from '@/lib/lock'
 import { SITE_URL } from '@/lib/site'
 import { goHref } from '@/lib/go'
 import { comboKey, comboSlug } from '@/lib/combo'
@@ -127,10 +128,12 @@ export default async function MixDetail({ params }: { params: Promise<{ id: stri
   const isOwner = !!user && user.id === mix.author_id
   const isSample = mix.author_id === null
 
-  // 有料ノート：閲覧権があるか（投稿者本人／管理者／解錠済み）
-  const entitled = isOwner || !!user?.profile?.is_admin || unlocked
+  // 有料ノート：閲覧権があるか（投稿者本人／管理者／解錠済み／時限公開の解禁後）
+  const timeReleased = unlockPassed(mix)
+  const entitled = isOwner || !!user?.profile?.is_admin || unlocked || timeReleased
   const locked = (section: string) =>
     mix.premium && (mix.locked_sections ?? []).includes(section) && !entitled
+  const activelyLocked = isActivelyLocked(mix)
 
   // 投稿者が「載せる項目」で非表示にしたセクション
   const hiddenSec = (s: string) => (mix.hidden_sections ?? []).includes(s)
@@ -242,12 +245,33 @@ export default async function MixDetail({ params }: { params: Promise<{ id: stri
               🏅 {regionRep}代表
             </Link>
           )}
+          {/* 完全公開の充実レシピを称える（詳しい中身があり、ロックが効いていない） */}
+          {!isSample && !activelyLocked && showBrew && (
+            <span
+              className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs"
+              style={{ background: 'rgb(31 138 118 / 0.12)', color: 'var(--color-coal)', fontWeight: 800, border: '1px solid rgb(31 138 118 / 0.4)' }}
+            >
+              🌐 フル公開レシピ
+            </span>
+          )}
         </div>
-        {mix.premium && (mix.locked_sections ?? []).length > 0 && (
-          <div className="mt-2 inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs"
+        {activelyLocked && (
+          <div className="mt-2 inline-flex flex-wrap items-center gap-1 rounded-full px-2.5 py-1 text-xs"
             style={{ background: 'var(--accent-tint)', color: 'var(--color-ember-hot)', fontWeight: 700 }}>
             💎 有料ノート{mix.price != null ? ` ¥${mix.price}` : ''}
-            {entitled && <span style={{ color: 'var(--color-ash-dim)', fontWeight: 400 }}>・解錠済み</span>}
+            <span style={{ color: 'var(--color-ash-dim)', fontWeight: 400 }}>・一部ロック中（日本代表の選出対象外）</span>
+          </div>
+        )}
+        {mix.unlock_at && !timeReleased && (
+          <div className="mt-2 inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs"
+            style={{ background: 'var(--color-smoke-850)', color: 'var(--color-ash)', border: '1px solid var(--line-strong)' }}>
+            ⏳ {new Date(mix.unlock_at).toLocaleDateString('ja-JP')} に全公開予定
+          </div>
+        )}
+        {mix.premium && (mix.locked_sections ?? []).length > 0 && timeReleased && (
+          <div className="mt-2 inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs"
+            style={{ background: 'rgb(31 138 118 / 0.12)', color: 'var(--color-coal)', fontWeight: 700 }}>
+            🔓 時限公開で全公開済み
           </div>
         )}
 

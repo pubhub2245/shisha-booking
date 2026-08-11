@@ -242,6 +242,26 @@ async function parsePremium(
 }
 
 /**
+ * 時限公開（unlock_at）を解釈する。
+ *  - 空文字 = 変更しない（編集時の現状維持）→ set:false
+ *  - '0' = 自動公開しない → null
+ *  - '1'|'3'|'6' = Nヶ月後に自動公開
+ * ロックが無い(premium=false)ときは常に null。
+ */
+function parseUnlockAt(formData: FormData, premium: boolean): { set: boolean; value: string | null } {
+  const raw = String(formData.get('unlock_months') ?? '')
+  if (raw === '') return { set: false, value: null }
+  if (!premium) return { set: true, value: null }
+  const m = Number(raw)
+  if (m === 1 || m === 3 || m === 6) {
+    const d = new Date()
+    d.setMonth(d.getMonth() + m)
+    return { set: true, value: d.toISOString() }
+  }
+  return { set: true, value: null }
+}
+
+/**
  * 「載せる項目」を解釈し、非表示にするセクションのキー配列を返す。
  * フォームに項目コントロールがある(section_control=1)ときだけ有効。
  * チェック(show_section)された項目＝表示、未チェック＝非表示。
@@ -302,6 +322,7 @@ export async function createMix(_prev: MixFormState, formData: FormData): Promis
       ...parseExtraFields(formData),
       combo_key: comboKey(flavors),
       hidden_sections: parseHiddenSections(formData),
+      unlock_at: premiumFields.premium ? parseUnlockAt(formData, true).value : null,
       ...premiumFields,
     })
     .select('id')
@@ -368,9 +389,13 @@ export async function updateMix(_prev: MixFormState, formData: FormData): Promis
   const premiumFields = await parsePremium(supabase, user.id, formData)
   if (!(await isAdmin(supabase, user.id))) for (const f of flavors) f.affiliate_url = null
 
+  // 時限公開：ロックが無ければ null、指定があれば更新、空(変更しない)ならそのまま
+  const unlock = parseUnlockAt(formData, premiumFields.premium)
+  const unlockPatch = !premiumFields.premium ? { unlock_at: null } : unlock.set ? { unlock_at: unlock.value } : {}
+
   const { error } = await supabase
     .from('mixes')
-    .update({ title, description, taste_tags: tasteTags, heat_management: heat, heat_curve: heatCurve, heat_events: heatEvents, ...heatSetup, placement_note: placement, ...parseExtraFields(formData), combo_key: comboKey(flavors), hidden_sections: parseHiddenSections(formData), ...premiumFields })
+    .update({ title, description, taste_tags: tasteTags, heat_management: heat, heat_curve: heatCurve, heat_events: heatEvents, ...heatSetup, placement_note: placement, ...parseExtraFields(formData), combo_key: comboKey(flavors), hidden_sections: parseHiddenSections(formData), ...unlockPatch, ...premiumFields })
     .eq('id', mixId)
   if (error) {
     console.error('[updateMix]', error.message)
