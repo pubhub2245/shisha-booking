@@ -62,8 +62,47 @@ export function ProApplicationForm({
         </select>
       </div>
       <div className="field">
-        <label>SNSアカウント（@ または プロフィールURL）</label>
-        <input name="sns_handle" placeholder="@your_account または https://x.com/..." required />
+        <label>SNSプロフィールのURL</label>
+        <input
+          name="sns_handle"
+          type="url"
+          inputMode="url"
+          placeholder="https://x.com/あなたのユーザー名"
+          required
+        />
+        <p className="mt-1 text-xs" style={{ color: 'var(--color-ash-dim)' }}>
+          在籍確認のため、<b>プロフィールページのURL</b>を貼り付けてください（例：https://x.com/jun_shisha）。
+        </p>
+        <details className="mt-2 rounded-lg border p-3" style={{ borderColor: 'var(--line)' }}>
+          <summary className="cursor-pointer text-xs" style={{ color: 'var(--color-ember-hot)', fontWeight: 600 }}>
+            🔗 プロフィールURLの取得方法
+          </summary>
+          <div className="mt-2 flex flex-col gap-3 text-xs leading-relaxed" style={{ color: 'var(--color-ash)' }}>
+            <div>
+              <div style={{ fontWeight: 700 }}>X（旧Twitter）</div>
+              <ol className="mt-1 list-decimal pl-4">
+                <li>アプリで自分のプロフィールを開く</li>
+                <li>右上などの「共有」ボタン → <b>「リンクをコピー」</b></li>
+              </ol>
+              <p className="mt-1" style={{ color: 'var(--color-ash-dim)' }}>
+                または直接：<code>https://x.com/ユーザー名</code>（@は付けない）
+              </p>
+            </div>
+            <div>
+              <div style={{ fontWeight: 700 }}>Instagram</div>
+              <ol className="mt-1 list-decimal pl-4">
+                <li>アプリで自分のプロフィールを開く</li>
+                <li>右上のメニュー（≡）→ <b>「プロフィールをシェア」→「リンクをコピー」</b></li>
+              </ol>
+              <p className="mt-1" style={{ color: 'var(--color-ash-dim)' }}>
+                または直接：<code>https://instagram.com/ユーザー名</code>
+              </p>
+            </div>
+            <p style={{ color: 'var(--color-ash-dim)' }}>
+              コピーしたURLを上の欄に貼り付けてください。
+            </p>
+          </div>
+        </details>
       </div>
 
       {shops.length > 0 && (
