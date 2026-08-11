@@ -105,6 +105,11 @@ export default async function NationalTeamPage() {
                   <div className="flex items-center gap-3 px-1 text-xs" style={{ color: 'var(--color-ash-dim)' }}>
                     <span>👍 {rep.likes}</span>
                     <span>🔥 作った {rep.makes}</span>
+                    {rep.onsite > 0 && (
+                      <span title="現地で実物を吸って評価" style={{ color: 'var(--color-ember-hot)', fontWeight: 700 }}>
+                        📍 実地 {rep.onsite}
+                      </span>
+                    )}
                     <span className="ml-auto" style={{ fontWeight: 700, color: 'var(--color-ash)' }}>
                       支持スコア {rep.score}
                     </span>

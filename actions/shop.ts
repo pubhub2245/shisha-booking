@@ -52,7 +52,28 @@ export async function updateShop(shopId: string, formData: FormData): Promise<{ 
   const url = String(formData.get('url') ?? '').trim() || null
   const description = String(formData.get('description') ?? '').trim() || null
 
-  const { error } = await supabase.from('shops').update({ name, area, url, description }).eq('id', shopId)
+  const update: Record<string, unknown> = { name, area, url, description }
+  // 位置情報（実地評価の近接判定に使用）。空なら未登録として据え置き。
+  const latRaw = String(formData.get('lat') ?? '').trim()
+  const lngRaw = String(formData.get('lng') ?? '').trim()
+  if (latRaw && lngRaw) {
+    const lat = Number(latRaw)
+    const lng = Number(lngRaw)
+    if (Number.isFinite(lat) && Number.isFinite(lng) && lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180) {
+      update.lat = lat
+      update.lng = lng
+    }
+  } else if (formData.get('clear_location') === '1') {
+    update.lat = null
+    update.lng = null
+  }
+  const radiusRaw = String(formData.get('geo_radius_m') ?? '').trim()
+  if (radiusRaw) {
+    const r = Math.round(Number(radiusRaw))
+    if (Number.isFinite(r) && r >= 50 && r <= 1000) update.geo_radius_m = r
+  }
+
+  const { error } = await supabase.from('shops').update(update).eq('id', shopId)
   if (error) return { error: '更新に失敗しました（オーナーのみ編集できます）。' }
   revalidatePath(`/shop/${shopId}`)
   revalidatePath(`/shop/${shopId}/manage`)

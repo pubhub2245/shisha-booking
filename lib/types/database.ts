@@ -228,6 +228,9 @@ export type Shop = {
   url: string | null
   description: string | null
   owner_id: string
+  lat: number | null
+  lng: number | null
+  geo_radius_m: number
   created_at: string
 }
 
@@ -380,7 +383,17 @@ export type NationalRep = {
   score: number
   likes: number
   makes: number
+  onsite: number // 実地評価（現地で実物を吸って評価した人数）
   sample: boolean // 本物レシピがまだ無く、AI生成サンプルが暫定代表か
+}
+
+/** 実地評価の表示コンテキスト（ミックス詳細で使用） */
+export type OnsiteContext = {
+  count: number // 実地評価の総数
+  myRated: boolean // 自分がすでに実地評価済みか
+  isOwn: boolean // 自分の投稿か（自己評価は不可）
+  isSample: boolean // 編集部サンプルか
+  shops: { id: string; name: string; area: string | null }[] // 位置登録済みの投稿者の店
 }
 
 /** あと1フレーバーで作れるコンボ（不足している1品を提示） */
@@ -444,6 +457,7 @@ export type Database = {
       idea_arbitrations: Tbl<IdeaArbitration>
       mix_names: Tbl<MixName>
       mix_name_votes: Tbl<{ name_id: number; user_id: string; created_at: string }>
+      mix_onsite_ratings: Tbl<{ mix_id: string; user_id: string; shop_id: string | null; created_at: string }>
     }
     Views: Record<string, never>
     Functions: {
@@ -454,6 +468,10 @@ export type Database = {
       notify: { Args: { p_recipient: string; p_type: string; p_mix?: string; p_comment?: string }; Returns: undefined }
       save_arbitration: { Args: { p_idea_id: number; p_summary: string }; Returns: undefined }
       refresh_national_reps: { Args: Record<string, never>; Returns: undefined }
+      record_onsite_rating: {
+        Args: { p_mix_id: string; p_lat: number; p_lng: number }
+        Returns: Record<string, unknown>
+      }
     }
     Enums: Record<string, never>
   }

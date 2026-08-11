@@ -12,6 +12,7 @@ import {
   getMixPhotos,
   getNationalRepCategories,
   getMixNames,
+  getOnsiteContext,
 } from '@/lib/queries'
 import { getCurrentUser } from '@/lib/auth'
 import { LikeButton } from '@/components/like-button'
@@ -36,6 +37,7 @@ import { MixCard } from '@/components/mix-card'
 import { deleteMix } from '@/actions/mixes'
 import { PinButton } from '@/components/pin-button'
 import { MixNaming } from '@/components/mix-naming'
+import { OnsiteRating } from '@/components/onsite-rating'
 import { resolveMode } from '@/lib/mode'
 import { goHref } from '@/lib/go'
 import { comboKey, comboSlug } from '@/lib/combo'
@@ -101,12 +103,13 @@ export default async function MixDetail({ params }: { params: Promise<{ id: stri
     isMixUnlocked(id),
   ])
   if (!mix) notFound()
-  const [related, madeStatus, photos, repCats, mixNames] = await Promise.all([
+  const [related, madeStatus, photos, repCats, mixNames, onsite] = await Promise.all([
     getRelatedMixes(mix as MixWithRelations),
     getMadeStatus(id),
     getMixPhotos(id),
     getNationalRepCategories(id),
     getMixNames(id),
+    getOnsiteContext(mix),
   ])
   const commentTotal = comments.reduce((n, c) => n + 1 + c.replies.length, 0)
   const isRep = repCats.length > 0
@@ -283,6 +286,9 @@ export default async function MixDetail({ params }: { params: Promise<{ id: stri
           {mix.description}
         </p>
       )}
+
+      {/* ---------- 実地評価（現地でのGPS検証つき） ---------- */}
+      {!isSample && <OnsiteRating mixId={mix.id} ctx={onsite} isAuthed={!!user} />}
 
       {/* ---------- FLAVORS + AFFILIATE ---------- */}
       <section className="mt-8">

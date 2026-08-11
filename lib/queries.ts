@@ -37,6 +37,7 @@ import type {
   NationalRep,
   MixName,
   MixNameWithVotes,
+  OnsiteContext,
 } from '@/lib/types/database'
 
 export type FeedOptions = {
@@ -1073,13 +1074,23 @@ export async function getNationalTeam(): Promise<NationalRep[]> {
     const mixes = (data ?? []) as Mix[]
     if (mixes.length === 0) return []
 
-    const { data: makesRows } = await supabase.from('mix_makes').select('mix_id').limit(10000)
+    const [{ data: makesRows }, { data: onsiteRows }] = await Promise.all([
+      supabase.from('mix_makes').select('mix_id').limit(10000),
+      supabase.from('mix_onsite_ratings').select('mix_id').limit(10000),
+    ])
     const makes = new Map<string, number>()
     for (const r of makesRows ?? []) {
       const id = (r as { mix_id: string }).mix_id
       makes.set(id, (makes.get(id) ?? 0) + 1)
     }
-    const scoreOf = (m: Mix) => m.like_count + (makes.get(m.id) ?? 0) * 2
+    // 実地評価は「現地で実物を吸って評価した」検証済みの票。いいね(×1)・作った(×2)より
+    // 大きく重み付けする（×5）。コアループ＝現地評価を選出の主軸にするため。
+    const onsite = new Map<string, number>()
+    for (const r of onsiteRows ?? []) {
+      const id = (r as { mix_id: string }).mix_id
+      onsite.set(id, (onsite.get(id) ?? 0) + 1)
+    }
+    const scoreOf = (m: Mix) => m.like_count + (makes.get(m.id) ?? 0) * 2 + (onsite.get(m.id) ?? 0) * 5
 
     // 系統ごとに代表を選ぶ。ルール：
     //  1) 支持スコア(いいね+作った×2)が1以上あること（無支持のサンプルを代表にしない）
@@ -1108,6 +1119,7 @@ export async function getNationalTeam(): Promise<NationalRep[]> {
         score: r.score,
         likes: r.mix.like_count,
         makes: makes.get(r.mix.id) ?? 0,
+        onsite: onsite.get(r.mix.id) ?? 0,
         sample: r.sample,
       }))
       .filter((r) => r.mix)
@@ -1202,6 +1214,60 @@ export async function getNationalRepCategories(mixId: string): Promise<string[]>
     return team.filter((r) => r.mix.id === mixId && !r.sample).map((r) => r.category)
   } catch {
     return []
+  }
+}
+
+/** 実地評価の表示コンテキスト（総数・自分の評価済み・投稿者の位置登録済み店舗）。 */
+export async function getOnsiteContext(mix: Mix): Promise<OnsiteContext> {
+  const empty: OnsiteContext = { count: 0, myRated: false, isOwn: false, isSample: mix.author_id === null, shops: [] }
+  try {
+    const supabase = await createClient()
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+
+    const { count } = await supabase
+      .from('mix_onsite_ratings')
+      .select('mix_id', { count: 'exact', head: true })
+      .eq('mix_id', mix.id)
+
+    let myRated = false
+    if (user) {
+      const { data: mine } = await supabase
+        .from('mix_onsite_ratings')
+        .select('mix_id')
+        .eq('mix_id', mix.id)
+        .eq('user_id', user.id)
+        .maybeSingle()
+      myRated = !!mine
+    }
+
+    const isOwn = !!user && !!mix.author_id && user.id === mix.author_id
+    const isSample = mix.author_id === null
+
+    // 投稿者が承認所属していて、位置が登録済みのお店
+    let shops: OnsiteContext['shops'] = []
+    if (mix.author_id) {
+      const { data: mem } = await supabase
+        .from('shop_members')
+        .select('shop_id')
+        .eq('user_id', mix.author_id)
+        .eq('status', 'approved')
+      const shopIds = [...new Set((mem ?? []).map((m) => (m as { shop_id: string }).shop_id))]
+      if (shopIds.length) {
+        const { data: srows } = await supabase
+          .from('shops')
+          .select('id, name, area, lat, lng')
+          .in('id', shopIds)
+        shops = ((srows ?? []) as (Pick<Shop, 'id' | 'name' | 'area' | 'lat' | 'lng'>)[])
+          .filter((s) => s.lat != null && s.lng != null)
+          .map((s) => ({ id: s.id, name: s.name, area: s.area }))
+      }
+    }
+
+    return { count: count ?? 0, myRated, isOwn, isSample, shops }
+  } catch {
+    return empty
   }
 }
 

@@ -114,6 +114,20 @@ export default async function ShopPage({ params }: { params: Promise<{ id: strin
         )}
       </div>
 
+      {/* ---------- 来店者向け：実地評価の案内 ---------- */}
+      {shop.lat != null && shop.lng != null && (
+        <div
+          className="mt-4 rounded-xl border p-4 text-sm"
+          style={{ borderColor: 'rgb(230 0 51 / 0.30)', background: 'rgb(230 0 51 / 0.05)' }}
+        >
+          <div className="flex items-center gap-2" style={{ fontWeight: 800 }}>📍 ご来店ありがとうございます</div>
+          <p className="mt-1 text-xs leading-relaxed" style={{ color: 'var(--color-ash)' }}>
+            スタッフのミックスを実際に吸ったら、そのミックスのページで <b>「実地評価」</b> を押してください。
+            現地のGPSで確認された一票は、いいねより重く<b>日本代表の選出</b>に効きます。
+          </p>
+        </div>
+      )}
+
       {flavors.length === 0 ? (
         <div className="card mt-8 p-10 text-center">
           <p className="text-lg" style={{ fontWeight: 700 }}>メニューは準備中です</p>
