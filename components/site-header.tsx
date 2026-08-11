@@ -40,18 +40,15 @@ export async function SiteHeader() {
 
         <nav className="hidden items-center gap-6 text-sm md:flex" style={{ color: 'var(--color-ash)' }}>
           <Link href="/" className="transition-colors hover:text-[var(--color-cream)]">図鑑</Link>
-          <Link href="/national" className="transition-colors hover:text-[var(--color-cream)]" style={{ fontWeight: 700 }}>🇯🇵 日本代表</Link>
-          <Link href="/areas" className="transition-colors hover:text-[var(--color-cream)]">地域別</Link>
+          {/* ランキング系（日本代表/地域別/人気）は日本代表ページ上部のタブで束ねる */}
+          <Link href="/national" className="transition-colors hover:text-[var(--color-cream)]" style={{ fontWeight: 700 }}>🇯🇵 ランキング</Link>
           <Link href="/flavors" className="transition-colors hover:text-[var(--color-cream)]">フレーバー</Link>
-          {/* プロは競争/深掘り導線、初心者は学習導線 */}
+          {/* プロは深掘り導線、初心者は学習導線 */}
           {isPro ? (
-            <Link href="/ranking" className="transition-colors hover:text-[var(--color-cream)]">ランキング</Link>
+            user && <Link href="/shelf" className="transition-colors hover:text-[var(--color-cream)]">マイ棚</Link>
           ) : (
             <Link href="/guide" className="transition-colors hover:text-[var(--color-cream)]">作り方</Link>
           )}
-          {user && <Link href="/shelf" className="transition-colors hover:text-[var(--color-cream)]">マイ棚</Link>}
-          {isPro && user && <Link href="/timeline" className="transition-colors hover:text-[var(--color-cream)]">タイムライン</Link>}
-          <Link href="/post" className="transition-colors hover:text-[var(--color-cream)]">投稿する</Link>
         </nav>
 
         <div className="flex items-center gap-3">

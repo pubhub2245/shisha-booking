@@ -4,6 +4,7 @@ import { getCurrentUser } from '@/lib/auth'
 import { MixCard } from '@/components/mix-card'
 import { NearbyShops } from '@/components/nearby-shops'
 import { Avatar } from '@/components/avatar'
+import { RankingTabs } from '@/components/ranking-tabs'
 import { flavorLine } from '@/lib/mix'
 
 export const dynamic = 'force-dynamic'
@@ -26,9 +27,12 @@ export default async function AreasPage() {
   return (
     <div className="wrap max-w-3xl py-10">
       <p className="eyebrow">Area Ranking</p>
-      <h1 className="mt-2 text-3xl" style={{ fontWeight: 800 }}>
+      <h1 className="mt-2 mb-4 text-3xl" style={{ fontWeight: 800 }}>
         地域別ランキング
       </h1>
+
+      <RankingTabs current="areas" />
+
       <p className="mt-2 text-sm leading-relaxed" style={{ color: 'var(--color-ash)' }}>
         シーシャ人口の多い都会ほど「いいね」が集まりやすい——その偏りをなくすため、<b>地方ごと</b>に競います。
         旅行や出張のときは、その地域で<b>いま一番評価されているお店</b>を探すのに使ってください。

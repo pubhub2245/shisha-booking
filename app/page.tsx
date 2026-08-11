@@ -82,8 +82,11 @@ export default async function Home({
         <h1 className="text-3xl leading-tight sm:text-4xl" style={{ fontWeight: 800, letterSpacing: '-0.01em' }}>
           今日のミックス、<span className="text-grad-anim">もう迷わない。</span>
         </h1>
-        <p className="mt-2 text-sm" style={{ color: 'var(--color-ash-dim)' }}>
-          気分で探す図鑑 ・ {combos.length}通りの組み合わせ ・ {flavors.length}種のフレーバー
+        <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed" style={{ color: 'var(--color-ash)' }}>
+          同じ組み合わせを<b>“誰が一番うまく作れるか”</b>競う、日本代表シーシャ図鑑。
+        </p>
+        <p className="mt-1 text-xs" style={{ color: 'var(--color-ash-dim)' }}>
+          気分で探す ・ {combos.length}通りの組み合わせ ・ {flavors.length}種のフレーバー
         </p>
         {/* モード連動のショートカット */}
         <div className="mt-4 flex flex-wrap justify-center gap-2">
@@ -91,16 +94,16 @@ export default async function Home({
             <>
               <Link href="/post" className="chip chip-active">🛠 フル投稿</Link>
               <Link href="/national" className="chip">🇯🇵 日本代表</Link>
-              <Link href="/ranking" className="chip">🏆 ランキング</Link>
+              <Link href="/areas" className="chip">📍 地域別・近くの名店</Link>
               <Link href="/timeline" className="chip">🕒 タイムライン</Link>
               <Link href="/shop/new" className="chip">🏠 店舗を登録</Link>
             </>
           ) : (
             <>
               <Link href="/national" className="chip chip-active">🇯🇵 日本代表</Link>
+              <Link href="/areas" className="chip">📍 近くの名店</Link>
               <Link href="/shelf" className="chip">🫙 あと1つで作れる</Link>
               <Link href="/guide" className="chip">📖 作り方ガイド</Link>
-              <Link href="/post" className="chip">➕ かんたん投稿</Link>
             </>
           )}
         </div>
@@ -318,7 +321,8 @@ export default async function Home({
         </section>
       )}
 
-      {/* ---------- 使い方 3ステップ ---------- */}
+      {/* ---------- 使い方 3ステップ（未ログインの初見向け。常連には出さない） ---------- */}
+      {!user && (
       <section className="mt-16">
         <div className="mb-5 text-center">
           <p className="eyebrow">How it works</p>
@@ -339,8 +343,10 @@ export default async function Home({
           ))}
         </div>
       </section>
+      )}
 
-      {/* ---------- TEASERS ---------- */}
+      {/* ---------- TEASERS（未ログインの初見向け） ---------- */}
+      {!user && (
       <section className="mt-14 grid gap-4 sm:grid-cols-2">
         <Link href="/for-shops" className="card card-hover flex items-center gap-4 p-6">
           <IconOrb preset="amber" size={52}>🏠</IconOrb>
@@ -363,6 +369,7 @@ export default async function Home({
           </div>
         </Link>
       </section>
+      )}
     </div>
   )
 }

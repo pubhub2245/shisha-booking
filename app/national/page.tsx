@@ -5,6 +5,7 @@ import { getCurrentUser } from '@/lib/auth'
 import { MixCard } from '@/components/mix-card'
 import { ShareBar } from '@/components/share-bar'
 import { SITE_URL } from '@/lib/site'
+import { RankingTabs } from '@/components/ranking-tabs'
 import { flavorLine } from '@/lib/mix'
 
 export const dynamic = 'force-dynamic'
@@ -36,6 +37,7 @@ export default async function NationalTeamPage() {
 
   return (
     <div className="wrap max-w-5xl py-10">
+      <RankingTabs current="national" />
       {/* ヒーロー */}
       <div className="text-center">
         <p className="eyebrow">Japan National Team</p>
@@ -45,10 +47,10 @@ export default async function NationalTeamPage() {
         <p className="mx-auto mt-3 max-w-2xl text-sm leading-relaxed" style={{ color: 'var(--color-ash)' }}>
           「日本人に美味しい」と言われるシーシャを、みんなで選ぶ。
           <br className="hidden sm:block" />
-          系統ごとに、<b>👍いいね</b>と<b>🔥「作った！」</b>で最も支持を集めたミックスが<b>日本代表</b>に選出されます。
+          系統ごとに、<b>👍いいね</b>・<b>🔥「作った！」</b>・<b>📍実地評価</b>で最も支持を集めたミックスが<b>日本代表</b>に選出されます。
         </p>
         <p className="mx-auto mt-2 max-w-2xl text-xs" style={{ color: 'var(--color-ash-dim)' }}>
-          ※ 選出基準：支持スコア（👍＋🔥作った×2）が1以上・本物のレシピを優先。あなたの👍と「作った！」が代表の顔ぶれを変えます。
+          ※ 選出基準：支持スコア（👍×1＋🔥作った×2＋📍実地評価×5）が1以上・本物のレシピを優先。現地で実物を吸った「実地評価」を最重視します。
           <br />本物のレシピが未選出の系統は「暫定代表」と表示され、投稿が集まり次第 差し替わります。
         </p>
       </div>

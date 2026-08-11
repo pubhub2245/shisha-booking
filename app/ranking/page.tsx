@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { getRankedMixes, getLikedMixIds } from '@/lib/queries'
 import { getCurrentUser } from '@/lib/auth'
 import { MixCard } from '@/components/mix-card'
+import { RankingTabs } from '@/components/ranking-tabs'
 
 export const dynamic = 'force-dynamic'
 export const metadata = {
@@ -34,16 +35,11 @@ export default async function RankingPage({ searchParams }: { searchParams: Prom
       <h1 className="mt-2 text-3xl" style={{ fontWeight: 800 }}>
         人気ミックスランキング
       </h1>
-      <p className="mt-2 text-sm" style={{ color: 'var(--color-ash)' }}>
+      <p className="mt-2 mb-4 text-sm" style={{ color: 'var(--color-ash)' }}>
         みんなの「いいね」が多い順。迷ったら上位から試すのがおすすめ。
       </p>
-      <Link
-        href="/areas"
-        className="mt-3 inline-flex items-center gap-1 text-sm"
-        style={{ color: 'var(--color-ember-hot)', fontWeight: 600 }}
-      >
-        📍 地域別ランキングを見る（旅行先で美味しいお店を探す）→
-      </Link>
+
+      <RankingTabs current="ranking" />
 
       <div className="mt-4 flex flex-wrap gap-2">
         {PERIODS.map((p) => (
