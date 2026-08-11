@@ -40,5 +40,10 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/post/:path*", "/mypage/:path*", "/admin/:path*", "/timeline/:path*"],
+  // 認証セッションの更新は全ルートで行う必要がある（一部のみだとトークンが失効し、
+  // ログイン状態の書き込み＝auth.uid() が null になり保存に失敗する）。
+  // 静的アセットとファイル拡張子付きのパスだけ除外。
+  matcher: [
+    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|txt|xml|json|webmanifest)$).*)",
+  ],
 }
