@@ -51,7 +51,9 @@ export async function submitProApplication(_prev: ProAppState, formData: FormDat
   })
   if (error) {
     if (error.code === '23505') return { error: '審査中の申請がすでにあります。結果をお待ちください。' }
-    return { error: '申請の送信に失敗しました。時間をおいて再度お試しください。' }
+    console.error('[submitProApplication]', error.code, error.message, error.details, error.hint)
+    // デバッグ用に実エラーを一時表示（原因特定後に元へ戻す）
+    return { error: `申請の送信に失敗しました。[${error.code ?? '?'}] ${error.message ?? ''}` }
   }
 
   revalidatePath('/mypage')
