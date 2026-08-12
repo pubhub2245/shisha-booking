@@ -157,7 +157,7 @@ export function OnsiteRating({
 
   return (
     <section>
-      <div className="rounded-2xl border p-5" style={{ borderColor: 'rgb(230 0 51 / 0.30)', background: 'rgb(230 0 51 / 0.05)' }}>
+      <div className="rounded-2xl border p-5" style={{ borderColor: 'rgb(178 59 46 / 0.30)', background: 'rgb(178 59 46 / 0.05)' }}>
         <div className="flex items-center justify-between gap-2">
           <h2 className="flex items-center gap-2 text-base" style={{ fontWeight: 800 }}>📍 実地評価</h2>
           <span className="rounded-full px-2.5 py-0.5 text-xs" style={{ background: 'var(--accent-tint)', color: 'var(--color-ember-hot)', fontWeight: 700 }}>

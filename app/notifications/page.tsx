@@ -82,7 +82,7 @@ export default async function NotificationsPage() {
                   {isSystem ? (
                     <div
                       className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-lg"
-                      style={{ background: 'linear-gradient(135deg, #bc002d, #e60033)' }}
+                      style={{ background: 'linear-gradient(135deg, #9a3226, #b23b2e)' }}
                       aria-hidden
                     >
                       🇯🇵

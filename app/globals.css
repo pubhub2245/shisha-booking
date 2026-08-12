@@ -2,71 +2,76 @@
 
 /* ============================================================
    MixHub — シーシャ ミックス図鑑
-   Design : Clean editorial (warm paper × herbal green)
-   ※ トークン名は据え置き、値だけ刷新（コンポーネント側の参照を維持）
+   Design : 和（washi paper × 墨 sumi × 苔 moss-green × 朱 vermilion seal）
+   職人・研鑽・落款の佇まい。トークン名は据え置き、値だけ刷新。
    ============================================================ */
 
 @theme inline {
-  /* --- Base（明るい紙） / 旧 smoke 系を再マップ --- */
-  --color-smoke-950: #f7f4ee;  /* page bg */
-  --color-smoke-900: #f2eee5;  /* input bg */
-  --color-smoke-850: #ffffff;  /* card */
-  --color-smoke-800: #f0ebe1;
-  --color-smoke-700: #e7e0d3;
-  --color-smoke-600: #d6cebd;
+  /* --- Base（生成り / 和紙） --- */
+  --color-smoke-950: #f3ede1;  /* page bg（生成り） */
+  --color-smoke-900: #efe7d8;  /* input bg */
+  --color-smoke-850: #fbf8f0;  /* card（白練） */
+  --color-smoke-800: #ece4d3;
+  --color-smoke-700: #e1d8c5;
+  --color-smoke-600: #cec3ac;
 
-  /* --- Accent（ハーバルグリーン） / 旧 ember 系を再マップ --- */
-  --color-ember:       #1f8a76;  /* primary accent */
-  --color-ember-hot:   #176d5d;  /* text 用の濃いめ（明るい地に映える） */
-  --color-ember-deep:  #b5502f;  /* エラー等の警告色（テラコッタ） */
-  --color-coal:        #2ba088;  /* 補助グリーン */
+  /* --- Accent（苔・常磐の和グリーン） --- */
+  --color-ember:       #3f7d5f;  /* primary（苔緑） */
+  --color-ember-hot:   #2f6147;  /* text 用の濃いめ */
+  --color-ember-deep:  #a83a2c;  /* エラー等の警告色（朱寄り） */
+  --color-coal:        #52916f;  /* 補助グリーン */
 
-  /* --- Text --- */
-  --color-cream:      #23201a;  /* 主要テキスト（濃いインク） */
-  --color-ash:        #6a655a;  /* 補助 */
-  --color-ash-dim:    #a49d8e;  /* さらに淡い */
+  /* --- 朱（落款・日本代表の判） --- */
+  --color-seal:        #b23b2e;
 
-  /* --- Fonts --- */
-  --font-display: var(--font-outfit), "Outfit", system-ui, sans-serif;
+  /* --- Text（墨） --- */
+  --color-cream:      #201e18;  /* 主要テキスト（墨） */
+  --color-ash:        #5c5748;  /* 補助 */
+  --color-ash-dim:    #928b79;  /* さらに淡い */
+
+  /* --- Fonts（見出しは明朝、本文はゴシック） --- */
+  --font-display: "Yu Mincho", "YuMincho", "Hiragino Mincho ProN", "Hiragino Mincho Pro", "Noto Serif JP", "Shippori Mincho", serif;
   --font-jp: var(--font-noto-sans-jp), system-ui, sans-serif;
 
   --max-w-site: 1120px;
 }
 
 :root {
-  --line: rgb(35 32 26 / 0.09);
-  --line-strong: rgb(35 32 26 / 0.16);
-  --accent-tint: rgb(31 138 118 / 0.09);
+  --line: rgb(33 30 24 / 0.11);
+  --line-strong: rgb(33 30 24 / 0.19);
+  --accent-tint: rgb(63 125 95 / 0.10);
   /* 半透明の紙色（ヘッダー/ボトムナビ等） */
-  --surface-blur: rgb(247 244 238 / 0.82);
-  --surface-blur-strong: rgb(247 244 238 / 0.92);
+  --surface-blur: rgb(243 237 225 / 0.82);
+  --surface-blur-strong: rgb(243 237 225 / 0.93);
 }
 
 /* ============================================================ Dark mode
    端末がダーク設定のときだけトークンの値を差し替える（参照側は変更不要）。 */
 @media (prefers-color-scheme: dark) {
   :root {
-    --color-smoke-950: #141210; /* page bg */
-    --color-smoke-900: #1b1813; /* 補助面 */
-    --color-smoke-850: #211d17; /* card / input surface */
-    --color-smoke-800: #262119;
-    --color-smoke-700: #322c22;
-    --color-smoke-600: #433b2e;
+    --color-smoke-950: #16130d; /* page bg（濃墨） */
+    --color-smoke-900: #1d190f; /* 補助面 */
+    --color-smoke-850: #231e15; /* card / input surface */
+    --color-smoke-800: #2a2419;
+    --color-smoke-700: #372f20;
+    --color-smoke-600: #4a4130;
 
-    --color-ember:     #26a68d; /* primary accent（やや明るめ） */
-    --color-ember-hot: #4cc4aa; /* 暗地に映えるテキスト用アクセント */
-    --color-coal:      #2ba088;
+    --color-ember:     #4f9d78; /* 苔緑（やや明るめ） */
+    --color-ember-hot: #7cc6a2; /* 暗地に映えるテキスト用アクセント */
+    --color-coal:      #52916f;
     --color-ember-deep:#e0714a;
 
-    --color-cream:   #ece7dd; /* 主要テキスト（明色） */
-    --color-ash:     #b3ac9e;
-    --color-ash-dim: #837c6e;
+    --color-seal:      #d85742; /* 朱（暗地で映える） */
+
+    --color-cream:   #ece6da; /* 主要テキスト（生成り明色） */
+    --color-ash:     #b0a894;
+    --color-ash-dim: #837c6b;
 
     --line: rgb(255 255 255 / 0.10);
     --line-strong: rgb(255 255 255 / 0.18);
-    --accent-tint: rgb(38 166 141 / 0.16);
-    --surface-blur: rgb(20 18 14 / 0.82);
-    --surface-blur-strong: rgb(20 18 14 / 0.92);
+    --accent-tint: rgb(79 157 120 / 0.16);
+    --surface-blur: rgb(22 19 13 / 0.82);
+    --surface-blur-strong: rgb(22 19 13 / 0.93);
   }
 }
 
@@ -81,7 +86,9 @@ html {
 }
 
 body {
-  background: var(--color-smoke-950);
+  background-color: var(--color-smoke-950);
+  /* 和紙のかすかな繊維感（グレイン） */
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
   color: var(--color-cream);
   font-family: var(--font-jp);
   font-weight: 400;
@@ -110,15 +117,15 @@ a { color: inherit; text-decoration: none; }
 }
 .skip-link:focus { top: 8px; }
 
-h1, h2, h3, h4 { line-height: 1.28; font-weight: 700; letter-spacing: 0.005em; color: var(--color-cream); }
+h1, h2, h3, h4 { font-family: var(--font-display); line-height: 1.32; font-weight: 700; letter-spacing: 0.02em; color: var(--color-cream); }
 
 /* ============================================================ Typography */
 .font-display { font-family: var(--font-display); }
 
 .brand-mark {
   font-family: var(--font-display);
-  font-weight: 800;
-  letter-spacing: -0.02em;
+  font-weight: 700;
+  letter-spacing: 0.01em;
   color: var(--color-cream);
 }
 
@@ -174,11 +181,32 @@ h1, h2, h3, h4 { line-height: 1.28; font-weight: 700; letter-spacing: 0.005em; c
 }
 .btn:active { transform: translateY(1px) scale(0.99); }
 .btn-ember {
-  background: linear-gradient(145deg, var(--color-coal), var(--color-ember));
-  color: #fff;
-  box-shadow: 0 10px 24px -10px rgb(31 138 118 / 0.5), inset 0 1px 0 rgb(255 255 255 / 0.25);
+  background: var(--color-ember);
+  color: #fbf8f0;
+  box-shadow: 0 6px 16px -10px rgb(47 97 71 / 0.55);
 }
-.btn-ember:hover { filter: brightness(1.05); }
+.btn-ember:hover { filter: brightness(1.06); }
+
+/* 落款・朱印（日本代表など"判"の表現） */
+.seal {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--color-seal);
+  color: #fbf8f0;
+  border-radius: 7px;
+  padding: 4px 11px;
+  font-family: var(--font-display);
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  box-shadow: 0 2px 8px -4px rgb(178 59 46 / 0.5);
+}
+.seal-outline {
+  background: rgb(178 59 46 / 0.07);
+  color: var(--color-seal);
+  border: 1.5px solid var(--color-seal);
+  box-shadow: none;
+}
 .btn-ghost {
   background: transparent;
   color: var(--color-cream);
@@ -292,7 +320,7 @@ a.chip:hover {
   width: 70%;
   height: 60%;
   transform: translateX(-50%);
-  background: radial-gradient(closest-side, rgb(31 138 118 / 0.16), transparent 75%);
+  background: radial-gradient(closest-side, rgb(63 125 95 / 0.14), transparent 75%);
   filter: blur(8px);
   pointer-events: none;
 }

@@ -120,7 +120,7 @@ export default async function ShopPage({ params }: { params: Promise<{ id: strin
       {shop.lat != null && shop.lng != null && (
         <div
           className="mt-4 rounded-xl border p-4 text-sm"
-          style={{ borderColor: 'rgb(230 0 51 / 0.30)', background: 'rgb(230 0 51 / 0.05)' }}
+          style={{ borderColor: 'rgb(178 59 46 / 0.30)', background: 'rgb(178 59 46 / 0.05)' }}
         >
           <div className="flex items-center gap-2" style={{ fontWeight: 800 }}>📍 ご来店ありがとうございます</div>
           <p className="mt-1 text-xs leading-relaxed" style={{ color: 'var(--color-ash)' }}>

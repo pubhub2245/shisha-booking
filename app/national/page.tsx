@@ -99,7 +99,7 @@ export default async function NationalTeamPage() {
                     ) : (
                       <span
                         className="rounded-full px-2 py-0.5 text-[0.6rem]"
-                        style={{ background: 'linear-gradient(90deg, #bc002d, #e60033)', color: '#fff', fontWeight: 800, letterSpacing: '0.05em' }}
+                        style={{ background: 'linear-gradient(90deg, #9a3226, #b23b2e)', color: '#fff', fontWeight: 800, letterSpacing: '0.05em' }}
                       >
                         日本代表
                       </span>
@@ -134,9 +134,9 @@ export default async function NationalTeamPage() {
           </div>
 
           <p className="mt-10 text-center text-xs" style={{ color: 'var(--color-ash-dim)' }}>
-            納得いかない？ もっと美味しいミックスを{' '}
+            もっと美味しい作り方に気づいた？{' '}
             <Link href="/post" className="hover:underline" style={{ color: 'var(--color-ember-hot)', fontWeight: 600 }}>
-              投稿して代表の座を奪いましょう
+              あなたの一台を投稿して、決定版を更新しましょう
             </Link>
             。
           </p>

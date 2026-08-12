@@ -228,11 +228,7 @@ export default async function MixDetail({ params }: { params: Promise<{ id: stri
         </h1>
         <div className="mt-2 flex flex-wrap items-center gap-2">
           {isRep && (
-            <Link
-              href="/national"
-              className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs"
-              style={{ background: 'linear-gradient(90deg, #bc002d, #e60033)', color: '#fff', fontWeight: 800, letterSpacing: '0.03em' }}
-            >
+            <Link href="/national" className="seal text-xs">
               🇯🇵 {repLabel}系の日本代表
             </Link>
           )}
@@ -286,10 +282,10 @@ export default async function MixDetail({ params }: { params: Promise<{ id: stri
         {isRep && isOwner && (
           <div
             className="mt-4 rounded-xl border p-4"
-            style={{ borderColor: 'rgb(230 0 51 / 0.35)', background: 'rgb(230 0 51 / 0.06)' }}
+            style={{ borderColor: 'rgb(178 59 46 / 0.35)', background: 'rgb(178 59 46 / 0.06)' }}
           >
             <p className="text-sm" style={{ fontWeight: 800 }}>
-              🎉 おめでとうございます！あなたのミックスが <span style={{ color: '#e60033' }}>{repLabel}系の日本代表</span> に選ばれています。
+              🎉 おめでとうございます！あなたのミックスが <span style={{ color: '#b23b2e' }}>{repLabel}系の日本代表</span> に選ばれています。
             </p>
             <p className="mt-1 text-xs" style={{ color: 'var(--color-ash)' }}>
               みんなの👍と「作った！」で選出された証。ぜひSNSで自慢しましょう。

@@ -108,7 +108,7 @@ export default async function ProfilePage({ params }: { params: Promise<{ userna
                 key={c}
                 href="/national"
                 className="rounded-full px-2.5 py-0.5 text-xs"
-                style={{ background: 'linear-gradient(90deg, #bc002d, #e60033)', color: '#fff', fontWeight: 800 }}
+                style={{ background: 'linear-gradient(90deg, #9a3226, #b23b2e)', color: '#fff', fontWeight: 800 }}
               >
                 {c}系
               </Link>

@@ -96,7 +96,7 @@ export function MixNaming({
       </p>
 
       {winner && (
-        <div className="mb-3 rounded-xl border p-4 text-center" style={{ borderColor: 'rgb(230 0 51 / 0.35)', background: 'rgb(230 0 51 / 0.06)' }}>
+        <div className="mb-3 rounded-xl border p-4 text-center" style={{ borderColor: 'rgb(178 59 46 / 0.35)', background: 'rgb(178 59 46 / 0.06)' }}>
           <div className="text-xs" style={{ color: 'var(--color-ash-dim)' }}>現在の愛称（最多得票）</div>
           <div className="mt-0.5 text-xl" style={{ fontWeight: 800 }}>「{winner.name}」</div>
           <div className="mt-0.5 text-xs" style={{ color: 'var(--color-ash-dim)' }}>👍 {winner.votes}</div>
