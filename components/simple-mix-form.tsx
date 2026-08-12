@@ -41,14 +41,6 @@ export function SimpleMixForm({
 
   return (
     <form action={action} className="mt-6 flex flex-col gap-6">
-      <div className="field">
-        <label>特徴・ひとこと（任意）</label>
-        <input name="title" maxLength={40} placeholder="例：王道スッキリ（空でもOK）" />
-        <p className="mt-1 text-xs" style={{ color: 'var(--color-ash-dim)' }}>
-          名前はフレーバーで自動的に付きます。ひとことだけ添えたいときにどうぞ。
-        </p>
-      </div>
-
       <div>
         <label className="mb-1 block text-sm" style={{ fontWeight: 700 }}>
           使うフレーバー <span style={{ color: 'var(--color-ember-hot)' }}>必須</span>
@@ -100,6 +92,14 @@ export function SimpleMixForm({
         <button type="button" onClick={addRow} className="btn btn-ghost mt-3 text-sm">＋ フレーバーを追加</button>
         <p className="mt-2 text-xs" style={{ color: 'var(--color-ash-dim)' }}>
           量はスケールがなければ空欄でOK。割合のコツはメモに書けます。
+        </p>
+      </div>
+
+      <div className="field">
+        <label>特徴・ひとこと（任意）</label>
+        <input name="title" maxLength={40} placeholder="例：王道スッキリ（空でもOK）" />
+        <p className="mt-1 text-xs" style={{ color: 'var(--color-ash-dim)' }}>
+          名前はフレーバーで自動的に付きます。ひとことだけ添えたいときにどうぞ。
         </p>
       </div>
 

@@ -207,14 +207,6 @@ export function MixForm({
         </div>
       )}
 
-      <div className="field">
-        <label>特徴・ひとこと（任意）</label>
-        <input name="title" defaultValue={initial?.title ?? ''} placeholder="例：王道スッキリ / しっかり冷やす版" maxLength={40} />
-        <p className="mt-1 text-xs" style={{ color: 'var(--color-ash-dim)' }}>
-          正式名はフレーバー名（{'例：ダブルアップル × ミント'}）です。空でもOK。作り方の特徴を短く添えたいときだけどうぞ。
-        </p>
-      </div>
-
       {/* ---------- FLAVORS (選択式) ---------- */}
       <div>
         <div className="mb-2 flex items-center justify-between">
@@ -335,6 +327,14 @@ export function MixForm({
         <p className="mt-2 text-xs leading-relaxed" style={{ color: 'var(--color-ash-dim)' }}>
           💡 量はグラム推奨ですが、スケールがなければ目安でOK（ボウル1杯 ≒ 15〜20g、ひとつまみ ≒ 2〜3g）。
           比率が伝わればOKなので、迷ったら「多め／少なめ」を説明欄に添えてください。
+        </p>
+      </div>
+
+      <div className="field">
+        <label>特徴・ひとこと（任意）</label>
+        <input name="title" defaultValue={initial?.title ?? ''} placeholder="例：王道スッキリ / しっかり冷やす版" maxLength={40} />
+        <p className="mt-1 text-xs" style={{ color: 'var(--color-ash-dim)' }}>
+          正式名はフレーバー名（{'例：ダブルアップル × ミント'}）です。空でもOK。作り方の特徴を短く添えたいときだけどうぞ。
         </p>
       </div>
 
