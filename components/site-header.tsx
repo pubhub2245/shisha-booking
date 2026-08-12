@@ -25,13 +25,15 @@ export async function SiteHeader() {
         <Link href="/" className="flex items-center gap-2.5">
           <span
             aria-hidden
-            className="brand-mark flex h-8 w-8 items-center justify-center rounded-xl text-lg text-white"
+            className="brand-mark flex h-8 w-8 items-center justify-center rounded-md text-lg"
             style={{
-              background: 'linear-gradient(145deg, var(--color-coal), var(--color-ember))',
-              boxShadow: '0 6px 14px -6px rgb(31 138 118 / 0.5), inset 0 1px 0 rgb(255 255 255 / 0.3)',
+              background: 'var(--color-seal)',
+              color: '#fbf8f0',
+              boxShadow: '0 3px 10px -5px rgb(178 59 46 / 0.6), 0 0 0 1px rgb(178 59 46 / 0.25) inset',
             }}
+            title="混（ミックス）"
           >
-            M
+            混
           </span>
           <span className="brand-mark text-xl">
             Mix<span className="ember-text">Hub</span>

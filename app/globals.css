@@ -30,7 +30,7 @@
   --color-ash-dim:    #928b79;  /* さらに淡い */
 
   /* --- Fonts（見出しは明朝、本文はゴシック） --- */
-  --font-display: "Yu Mincho", "YuMincho", "Hiragino Mincho ProN", "Hiragino Mincho Pro", "Noto Serif JP", "Shippori Mincho", serif;
+  --font-display: var(--font-shippori-mincho), "Shippori Mincho", "Yu Mincho", "YuMincho", "Hiragino Mincho ProN", "Noto Serif JP", serif;
   --font-jp: var(--font-noto-sans-jp), system-ui, sans-serif;
 
   --max-w-site: 1120px;
@@ -153,7 +153,7 @@ h1, h2, h3, h4 { font-family: var(--font-display); line-height: 1.32; font-weigh
 .card {
   background: var(--color-smoke-850);
   border: 1px solid var(--line);
-  border-radius: 16px;
+  border-radius: 14px;
   transition: border-color .2s ease, transform .2s ease, box-shadow .2s ease;
   box-shadow: 0 1px 2px rgb(35 32 26 / 0.03);
 }
@@ -324,3 +324,44 @@ a.chip:hover {
   filter: blur(8px);
   pointer-events: none;
 }
+
+/* ============================================================ 和 refinements
+   職人のこだわり：等幅数字・墨のスクロールバー・朱の小罫・落款スタンプ 等 */
+
+/* 統計・スコアの数字を等幅に（縦がそろって"整う"） */
+body { font-variant-numeric: tabular-nums; }
+
+/* 細い墨のスクロールバー */
+* { scrollbar-width: thin; scrollbar-color: var(--line-strong) transparent; }
+::-webkit-scrollbar { width: 9px; height: 9px; }
+::-webkit-scrollbar-thumb {
+  background: var(--line-strong);
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+::-webkit-scrollbar-thumb:hover { background: var(--color-ash-dim); background-clip: content-box; }
+
+/* eyebrow（小見出し）に朱の小罫を添える＝落款の"間" */
+.eyebrow { display: inline-flex; align-items: center; }
+.eyebrow::before {
+  content: "";
+  width: 16px; height: 2px;
+  margin-right: 9px;
+  background: var(--color-seal);
+  border-radius: 2px;
+  opacity: 0.85;
+}
+
+/* 落款スタンプ（少し傾けた"判"）＋二重罫の縁 */
+.seal-stamp { transform: rotate(-2deg); box-shadow: 0 0 0 1px rgb(251 248 240 / 0.35) inset, 0 2px 8px -4px rgb(178 59 46 / 0.5); }
+
+/* 中黒の飾り罫（セクション区切り。任意で使用） */
+.rule-ornament { display: flex; align-items: center; gap: 12px; color: var(--color-seal); }
+.rule-ornament::before, .rule-ornament::after { content: ""; height: 1px; flex: 1; background: var(--line); }
+
+/* リンクは下線オフセットを効かせて上品に */
+main a[href]:not(.btn):not(.chip):not(.seal):hover { text-underline-offset: 3px; }
+
+/* 見出しの約物を詰める（明朝の"間"を整える） */
+h1, h2, h3 { font-feature-settings: "palt" 1; }

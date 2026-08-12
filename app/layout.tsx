@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Outfit, Noto_Sans_JP } from "next/font/google";
+import { Outfit, Noto_Sans_JP, Shippori_Mincho } from "next/font/google";
 import "./globals.css";
 import { cookies } from "next/headers";
 import { Analytics } from "@vercel/analytics/next";
@@ -21,6 +21,15 @@ const notoSansJp = Noto_Sans_JP({
   display: "swap",
   preload: false,
   variable: "--font-noto-sans-jp",
+});
+
+// 見出し・ブランド用の明朝体（和の佇まい）。JPグリフのため preload はしない。
+const shipporiMincho = Shippori_Mincho({
+  weight: ["500", "600", "700", "800"],
+  subsets: ["latin"],
+  display: "swap",
+  preload: false,
+  variable: "--font-shippori-mincho",
 });
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://shisha-booking.vercel.app";
@@ -46,7 +55,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#f7f4ee",
+  themeColor: "#f3ede1",
 };
 
 export default async function RootLayout({
@@ -54,7 +63,7 @@ export default async function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   const ageOk = (await cookies()).get("age_ok")?.value === "1";
   return (
-    <html lang="ja" className={`${outfit.variable} ${notoSansJp.variable}`}>
+    <html lang="ja" className={`${outfit.variable} ${notoSansJp.variable} ${shipporiMincho.variable}`}>
       <body className="flex min-h-dvh flex-col pb-16 md:pb-0">
         <a href="#main" className="skip-link">本文へスキップ</a>
         <SiteHeader />
