@@ -85,11 +85,18 @@ export function MixForm({
   const [state, action, pending] = useActionState<MixFormState, FormData>(action0, null)
   const [charcoalType, setCharcoalType] = useState(initial?.charcoalType ?? '')
 
-  // 「大事にするポイント」＝投稿に載せるセクション。選んだ項目だけ入力＆表示され、🔒でロックできる。
+  // 「大事にするポイント」＝投稿に載せる項目。選んだ項目だけ入力＆表示され、🔒でロックできる。
+  // ネーミング（特徴・ひとこと）も"大事にするポイント"の1要素として選べる（名前を大事にする人向け）。
   const LOCKABLE_KEYS = LOCKABLE_SECTIONS.map((s) => s.v) as string[]
   const ALL_SECTION_KEYS = MIX_DISPLAY_SECTIONS.map((s) => s.v)
+  const chooserItems: { v: string; label: string; hint: string; lockable: boolean }[] = [
+    { v: 'title', label: '🏷 ネーミング・ひとこと', hint: 'このミックスの名前・特徴を添える', lockable: false },
+    ...MIX_DISPLAY_SECTIONS.map((s) => ({ v: s.v, label: s.label, hint: s.hint, lockable: canSell && LOCKABLE_KEYS.includes(s.v) })),
+  ]
   const initialShown =
-    initial != null ? ALL_SECTION_KEYS.filter((k) => !(initial.hiddenSections ?? []).includes(k)) : ALL_SECTION_KEYS
+    initial != null
+      ? [...(initial.title ? ['title'] : []), ...ALL_SECTION_KEYS.filter((k) => !(initial.hiddenSections ?? []).includes(k))]
+      : ['title', ...ALL_SECTION_KEYS]
   const [shown, setShown] = useState<Set<string>>(new Set(initialShown))
   const [lockedSet, setLockedSet] = useState<Set<string>>(
     new Set(initial?.premium ? initial?.lockedSections ?? [] : [])
@@ -331,14 +338,6 @@ export function MixForm({
       </div>
 
       <div className="field">
-        <label>特徴・ひとこと（任意）</label>
-        <input name="title" defaultValue={initial?.title ?? ''} placeholder="例：王道スッキリ / しっかり冷やす版" maxLength={40} />
-        <p className="mt-1 text-xs" style={{ color: 'var(--color-ash-dim)' }}>
-          正式名はフレーバー名（{'例：ダブルアップル × ミント'}）です。空でもOK。作り方の特徴を短く添えたいときだけどうぞ。
-        </p>
-      </div>
-
-      <div className="field">
         <label>味わいタグ（選択式・複数可）</label>
         <TagPicker name="taste_tags" defaultValue={initial?.tasteTags ?? []} />
       </div>
@@ -358,9 +357,9 @@ export function MixForm({
           {canSell && <> 特に<b>こだわり／秘密</b>にしたい項目は <b>🔒</b> で<b>ロック（有料）</b>にもできます。</>}
         </p>
         <div className="mt-2 flex flex-wrap gap-2">
-          {MIX_DISPLAY_SECTIONS.map((s) => {
+          {chooserItems.map((s) => {
             const on = shown.has(s.v)
-            const lockable = canSell && LOCKABLE_KEYS.includes(s.v)
+            const lockable = s.lockable
             return (
               <span key={s.v} className="inline-flex items-center">
                 <button
@@ -429,6 +428,17 @@ export function MixForm({
         ))}
         <input type="hidden" name="premium" value={premium ? 'on' : ''} />
       </div>
+
+      {/* ネーミング・ひとこと（チップで選んだときだけ入力欄が出る） */}
+      {shown.has('title') && (
+        <div className="field">
+          <label>🏷 ネーミング・ひとこと</label>
+          <input name="title" defaultValue={initial?.title ?? ''} placeholder="例：王道スッキリ / しっかり冷やす版" maxLength={40} />
+          <p className="mt-1 text-xs" style={{ color: 'var(--color-ash-dim)' }}>
+            正式名はフレーバー名（{'例：ダブルアップル × ミント'}）です。名前・特徴を大事にしたいときに添えてください。
+          </p>
+        </div>
+      )}
 
       <details open={hasAdvanced || shown.size > 0}>
         <summary className="cursor-pointer list-none [&::-webkit-details-marker]:hidden">
