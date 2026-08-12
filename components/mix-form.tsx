@@ -344,7 +344,7 @@ export function MixForm({
 
       <div className="field">
         <label>説明・どんな味か</label>
-        <textarea name="description" defaultValue={initial?.description} placeholder="どんな気分のときに、どう美味しいか。おすすめの飲み物など。" maxLength={600} />
+        <textarea name="description" defaultValue={initial?.description} placeholder="どんな気分のときに、どう美味しいか。相性の良いドリンクなど。" maxLength={600} />
       </div>
 
       <div className="divider" />
