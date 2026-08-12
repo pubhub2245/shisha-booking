@@ -4,8 +4,8 @@ import { mixQuality, mixCompleteness } from '@/lib/quality'
 import { searchVariants } from '@/lib/kana'
 import { TYPE_TAGS } from '@/lib/tags'
 import { REGIONS, regionOf, REGION_EMOJI, type RegionKey } from '@/lib/regions'
-import { mixSupportScore, shopSupportScore } from '@/lib/score'
-import { isActivelyLocked } from '@/lib/lock'
+import { mixSupportScore, shopSupportScore, openRankValue } from '@/lib/score'
+import { isActivelyLocked, isFullyOpen } from '@/lib/lock'
 import type {
   MixWithRelations,
   Mix,
@@ -1047,7 +1047,13 @@ export async function getFlavorRating(flavorId: string): Promise<{ avg: number; 
 /** 期間別ランキング。week/month は期間内のいいね数、all は累計いいね順。 */
 export async function getRankedMixes(period: 'week' | 'month' | 'all'): Promise<MixWithRelations[]> {
   try {
-    if (period === 'all') return await getMixes({ sort: 'popular' })
+    // 公開レシピを微優遇（openRankValue）。差は小さく、人気が大きく上なら順位は保たれる。
+    if (period === 'all') {
+      const mixes = await getMixes({ sort: 'popular' })
+      return mixes
+        .slice()
+        .sort((a, b) => openRankValue(b.like_count, isFullyOpen(b)) - openRankValue(a.like_count, isFullyOpen(a)))
+    }
     const supabase = await createClient()
     const days = period === 'week' ? 7 : 30
     const cutoff = new Date(Date.now() - days * 86400000).toISOString()
@@ -1061,7 +1067,10 @@ export async function getRankedMixes(period: 'week' | 'month' | 'all'): Promise<
     if (topIds.length === 0) return []
     const { data } = await supabase.from('mixes').select('*').in('id', topIds).eq('hidden', false)
     const mixes = await attachRelations(supabase, (data ?? []) as Mix[])
-    return mixes.sort((a, b) => (counts.get(b.id) ?? 0) - (counts.get(a.id) ?? 0))
+    return mixes.sort(
+      (a, b) =>
+        openRankValue(counts.get(b.id) ?? 0, isFullyOpen(b)) - openRankValue(counts.get(a.id) ?? 0, isFullyOpen(a))
+    )
   } catch {
     return []
   }

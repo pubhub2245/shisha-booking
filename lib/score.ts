@@ -11,6 +11,14 @@ export function shopSupportScore(onsite: number, likes: number, makes: number): 
   return onsite * 5 + likes + makes * 2
 }
 
+/**
+ * ランキング用の"公開微優遇"。完全公開のレシピをわずかに底上げする（+10%＋1）。
+ * 差は小さく、ロック投稿でも大きく人気なら順位は上のまま。公開を規範に寄せるための微調整。
+ */
+export function openRankValue(base: number, fullyOpen: boolean): number {
+  return fullyOpen ? base * 1.1 + 1 : base
+}
+
 /** 2点間の距離（メートル / Haversine）。クライアント/サーバー両用。 */
 export function distanceMeters(lat1: number, lng1: number, lat2: number, lng2: number): number {
   const toRad = (d: number) => (d * Math.PI) / 180

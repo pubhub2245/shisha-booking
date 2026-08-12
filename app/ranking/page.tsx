@@ -38,6 +38,7 @@ export default async function RankingPage({ searchParams }: { searchParams: Prom
       </h1>
       <p className="mt-2 mb-4 text-sm" style={{ color: 'var(--color-ash)' }}>
         みんなの「いいね」が多い順。迷ったら上位から試すのがおすすめ。
+        <span className="ml-1 text-xs" style={{ color: 'var(--color-ash-dim)' }}>（🌐 公開レシピをわずかに優先）</span>
       </p>
 
       <RankingTabs current="ranking" />
