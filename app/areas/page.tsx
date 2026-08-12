@@ -35,7 +35,7 @@ export default async function AreasPage() {
       <RankingTabs current="areas" />
 
       <p className="mt-2 text-sm leading-relaxed" style={{ color: 'var(--color-ash)' }}>
-        シーシャ人口の多い都会ほど「いいね」が集まりやすい——その偏りをなくすため、<b>地方ごと</b>に競います。
+        シーシャ人口の多い都会ほど「いいね」が集まりやすい——その偏りをなくすため、<b>地方ごと</b>に分けて育てます。
         旅行や出張のときは、その地域で<b>いま一番評価されているお店</b>を探すのに使ってください。
       </p>
       <p className="mt-1 text-xs" style={{ color: 'var(--color-ash-dim)' }}>

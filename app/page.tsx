@@ -83,7 +83,7 @@ export default async function Home({
           今日のミックス、<span className="text-grad-anim">もう迷わない。</span>
         </h1>
         <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed" style={{ color: 'var(--color-ash)' }}>
-          同じ組み合わせを<b>“誰が一番うまく作れるか”</b>競う、日本代表シーシャ図鑑。
+          その組み合わせの<b>“いちばん美味しい作り方”</b>を、みんなで育てる日本代表シーシャ図鑑。
         </p>
         <p className="mt-1 text-xs" style={{ color: 'var(--color-ash-dim)' }}>
           気分で探す ・ {combos.length}通りの組み合わせ ・ {flavors.length}種のフレーバー
