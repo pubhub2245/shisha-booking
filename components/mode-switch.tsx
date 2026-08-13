@@ -3,7 +3,7 @@
 import { useTransition } from 'react'
 import { setUiMode } from '@/actions/profile'
 
-/** ヘッダー常設の即切替スイッチ（🔰 かんたん / 🛠 プロ）。 */
+/** ヘッダー常設の即切替スイッチ（シンプル / 詳細）。ユーザーを二分せず"見せる情報量"を切り替える。 */
 export function ModeSwitch({ mode }: { mode: 'simple' | 'pro' }) {
   const [pending, start] = useTransition()
 
@@ -25,28 +25,28 @@ export function ModeSwitch({ mode }: { mode: 'simple' | 'pro' }) {
       className="inline-flex items-center rounded-full border p-0.5"
       style={{ borderColor: 'var(--line-strong)' }}
       role="group"
-      aria-label="表示モードの切り替え"
-      title="かんたん / プロ を切り替え"
+      aria-label="表示の詳しさを切り替え"
+      title="シンプル / 詳細（見せる情報量）を切り替え"
     >
       <button
         type="button"
         onClick={() => set('simple')}
         disabled={pending}
         aria-pressed={mode === 'simple'}
-        className="rounded-full px-2 py-1 text-xs transition-colors"
+        className="rounded-full px-3 py-1 text-xs transition-colors"
         style={seg('simple')}
       >
-        🔰<span className="ml-1 hidden sm:inline">かんたん</span>
+        シンプル
       </button>
       <button
         type="button"
         onClick={() => set('pro')}
         disabled={pending}
         aria-pressed={mode === 'pro'}
-        className="rounded-full px-2 py-1 text-xs transition-colors"
+        className="rounded-full px-3 py-1 text-xs transition-colors"
         style={seg('pro')}
       >
-        🛠<span className="ml-1 hidden sm:inline">プロ</span>
+        詳細
       </button>
     </div>
   )

@@ -22,9 +22,9 @@ export function ModeChooser() {
 
   return (
     <div className="card mb-8 p-6">
-      <h2 className="text-lg" style={{ fontWeight: 800 }}>どちらで使いますか？</h2>
+      <h2 className="text-lg" style={{ fontWeight: 800 }}>どのくらい詳しく表示しますか？</h2>
       <p className="mt-1 text-sm" style={{ color: 'var(--color-ash)' }}>
-        あとから設定でいつでも切り替えられます。
+        あなたの「腕前」ではなく、<b>見せる情報量</b>の設定です。上部からいつでも切り替えられます。
       </p>
       <div className="mt-4 grid gap-3 sm:grid-cols-2">
         <button
@@ -34,9 +34,9 @@ export function ModeChooser() {
           className="rounded-xl border p-4 text-left transition-colors hover:bg-[var(--accent-tint)]"
           style={{ borderColor: picked === 'simple' ? 'var(--color-ember)' : 'var(--line-strong)' }}
         >
-          <div className="text-base" style={{ fontWeight: 800 }}>🔰 かんたんモード</div>
+          <div className="text-base" style={{ fontWeight: 800 }}>シンプル表示</div>
           <p className="mt-1 text-xs leading-relaxed" style={{ color: 'var(--color-ash)' }}>
-            まず楽しみたい人向け。フレーバー選びと味わい中心のシンプル表示。投稿もかんたん。
+            まずは王道と味わい中心。結論がすぐ分かる。詳しい作り方は各ページで「詳しく見る」から開けます。
           </p>
         </button>
         <button
@@ -46,9 +46,9 @@ export function ModeChooser() {
           className="rounded-xl border p-4 text-left transition-colors hover:bg-[var(--accent-tint)]"
           style={{ borderColor: picked === 'pro' ? 'var(--color-ember)' : 'var(--line-strong)' }}
         >
-          <div className="text-base" style={{ fontWeight: 800 }}>🛠 プロモード</div>
+          <div className="text-base" style={{ fontWeight: 800 }}>詳細表示</div>
           <p className="mt-1 text-xs leading-relaxed" style={{ color: 'var(--color-ash)' }}>
-            作り手・研究向け。熱管理カーブ・器具・蒸らし・練習ログまで、すべての機能が使えます。
+            熱管理カーブ・器具・蒸らし・ランキングまで最初から全部見せます。作り込みたい人向け。
           </p>
         </button>
       </div>

@@ -117,7 +117,7 @@ export default async function Home({
         </div>
         {user && mode === 'simple' && (
           <p className="mt-3 text-center text-xs" style={{ color: 'var(--color-ash-dim)' }}>
-            🔰 かんたん表示中。上部の <b style={{ color: 'var(--color-ash)' }}>🛠 プロ</b> で、熱管理・ランキング・タイムラインなどが使えます。
+            シンプル表示中。上部の <b style={{ color: 'var(--color-ash)' }}>詳細</b> で、熱管理・ランキング・タイムラインなどが最初から見られます。
           </p>
         )}
       </section>
