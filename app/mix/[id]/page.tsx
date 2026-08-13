@@ -173,7 +173,16 @@ export default async function MixDetail({ params }: { params: Promise<{ id: stri
 
   return (
     <div className="wrap max-w-3xl py-10">
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          // ユーザー入力（タイトル・説明・表示名）を含むため、</script> 脱出等の XSS を防ぐエスケープ
+          __html: JSON.stringify(jsonLd)
+            .replace(/</g, '\\u003c')
+            .replace(/>/g, '\\u003e')
+            .replace(/&/g, '\\u0026')
+        }}
+      />
       <ViewTracker mixId={mix.id} />
       <div className="flex items-center justify-between">
         <Link href="/" className="text-sm" style={{ color: 'var(--color-ash-dim)' }}>

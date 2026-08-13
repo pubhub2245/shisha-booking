@@ -31,10 +31,18 @@ export async function POST(request: NextRequest): Promise<Response> {
     const userId = session.metadata?.user_id
     if (mixId && userId) {
       const admin = createAdminClient()
-      if (admin) {
-        await admin
-          .from('mix_unlocks')
-          .upsert({ mix_id: mixId, user_id: userId }, { onConflict: 'mix_id,user_id', ignoreDuplicates: true })
+      if (!admin) {
+        // 決済は成立したのに解錠を付与できない（サービスロールキー未設定/失効）。
+        // 200 を返すと Stripe が再送しないため、500 を返して再試行させる。
+        console.error('[stripe/webhook] SUPABASE_SERVICE_ROLE_KEY 未設定：解錠を付与できません', { mixId, userId })
+        return NextResponse.json({ error: 'unlock unavailable' }, { status: 500 })
+      }
+      const { error } = await admin
+        .from('mix_unlocks')
+        .upsert({ mix_id: mixId, user_id: userId }, { onConflict: 'mix_id,user_id', ignoreDuplicates: true })
+      if (error) {
+        console.error('[stripe/webhook] mix_unlocks upsert 失敗', { mixId, userId, error })
+        return NextResponse.json({ error: 'unlock failed' }, { status: 500 })
       }
     }
   }

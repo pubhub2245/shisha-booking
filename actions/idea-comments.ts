@@ -101,6 +101,8 @@ export async function arbitrateIdea(
   ].join('\n')
 
   let summary = ''
+  const ac = new AbortController()
+  const timeout = setTimeout(() => ac.abort(), 15000) // API がハングしても15秒で打ち切る
   try {
     const res = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
@@ -114,6 +116,7 @@ export async function arbitrateIdea(
         max_tokens: 700,
         messages: [{ role: 'user', content: prompt }],
       }),
+      signal: ac.signal,
     })
     if (!res.ok) {
       return { error: `AI仲裁に失敗しました（${res.status}）。時間をおいて再度お試しください。` }
@@ -124,8 +127,13 @@ export async function arbitrateIdea(
       .map((b) => b.text ?? '')
       .join('')
       .trim()
-  } catch {
-    return { error: 'AI仲裁の呼び出しに失敗しました。時間をおいて再度お試しください。' }
+  } catch (e) {
+    const msg = e instanceof Error && e.name === 'AbortError'
+      ? 'AI仲裁がタイムアウトしました。時間をおいて再度お試しください。'
+      : 'AI仲裁の呼び出しに失敗しました。時間をおいて再度お試しください。'
+    return { error: msg }
+  } finally {
+    clearTimeout(timeout)
   }
 
   if (!summary) return { error: 'AIの応答が空でした。時間をおいて再度お試しください。' }

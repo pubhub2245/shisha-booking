@@ -1935,11 +1935,13 @@ export async function getFlavorAdder(userId: string): Promise<MixAuthor | null> 
 export async function getMixesUsingFlavor(flavor: Flavor): Promise<MixWithRelations[]> {
   try {
     const supabase = await createClient()
-    const { data: mf } = await supabase
-      .from('mix_flavors')
-      .select('mix_id, flavor_id, brand, name')
-      .or(`flavor_id.eq.${flavor.id},and(brand.eq.${flavor.brand},name.eq.${flavor.name})`)
-    const ids = [...new Set((mf ?? []).map((r) => r.mix_id as string))]
+    // brand/name にカンマや括弧が含まれると .or() 構文が壊れて空になるため、
+    // 文字列を組み立てず .eq() の2クエリに分けて安全に取得する。
+    const [byId, byBrandName] = await Promise.all([
+      supabase.from('mix_flavors').select('mix_id').eq('flavor_id', flavor.id),
+      supabase.from('mix_flavors').select('mix_id').eq('brand', flavor.brand).eq('name', flavor.name),
+    ])
+    const ids = [...new Set([...(byId.data ?? []), ...(byBrandName.data ?? [])].map((r) => r.mix_id as string))]
     if (ids.length === 0) return []
     const { data } = await supabase
       .from('mixes')

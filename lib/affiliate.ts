@@ -3,6 +3,11 @@
 // 未設定時はプレースホルダ 'endoh-22'（本番では必ず差し替えること）。
 export const AFFILIATE_TAG = process.env.AMAZON_ASSOC_TAG || 'endoh-22'
 
+// 本番で未設定のままだと、全リンクがプレースホルダのタグになり成果が誤帰属する。静かな事故を防ぐため警告する。
+if (!process.env.AMAZON_ASSOC_TAG && process.env.NODE_ENV === 'production') {
+  console.warn('[affiliate] AMAZON_ASSOC_TAG が未設定です。プレースホルダ "endoh-22" を使用中——アフィリエイト成果が正しく計上されません。')
+}
+
 const AMAZON_HOST = /(^|\.)amazon\.(co\.jp|com|co\.uk|de|fr|it|es|ca)$/i
 
 /**

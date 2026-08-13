@@ -1,3 +1,7 @@
+'use client'
+
+import { useState } from 'react'
+
 const COLORS = ['#1f8a76', '#e0552a', '#4a86e8', '#a479e2', '#d5992b', '#c0407a', '#2ba088']
 
 function hashStr(s: string): number {
@@ -18,7 +22,8 @@ export function Avatar({
   size?: number
   src?: string | null
 }) {
-  if (src) {
+  const [imgError, setImgError] = useState(false)
+  if (src && !imgError) {
     return (
       // eslint-disable-next-line @next/next/no-img-element
       <img
@@ -27,6 +32,7 @@ export function Avatar({
         className="inline-block shrink-0 rounded-full object-cover"
         style={{ width: size, height: size }}
         loading="lazy"
+        onError={() => setImgError(true)}
       />
     )
   }

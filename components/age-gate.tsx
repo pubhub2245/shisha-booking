@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { BRAND } from '@/lib/site'
 
 /**
  * 年齢確認ゲート。生年月を入力させ、20歳以上のときだけ通過できる。
@@ -12,10 +13,11 @@ export function AgeGate() {
   const [month, setMonth] = useState('')
   const [error, setError] = useState('')
   const [blocked, setBlocked] = useState(false)
+  // 表示レンジの基準（実時刻から算出。lazy init で毎レンダーの再計算を避ける）
+  const [thisYear] = useState(() => new Date().getFullYear())
 
   if (gone) return null
 
-  const thisYear = 2026 // 表示レンジの基準（送信時は入力値で判定）
   const years: number[] = []
   for (let y = thisYear - 5; y >= thisYear - 100; y--) years.push(y)
 
@@ -26,10 +28,10 @@ export function AgeGate() {
       setError('生年月を選択してください。')
       return
     }
-    // 満年齢を概算（今日 2026-08-09 基準）。誕生日未到来なら1引く。
-    const now = { y: 2026, m: 8, d: 9 }
-    let age = now.y - y
-    if (m > now.m) age -= 1
+    // 満年齢を概算（実時刻基準）。誕生月が未到来なら1引く。
+    const today = new Date()
+    let age = today.getFullYear() - y
+    if (m > today.getMonth() + 1) age -= 1
     if (age >= 20) {
       document.cookie = `age_ok=1; path=/; max-age=${60 * 60 * 24 * 365}; samesite=lax`
       setGone(true)
@@ -48,7 +50,13 @@ export function AgeGate() {
     >
       <div className="card w-full max-w-sm p-7 text-center">
         <div className="brand-mark text-2xl">
-          Mix<span className="ember-text">Hub</span>
+          {BRAND.name}
+          <span
+            className="ember-text"
+            style={{ fontSize: '0.55em', letterSpacing: '0.2em', marginLeft: '0.45em' }}
+          >
+            {BRAND.nameEn}
+          </span>
         </div>
         {blocked ? (
           <>

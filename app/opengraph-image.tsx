@@ -9,7 +9,13 @@ export const contentType = 'image/png'
 // 煙道 = 「煙の通り道」。和（washi × 墨 × 苔緑 × 朱の落款）の意匠で、
 // 王道シーシャ図鑑を表現する既定OG画像。
 export default async function OpengraphImage() {
-  const jp = await readFile(new URL('./brand-jp.ttf', import.meta.url))
+  // フォント読み込み失敗で OG 画像が 500 にならないよう、失敗時はシステムフォントにフォールバック
+  let jp: Buffer | null = null
+  try {
+    jp = await readFile(new URL('./brand-jp.ttf', import.meta.url))
+  } catch {
+    jp = null
+  }
 
   return new ImageResponse(
     (
@@ -82,7 +88,7 @@ export default async function OpengraphImage() {
     ),
     {
       ...size,
-      fonts: [{ name: 'BrandJP', data: jp, style: 'normal', weight: 700 }],
+      fonts: jp ? [{ name: 'BrandJP', data: jp, style: 'normal', weight: 700 }] : [],
     }
   )
 }
