@@ -7,7 +7,13 @@ export const contentType = 'image/png'
 
 // 朱の落款に白抜きの「煙」。和の意匠（washi × 朱の落款）に合わせる。
 export default async function Icon() {
-  const jp = await readFile(new URL('./brand-jp.ttf', import.meta.url))
+  // フォント読み込み失敗でアイコン配信が 500 にならないよう、失敗時はシステムフォントにフォールバック
+  let jp: Buffer | null = null
+  try {
+    jp = await readFile(new URL('./brand-jp.ttf', import.meta.url))
+  } catch {
+    jp = null
+  }
 
   return new ImageResponse(
     (
@@ -29,7 +35,7 @@ export default async function Icon() {
     ),
     {
       ...size,
-      fonts: [{ name: 'BrandJP', data: jp, style: 'normal', weight: 700 }],
+      fonts: jp ? [{ name: 'BrandJP', data: jp, style: 'normal', weight: 700 }] : [],
     }
   )
 }
