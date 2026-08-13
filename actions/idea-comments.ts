@@ -57,6 +57,16 @@ export async function arbitrateIdea(
     return { error: 'AI仲裁は現在オフです（管理者が ANTHROPIC_API_KEY を設定すると有効になります）。' }
   }
 
+  // クールダウン：直近30分以内に仲裁済みなら再課金しない（連打による課金濫用を防止）
+  const { data: prevArb } = await supabase
+    .from('idea_arbitrations')
+    .select('updated_at')
+    .eq('idea_id', ideaId)
+    .maybeSingle()
+  if (prevArb?.updated_at && Date.now() - new Date(prevArb.updated_at).getTime() < 30 * 60 * 1000) {
+    return { error: '最近この意見のAI仲裁を実行済みです。しばらくしてから再度お試しください。' }
+  }
+
   // 材料を集める
   const [{ data: idea }, { data: votes }, { data: comments }] = await Promise.all([
     supabase.from('ideas').select('title, body').eq('id', ideaId).maybeSingle(),
