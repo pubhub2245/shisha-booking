@@ -16,7 +16,7 @@ import type { MixWithRelations } from '@/lib/types/database'
 import { InviteButton } from '@/components/invite-button'
 
 export const dynamic = 'force-dynamic'
-export const metadata = { title: 'マイページ — MixHub' }
+export const metadata = { title: 'マイページ — 煙道' }
 
 function MixGrid({
   mixes,

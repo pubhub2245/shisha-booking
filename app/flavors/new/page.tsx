@@ -7,7 +7,7 @@ import { FlavorAddForms } from '@/components/flavor-add-forms'
 import { FlavorImport } from '@/components/flavor-import'
 
 export const dynamic = 'force-dynamic'
-export const metadata: Metadata = { title: 'フレーバーを図鑑に追加 — MixHub' }
+export const metadata: Metadata = { title: 'フレーバーを図鑑に追加 — 煙道' }
 
 export default async function AddFlavorPage() {
   const user = await getCurrentUser()

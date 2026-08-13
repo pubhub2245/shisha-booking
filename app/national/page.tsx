@@ -11,7 +11,7 @@ import { flavorLine } from '@/lib/mix'
 
 export const dynamic = 'force-dynamic'
 export const metadata: Metadata = {
-  title: '日本代表シーシャ図鑑 — MixHub',
+  title: '日本代表シーシャ図鑑 — 煙道',
   description:
     '日本人が「美味しい」と認めた鉄板ミックスを系統ごとに選出。みんなの👍と「作った！」で選ばれた、日本代表の殿堂です。',
 }
@@ -124,7 +124,7 @@ export default async function NationalTeamPage() {
                     <div className="px-1">
                       <ShareBar
                         url={`${SITE_URL}/mix/${rep.mix.id}`}
-                        text={`🇯🇵 ${meta.label}の日本代表はこれ！\n${flavorLine(rep.mix.mix_flavors)}${rep.mix.title ? `（${rep.mix.title}）` : ''}\n#シーシャ #MixHub #日本代表シーシャ図鑑`}
+                        text={`🇯🇵 ${meta.label}の日本代表はこれ！\n${flavorLine(rep.mix.mix_flavors)}${rep.mix.title ? `（${rep.mix.title}）` : ''}\n#シーシャ #煙道 #日本代表シーシャ図鑑`}
                       />
                     </div>
                   )}

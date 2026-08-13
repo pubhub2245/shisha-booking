@@ -35,9 +35,9 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { id } = await params
   const flavor = await getFlavorById(id)
-  if (!flavor) return { title: 'フレーバーが見つかりません — MixHub' }
+  if (!flavor) return { title: 'フレーバーが見つかりません — 煙道' }
   return {
-    title: `${flavor.brand} ${flavor.name} を使ったミックス — MixHub`,
+    title: `${flavor.brand} ${flavor.name} を使ったミックス — 煙道`,
     description: `${flavor.brand} ${flavor.name} を使ったシーシャのミックス一覧。`,
   }
 }
@@ -135,7 +135,7 @@ export default async function FlavorDetail({ params }: { params: Promise<{ id: s
                 {adder.is_pro && <VerifiedBadge size={11} />}
               </Link>
             ) : (
-              <span>MixHub 編集部</span>
+              <span>煙道 編集部</span>
             )}
           </div>
         </div>

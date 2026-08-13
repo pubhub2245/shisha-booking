@@ -7,7 +7,7 @@ const PRESETS = {
 
 export type OrbPreset = keyof typeof PRESETS
 
-/** 光彩（グロー）付きの円形アイコン。SmokeDex 風の“かっこいい”質感を、MixHubの色で。 */
+/** 光彩（グロー）付きの円形アイコン。SmokeDex 風の“かっこいい”質感を、煙道の色で。 */
 export function IconOrb({
   children,
   preset = 'green',

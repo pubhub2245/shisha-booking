@@ -22,9 +22,9 @@ export const dynamic = 'force-dynamic'
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { id } = await params
   const shop = await getShopById(id)
-  if (!shop) return { title: 'お店が見つかりません — MixHub' }
+  if (!shop) return { title: 'お店が見つかりません — 煙道' }
   return {
-    title: `${shop.name} のメニュー — MixHub`,
+    title: `${shop.name} のメニュー — 煙道`,
     description: `${shop.name} で今吸えるフレーバーと、作れるミックスの一覧。`,
   }
 }

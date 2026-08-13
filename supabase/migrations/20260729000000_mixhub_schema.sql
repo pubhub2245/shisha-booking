@@ -1,5 +1,5 @@
 -- ============================================================
--- MixHub — シーシャ ミックス図鑑 スキーマ
+-- 煙道 — シーシャ ミックス図鑑 スキーマ
 -- 旧・出張シーシャ予約アプリからの方向転換に伴う新規スキーマ。
 -- ============================================================
 
@@ -55,7 +55,7 @@ create table if not exists public.flavors (
 -- ---------- mixes（ミックス投稿） ----------
 create table if not exists public.mixes (
   id              uuid primary key default gen_random_uuid(),
-  author_id       uuid references public.profiles(id) on delete set null, -- null = MixHub 編集部
+  author_id       uuid references public.profiles(id) on delete set null, -- null = 煙道 編集部
   title           text not null,
   description     text,
   taste_tags      text[] not null default '{}',           -- 甘い / スッキリ / フルーツ 等
@@ -157,17 +157,17 @@ revoke execute on function public.sync_like_count() from anon, authenticated, pu
 
 -- ============================================================
 -- Seed — 図鑑を初回から充実させるためのショーケース
---   author_id = null（MixHub 編集部）で投入
+--   author_id = null（煙道 編集部）で投入
 -- ============================================================
 insert into public.flavors (id, brand, name, affiliate_url) values
-  ('11111111-0000-0000-0000-000000000001','AL FAKHER','ダブルアップル','https://www.amazon.co.jp/s?k=al+fakher+double+apple&tag=mixhub-22'),
-  ('11111111-0000-0000-0000-000000000002','AL FAKHER','ミント','https://www.amazon.co.jp/s?k=al+fakher+mint&tag=mixhub-22'),
-  ('11111111-0000-0000-0000-000000000003','AL FAKHER','レモンミント','https://www.amazon.co.jp/s?k=al+fakher+lemon+mint&tag=mixhub-22'),
-  ('11111111-0000-0000-0000-000000000004','ADALYA','ラブ66','https://www.amazon.co.jp/s?k=adalya+love+66&tag=mixhub-22'),
-  ('11111111-0000-0000-0000-000000000005','ADALYA','アイスアクア','https://www.amazon.co.jp/s?k=adalya+ice+aqua&tag=mixhub-22'),
-  ('11111111-0000-0000-0000-000000000006','FUMARI','ホワイトグミベア','https://www.amazon.co.jp/s?k=fumari+white+gummi+bear&tag=mixhub-22'),
-  ('11111111-0000-0000-0000-000000000007','FUMARI','アンビエンス','https://www.amazon.co.jp/s?k=fumari+ambrosia&tag=mixhub-22'),
-  ('11111111-0000-0000-0000-000000000008','AZURE','ピーチベリー','https://www.amazon.co.jp/s?k=azure+peach+berry&tag=mixhub-22')
+  ('11111111-0000-0000-0000-000000000001','AL FAKHER','ダブルアップル','https://www.amazon.co.jp/s?k=al+fakher+double+apple&tag=endoh-22'),
+  ('11111111-0000-0000-0000-000000000002','AL FAKHER','ミント','https://www.amazon.co.jp/s?k=al+fakher+mint&tag=endoh-22'),
+  ('11111111-0000-0000-0000-000000000003','AL FAKHER','レモンミント','https://www.amazon.co.jp/s?k=al+fakher+lemon+mint&tag=endoh-22'),
+  ('11111111-0000-0000-0000-000000000004','ADALYA','ラブ66','https://www.amazon.co.jp/s?k=adalya+love+66&tag=endoh-22'),
+  ('11111111-0000-0000-0000-000000000005','ADALYA','アイスアクア','https://www.amazon.co.jp/s?k=adalya+ice+aqua&tag=endoh-22'),
+  ('11111111-0000-0000-0000-000000000006','FUMARI','ホワイトグミベア','https://www.amazon.co.jp/s?k=fumari+white+gummi+bear&tag=endoh-22'),
+  ('11111111-0000-0000-0000-000000000007','FUMARI','アンビエンス','https://www.amazon.co.jp/s?k=fumari+ambrosia&tag=endoh-22'),
+  ('11111111-0000-0000-0000-000000000008','AZURE','ピーチベリー','https://www.amazon.co.jp/s?k=azure+peach+berry&tag=endoh-22')
 on conflict (id) do nothing;
 
 insert into public.mixes (id, author_id, title, description, taste_tags, strength, heat_management, placement_note, like_count) values
@@ -192,10 +192,10 @@ insert into public.mixes (id, author_id, title, description, taste_tags, strengt
 on conflict (id) do nothing;
 
 insert into public.mix_flavors (mix_id, flavor_id, position, brand, name, ratio, affiliate_url) values
-  ('22222222-0000-0000-0000-000000000001','11111111-0000-0000-0000-000000000001',0,'AL FAKHER','ダブルアップル',70,'https://www.amazon.co.jp/s?k=al+fakher+double+apple&tag=mixhub-22'),
-  ('22222222-0000-0000-0000-000000000001','11111111-0000-0000-0000-000000000002',1,'AL FAKHER','ミント',30,'https://www.amazon.co.jp/s?k=al+fakher+mint&tag=mixhub-22'),
-  ('22222222-0000-0000-0000-000000000002','11111111-0000-0000-0000-000000000003',0,'AL FAKHER','レモンミント',60,'https://www.amazon.co.jp/s?k=al+fakher+lemon+mint&tag=mixhub-22'),
-  ('22222222-0000-0000-0000-000000000002','11111111-0000-0000-0000-000000000005',1,'ADALYA','アイスアクア',40,'https://www.amazon.co.jp/s?k=adalya+ice+aqua&tag=mixhub-22'),
-  ('22222222-0000-0000-0000-000000000003','11111111-0000-0000-0000-000000000004',0,'ADALYA','ラブ66',50,'https://www.amazon.co.jp/s?k=adalya+love+66&tag=mixhub-22'),
-  ('22222222-0000-0000-0000-000000000003','11111111-0000-0000-0000-000000000006',1,'FUMARI','ホワイトグミベア',50,'https://www.amazon.co.jp/s?k=fumari+white+gummi+bear&tag=mixhub-22')
+  ('22222222-0000-0000-0000-000000000001','11111111-0000-0000-0000-000000000001',0,'AL FAKHER','ダブルアップル',70,'https://www.amazon.co.jp/s?k=al+fakher+double+apple&tag=endoh-22'),
+  ('22222222-0000-0000-0000-000000000001','11111111-0000-0000-0000-000000000002',1,'AL FAKHER','ミント',30,'https://www.amazon.co.jp/s?k=al+fakher+mint&tag=endoh-22'),
+  ('22222222-0000-0000-0000-000000000002','11111111-0000-0000-0000-000000000003',0,'AL FAKHER','レモンミント',60,'https://www.amazon.co.jp/s?k=al+fakher+lemon+mint&tag=endoh-22'),
+  ('22222222-0000-0000-0000-000000000002','11111111-0000-0000-0000-000000000005',1,'ADALYA','アイスアクア',40,'https://www.amazon.co.jp/s?k=adalya+ice+aqua&tag=endoh-22'),
+  ('22222222-0000-0000-0000-000000000003','11111111-0000-0000-0000-000000000004',0,'ADALYA','ラブ66',50,'https://www.amazon.co.jp/s?k=adalya+love+66&tag=endoh-22'),
+  ('22222222-0000-0000-0000-000000000003','11111111-0000-0000-0000-000000000006',1,'FUMARI','ホワイトグミベア',50,'https://www.amazon.co.jp/s?k=fumari+white+gummi+bear&tag=endoh-22')
 on conflict do nothing;

@@ -4,6 +4,7 @@ import { getUnreadNotificationCount } from '@/lib/queries'
 import { resolveMode } from '@/lib/mode'
 import { ModeSwitch } from '@/components/mode-switch'
 import { signOut } from '@/actions/auth'
+import { BRAND } from '@/lib/site'
 
 export async function SiteHeader() {
   const user = await getCurrentUser()
@@ -22,21 +23,27 @@ export async function SiteHeader() {
       }}
     >
       <div className="wrap flex h-16 items-center justify-between gap-4">
-        <Link href="/" className="flex items-center gap-2.5">
+        <Link href="/" className="flex items-center gap-2.5" aria-label={`${BRAND.full} ホーム`}>
           <span
             aria-hidden
-            className="brand-mark flex h-8 w-8 items-center justify-center rounded-md text-lg"
+            className="brand-mark seal-stamp flex h-8 w-8 items-center justify-center rounded-md text-lg"
             style={{
               background: 'var(--color-seal)',
               color: '#fbf8f0',
               boxShadow: '0 3px 10px -5px rgb(178 59 46 / 0.6), 0 0 0 1px rgb(178 59 46 / 0.25) inset',
             }}
-            title="混（ミックス）"
+            title={`${BRAND.mark}（${BRAND.name}）`}
           >
-            混
+            {BRAND.mark}
           </span>
-          <span className="brand-mark text-xl">
-            Mix<span className="ember-text">Hub</span>
+          <span className="flex items-baseline gap-1.5">
+            <span className="brand-mark text-xl">{BRAND.name}</span>
+            <span
+              className="brand-mark"
+              style={{ fontSize: '0.6rem', letterSpacing: '0.22em', color: 'var(--color-ember-hot)' }}
+            >
+              {BRAND.nameEn}
+            </span>
           </span>
         </Link>
 

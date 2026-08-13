@@ -1,5 +1,5 @@
 -- ============================================================
--- MixHub — SNS 機能拡張: comments / bookmarks / follows / view_count
+-- 煙道 — SNS 機能拡張: comments / bookmarks / follows / view_count
 -- ============================================================
 
 -- ---------- view_count（閲覧数） ----------

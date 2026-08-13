@@ -1,11 +1,11 @@
 -- ============================================================
--- 追加シード — 図鑑を初期から充実させる（MixHub 編集部 / author_id null）
+-- 追加シード — 図鑑を初期から充実させる（煙道 編集部 / author_id null）
 -- ============================================================
 insert into public.flavors (id, brand, name, affiliate_url) values
-  ('11111111-0000-0000-0000-000000000009','AL FAKHER','マンゴー','https://www.amazon.co.jp/s?k=al+fakher+mango&tag=mixhub-22'),
-  ('11111111-0000-0000-0000-000000000010','AL FAKHER','バニラ','https://www.amazon.co.jp/s?k=al+fakher+vanilla&tag=mixhub-22'),
-  ('11111111-0000-0000-0000-000000000014','STARBUZZ','ブルーミスト','https://www.amazon.co.jp/s?k=starbuzz+blue+mist&tag=mixhub-22'),
-  ('11111111-0000-0000-0000-000000000016','AZURE','グリーンティー','https://www.amazon.co.jp/s?k=azure+green+tea&tag=mixhub-22')
+  ('11111111-0000-0000-0000-000000000009','AL FAKHER','マンゴー','https://www.amazon.co.jp/s?k=al+fakher+mango&tag=endoh-22'),
+  ('11111111-0000-0000-0000-000000000010','AL FAKHER','バニラ','https://www.amazon.co.jp/s?k=al+fakher+vanilla&tag=endoh-22'),
+  ('11111111-0000-0000-0000-000000000014','STARBUZZ','ブルーミスト','https://www.amazon.co.jp/s?k=starbuzz+blue+mist&tag=endoh-22'),
+  ('11111111-0000-0000-0000-000000000016','AZURE','グリーンティー','https://www.amazon.co.jp/s?k=azure+green+tea&tag=endoh-22')
 on conflict (id) do nothing;
 
 insert into public.mixes (id, author_id, title, description, taste_tags, strength, heat_management, placement_note, like_count) values
@@ -42,13 +42,13 @@ insert into public.mixes (id, author_id, title, description, taste_tags, strengt
 on conflict (id) do nothing;
 
 insert into public.mix_flavors (mix_id, flavor_id, position, brand, name, ratio, affiliate_url) values
-  ('22222222-0000-0000-0000-000000000004','11111111-0000-0000-0000-000000000009',0,'AL FAKHER','マンゴー',70,'https://www.amazon.co.jp/s?k=al+fakher+mango&tag=mixhub-22'),
-  ('22222222-0000-0000-0000-000000000004','11111111-0000-0000-0000-000000000005',1,'ADALYA','アイスアクア',30,'https://www.amazon.co.jp/s?k=adalya+ice+aqua&tag=mixhub-22'),
-  ('22222222-0000-0000-0000-000000000005','11111111-0000-0000-0000-000000000010',0,'AL FAKHER','バニラ',60,'https://www.amazon.co.jp/s?k=al+fakher+vanilla&tag=mixhub-22'),
-  ('22222222-0000-0000-0000-000000000005','11111111-0000-0000-0000-000000000006',1,'FUMARI','ホワイトグミベア',40,'https://www.amazon.co.jp/s?k=fumari+white+gummi+bear&tag=mixhub-22'),
-  ('22222222-0000-0000-0000-000000000006','11111111-0000-0000-0000-000000000014',0,'STARBUZZ','ブルーミスト',70,'https://www.amazon.co.jp/s?k=starbuzz+blue+mist&tag=mixhub-22'),
-  ('22222222-0000-0000-0000-000000000006','11111111-0000-0000-0000-000000000002',1,'AL FAKHER','ミント',30,'https://www.amazon.co.jp/s?k=al+fakher+mint&tag=mixhub-22'),
-  ('22222222-0000-0000-0000-000000000007','11111111-0000-0000-0000-000000000002',0,'AL FAKHER','ミント',100,'https://www.amazon.co.jp/s?k=al+fakher+mint&tag=mixhub-22'),
-  ('22222222-0000-0000-0000-000000000008','11111111-0000-0000-0000-000000000016',0,'AZURE','グリーンティー',60,'https://www.amazon.co.jp/s?k=azure+green+tea&tag=mixhub-22'),
-  ('22222222-0000-0000-0000-000000000008','11111111-0000-0000-0000-000000000003',1,'AL FAKHER','レモンミント',40,'https://www.amazon.co.jp/s?k=al+fakher+lemon+mint&tag=mixhub-22')
+  ('22222222-0000-0000-0000-000000000004','11111111-0000-0000-0000-000000000009',0,'AL FAKHER','マンゴー',70,'https://www.amazon.co.jp/s?k=al+fakher+mango&tag=endoh-22'),
+  ('22222222-0000-0000-0000-000000000004','11111111-0000-0000-0000-000000000005',1,'ADALYA','アイスアクア',30,'https://www.amazon.co.jp/s?k=adalya+ice+aqua&tag=endoh-22'),
+  ('22222222-0000-0000-0000-000000000005','11111111-0000-0000-0000-000000000010',0,'AL FAKHER','バニラ',60,'https://www.amazon.co.jp/s?k=al+fakher+vanilla&tag=endoh-22'),
+  ('22222222-0000-0000-0000-000000000005','11111111-0000-0000-0000-000000000006',1,'FUMARI','ホワイトグミベア',40,'https://www.amazon.co.jp/s?k=fumari+white+gummi+bear&tag=endoh-22'),
+  ('22222222-0000-0000-0000-000000000006','11111111-0000-0000-0000-000000000014',0,'STARBUZZ','ブルーミスト',70,'https://www.amazon.co.jp/s?k=starbuzz+blue+mist&tag=endoh-22'),
+  ('22222222-0000-0000-0000-000000000006','11111111-0000-0000-0000-000000000002',1,'AL FAKHER','ミント',30,'https://www.amazon.co.jp/s?k=al+fakher+mint&tag=endoh-22'),
+  ('22222222-0000-0000-0000-000000000007','11111111-0000-0000-0000-000000000002',0,'AL FAKHER','ミント',100,'https://www.amazon.co.jp/s?k=al+fakher+mint&tag=endoh-22'),
+  ('22222222-0000-0000-0000-000000000008','11111111-0000-0000-0000-000000000016',0,'AZURE','グリーンティー',60,'https://www.amazon.co.jp/s?k=azure+green+tea&tag=endoh-22'),
+  ('22222222-0000-0000-0000-000000000008','11111111-0000-0000-0000-000000000003',1,'AL FAKHER','レモンミント',40,'https://www.amazon.co.jp/s?k=al+fakher+lemon+mint&tag=endoh-22')
 on conflict do nothing;

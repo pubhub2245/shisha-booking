@@ -23,7 +23,7 @@ import { hmsOption, charcoalLabel, packOption } from '@/lib/heat'
 import type { Flavor } from '@/lib/types/database'
 
 export const dynamic = 'force-dynamic'
-export const metadata = { title: 'お店の管理 — MixHub' }
+export const metadata = { title: 'お店の管理 — 煙道' }
 
 type FlavorWithCount = Flavor & { count: number }
 
@@ -138,7 +138,7 @@ export default async function ShopManagePage({ params }: { params: Promise<{ id:
             <Link href={`/shop/${shop.id}`} className="btn btn-ember text-sm">メニューを確認</Link>
             <a
               href={`data:image/svg+xml;charset=utf-8,${encodeURIComponent(qrSvg)}`}
-              download={`mixhub-menu-qr-${shop.id}.svg`}
+              download={`endoh-menu-qr-${shop.id}.svg`}
               className="btn btn-ghost text-sm"
             >
               QRを保存

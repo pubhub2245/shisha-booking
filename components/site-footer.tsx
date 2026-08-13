@@ -1,15 +1,25 @@
 import Link from 'next/link'
+import { BRAND } from '@/lib/site'
 
 export function SiteFooter() {
   return (
     <footer className="mt-24 border-t" style={{ borderColor: 'var(--line)' }}>
       <div className="wrap flex flex-col gap-6 py-12 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <div className="brand-mark text-lg">
-            Mix<span className="ember-text">Hub</span>
+          <div className="flex items-baseline gap-1.5">
+            <span className="brand-mark text-lg">{BRAND.name}</span>
+            <span
+              className="brand-mark"
+              style={{ fontSize: '0.58rem', letterSpacing: '0.22em', color: 'var(--color-ember-hot)' }}
+            >
+              {BRAND.nameEn}
+            </span>
           </div>
+          <p className="mt-1.5 text-sm" style={{ color: 'var(--color-cream)', fontWeight: 600 }}>
+            {BRAND.tagline}
+          </p>
           <p className="mt-1 text-sm" style={{ color: 'var(--color-ash-dim)' }}>
-            日本のシーシャの「美味しい」を、みんなで育てる図鑑。
+            日本のシーシャの「美味しい」を、みんなで育てる{BRAND.category}。
           </p>
         </div>
         <nav className="flex flex-wrap gap-x-6 gap-y-2 text-sm" style={{ color: 'var(--color-ash)' }}>
@@ -24,7 +34,7 @@ export function SiteFooter() {
           <Link href="/for-shops" className="hover:text-[var(--color-cream)]">店舗の方へ</Link>
           <Link href="/founders" className="hover:text-[var(--color-cream)]">創設メンバー募集</Link>
           <Link href="/ideas" className="hover:text-[var(--color-cream)]">意見箱</Link>
-          <Link href="/about" className="hover:text-[var(--color-cream)]">MixHubとは</Link>
+          <Link href="/about" className="hover:text-[var(--color-cream)]">{BRAND.name}とは</Link>
         </nav>
       </div>
       <div className="wrap flex flex-col gap-3 pb-8 sm:flex-row sm:items-center sm:justify-between">
@@ -34,7 +44,7 @@ export function SiteFooter() {
           <Link href="/legal/tokushoho" className="hover:text-[var(--color-cream)]">特定商取引法に基づく表記</Link>
         </nav>
         <div className="text-xs" style={{ color: 'var(--color-ash-dim)' }}>
-          © {new Date().getFullYear()} MixHub. リンクにはアフィリエイトを含む場合があります。
+          © {new Date().getFullYear()} {BRAND.nameEn}. リンクにはアフィリエイトを含む場合があります。
         </div>
       </div>
     </footer>

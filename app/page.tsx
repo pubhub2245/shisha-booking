@@ -360,7 +360,7 @@ export default async function Home({
         <Link href="/about" className="card card-hover flex items-center gap-4 p-6">
           <IconOrb preset="green" size={52}>📖</IconOrb>
           <div>
-            <h3 className="text-base" style={{ fontWeight: 700 }}>MixHubとは</h3>
+            <h3 className="text-base" style={{ fontWeight: 700 }}>煙道とは</h3>
             <p className="mt-1 text-sm" style={{ color: 'var(--color-ash)' }}>
               日本のシーシャの「美味しい」を、みんなで育てる図鑑。
             </p>

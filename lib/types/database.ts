@@ -1,4 +1,4 @@
-// MixHub — DB 型定義（supabase/migrations と対応）
+// 煙道 — DB 型定義（supabase/migrations と対応）
 
 export type Strength = 'light' | 'medium' | 'strong'
 

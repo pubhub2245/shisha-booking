@@ -7,6 +7,7 @@ import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { MobileNav } from "@/components/mobile-nav";
 import { AgeGate } from "@/components/age-gate";
+import { BRAND, BRAND_TITLE } from "@/lib/site";
 
 const outfit = Outfit({
   weight: ["400", "500", "600", "700", "800"],
@@ -36,21 +37,24 @@ const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://shisha-booking.ver
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
-  title: "MixHub — シーシャのミックス図鑑",
+  title: {
+    default: BRAND_TITLE,
+    template: `%s｜${BRAND.full}`,
+  },
+  applicationName: BRAND.full,
   description:
-    "シーシャ屋で迷わない。日本中の「美味しい」ミックスと作り方が集まる、シーシャのミックス図鑑 & コミュニティ。人気のミックスを探して、あなたのレシピも投稿しよう。",
+    "シーシャ屋で迷わない。日本中の「美味しい」ミックスと作り方が集まる、日本代表シーシャ図鑑 & コミュニティ。人気のミックスを探して、あなたのレシピも投稿しよう。",
   openGraph: {
-    title: "MixHub — シーシャのミックス図鑑",
-    description: "日本中の「美味しい」シーシャ ミックスと作り方が集まる図鑑コミュニティ。",
+    title: BRAND_TITLE,
+    siteName: BRAND.full,
+    description: "日本中の「美味しい」シーシャ ミックスと作り方が集まる、日本代表シーシャ図鑑コミュニティ。",
     type: "website",
     locale: "ja_JP",
-    images: [{ url: "/og-default.png", width: 1200, height: 630 }],
   },
   twitter: {
     card: "summary_large_image",
-    title: "MixHub — シーシャのミックス図鑑",
-    description: "日本中の「美味しい」シーシャ ミックスと作り方が集まる図鑑コミュニティ。",
-    images: ["/og-default.png"],
+    title: BRAND_TITLE,
+    description: "日本中の「美味しい」シーシャ ミックスと作り方が集まる、日本代表シーシャ図鑑コミュニティ。",
   },
 };
 

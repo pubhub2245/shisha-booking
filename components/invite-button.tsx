@@ -9,8 +9,8 @@ export function InviteButton({ className = 'btn btn-ghost text-sm' }: { classNam
   async function onClick() {
     const url = window.location.origin
     const shareData = {
-      title: 'MixHub — シーシャのミックス図鑑',
-      text: '美味しいシーシャのミックスと作り方が集まる図鑑アプリ「MixHub」',
+      title: '煙道 ENDOH — 日本代表シーシャ図鑑',
+      text: '美味しいシーシャのミックスと作り方が集まる図鑑アプリ「煙道 ENDOH」',
       url,
     }
     if (navigator.share) {

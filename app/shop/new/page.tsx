@@ -4,7 +4,7 @@ import { getCurrentUser } from '@/lib/auth'
 import { ShopNewForm } from './shop-new-form'
 
 export const dynamic = 'force-dynamic'
-export const metadata = { title: 'お店を登録 — MixHub' }
+export const metadata = { title: 'お店を登録 — 煙道' }
 
 export default async function ShopNewPage() {
   const user = await getCurrentUser()

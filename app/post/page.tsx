@@ -10,7 +10,7 @@ import type { MixWithRelations } from '@/lib/types/database'
 
 export const dynamic = 'force-dynamic'
 
-export const metadata = { title: 'ミックスを投稿 — MixHub' }
+export const metadata = { title: 'ミックスを投稿 — 煙道' }
 
 function mapFlavors(mix: MixWithRelations, keepRatioUrl: boolean) {
   return (mix.mix_flavors ?? []).map((f) => ({

@@ -5,7 +5,7 @@ import { getCurrentUser } from '@/lib/auth'
 import { MixForm, type MixFormInitial } from '@/components/mix-form'
 
 export const dynamic = 'force-dynamic'
-export const metadata = { title: 'ミックスを編集 — MixHub' }
+export const metadata = { title: 'ミックスを編集 — 煙道' }
 
 export default async function EditMixPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
