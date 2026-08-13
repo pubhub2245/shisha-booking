@@ -31,22 +31,23 @@ export default async function ProfileEditPage() {
 
       {/* 表示モード */}
       <section className="mt-10">
-        <h2 className="text-sm" style={{ fontWeight: 700, color: 'var(--color-ash)' }}>表示モード</h2>
+        <h2 className="text-sm" style={{ fontWeight: 700, color: 'var(--color-ash)' }}>表示の詳しさ</h2>
         <div className="card mt-2 flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <p className="text-sm" style={{ fontWeight: 700 }}>
-              {mode === 'pro' ? '🛠 プロモード' : '🔰 かんたんモード'}
+              {mode === 'pro' ? '詳細表示' : 'シンプル表示'}
             </p>
             <p className="mt-1 text-xs" style={{ color: 'var(--color-ash-dim)' }}>
               {mode === 'pro'
-                ? '熱管理・器具・蒸らし・練習ログまで、すべての機能が使えます。'
-                : 'フレーバーと味わい中心のシンプルな表示。細かい設定は隠れています。'}
+                ? '熱管理・器具・蒸らし・ランキングまで最初から全部表示します。'
+                : 'まずは王道と味わい中心。詳しい作り方は各ページで「詳しく見る」から開けます。'}
+              <br />※腕前ではなく<b>見せる情報量</b>の設定です。
             </p>
           </div>
           {mode === 'pro' ? (
-            <ModeToggle target="simple" label="🔰 かんたんモードにする" className="btn btn-ghost shrink-0 text-sm" />
+            <ModeToggle target="simple" label="シンプル表示にする" className="btn btn-ghost shrink-0 text-sm" />
           ) : (
-            <ModeToggle target="pro" label="🛠 プロモードにする" className="btn btn-ember shrink-0 text-sm" />
+            <ModeToggle target="pro" label="詳細表示にする" className="btn btn-ember shrink-0 text-sm" />
           )}
         </div>
       </section>

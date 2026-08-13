@@ -146,7 +146,7 @@ export default async function PostPage({
             熱管理カーブ・炭・蒸らし・器具まで細かく記録したい方は
           </p>
           <div className="mt-2">
-            <ModeToggle target="pro" label="🛠 プロモードに切り替えて投稿" className="btn btn-ghost text-sm" />
+            <ModeToggle target="pro" label="こだわって投稿する（詳しい作り方も記録）" className="btn btn-ghost text-sm" />
           </div>
         </div>
       </div>
@@ -167,7 +167,7 @@ export default async function PostPage({
         canSell={!!user.profile?.is_pro || !!user.profile?.is_admin}
       />
       <div className="mt-8 text-center">
-        <ModeToggle target="simple" label="🔰 かんたん投稿に切り替える" className="text-xs underline underline-offset-2" />
+        <ModeToggle target="simple" label="かんたん投稿に切り替える" className="text-xs underline underline-offset-2" />
       </div>
     </div>
   )
