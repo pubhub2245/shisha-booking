@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useState, useTransition, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { submitOnsiteCheckin, submitOnsiteRating } from '@/actions/onsite'
 import type { OnsiteContext } from '@/lib/types/database'
@@ -25,9 +25,9 @@ function Stars({ value, onChange }: { value: number; onChange?: (n: number) => v
   )
 }
 
-function untilText(availableAt: string): string {
+function untilText(availableAt: string, now: number): string {
   const t = new Date(availableAt).getTime()
-  const diff = t - Date.now()
+  const diff = t - now
   if (diff <= 0) return 'まもなく'
   const h = Math.floor(diff / 3_600_000)
   const m = Math.floor((diff % 3_600_000) / 60_000)
@@ -54,6 +54,19 @@ export function OnsiteRating({
   const [msg, setMsg] = useState<{ kind: 'ok' | 'err'; text: string } | null>(null)
   const [locating, setLocating] = useState(false)
   const [pending, start] = useTransition()
+  // カウントダウンはマウント後にのみ評価する（SSRとクライアント初回描画で
+  // Date.now() がズレてハイドレーション不一致になるのを防ぐ）。1分ごとに更新。
+  const [now, setNow] = useState<number | null>(null)
+  useEffect(() => {
+    // 初回はコミット後（rAF）に反映し、以降1分ごとに更新。effect 内での
+    // 同期 setState を避けつつ、SSR/初回描画は null のまま揃える。
+    const raf = requestAnimationFrame(() => setNow(Date.now()))
+    const id = setInterval(() => setNow(Date.now()), 60_000)
+    return () => {
+      cancelAnimationFrame(raf)
+      clearInterval(id)
+    }
+  }, [])
 
   const shopNames = ctx.shops.map((s) => s.name).join('・')
   const busy = locating || pending
@@ -188,7 +201,7 @@ export function OnsiteRating({
             </div>
           ) : state === 'waiting' ? (
             <div className="rounded-xl border px-4 py-3 text-sm" style={{ borderColor: 'var(--line-strong)' }}>
-              ✅ 来店を記録しました。<b>評価は{availableAt ? untilText(availableAt) : '24時間後'}から</b>つけられます。
+              ✅ 来店を記録しました。<b>評価は{availableAt && now ? untilText(availableAt, now) : '24時間後'}から</b>つけられます。
               <div className="mt-0.5 text-xs" style={{ color: 'var(--color-ash-dim)' }}>
                 時間をおいて、このページからもう一度どうぞ。
               </div>

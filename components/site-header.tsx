@@ -96,7 +96,7 @@ export async function SiteHeader() {
                 className="hidden max-w-[9rem] truncate text-sm transition-colors hover:text-[var(--color-ember-hot)] md:inline-block"
                 title={displayName}
               >
-                @{user.profile?.username || displayName}
+                {user.profile?.username ? `@${user.profile.username}` : displayName}
               </Link>
               <form action={signOut} className="hidden md:block">
                 <button type="submit" className="text-sm" style={{ color: 'var(--color-ash-dim)' }}>

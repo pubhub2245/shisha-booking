@@ -7,6 +7,7 @@ import { HeatCurveEditor } from '@/components/heat-curve-editor'
 import { CHARCOAL_OPTIONS, CHARCOAL_ORIENTATION_OPTIONS } from '@/lib/heat'
 import { LOCKABLE_SECTIONS } from '@/lib/premium'
 import { MIX_DISPLAY_SECTIONS } from '@/lib/mix-sections'
+import { formatJaDate } from '@/lib/time'
 import { HmsPicker } from '@/components/hms-picker'
 import { BowlPicker } from '@/components/bowl-picker'
 import { PackPicker } from '@/components/pack-picker'
@@ -405,7 +406,7 @@ export function MixForm({
               <label>⏳ 時限公開（いずれ全公開）</label>
               <select name="unlock_months" defaultValue={mode === 'edit' && initial?.unlockAt ? '' : '0'}>
                 {mode === 'edit' && initial?.unlockAt && (
-                  <option value="">変更しない（現在: {new Date(initial.unlockAt).toLocaleDateString('ja-JP')}）</option>
+                  <option value="">変更しない（現在: {formatJaDate(initial.unlockAt)}）</option>
                 )}
                 <option value="0">自動公開しない</option>
                 <option value="1">1ヶ月後に全公開</option>
