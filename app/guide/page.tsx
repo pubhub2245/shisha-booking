@@ -120,14 +120,29 @@ const flavorProfiles: { name: string; low: string; high: string; note?: string }
 export default function GuidePage() {
   return (
     <div className="wrap max-w-2xl py-12">
-      <p className="eyebrow">作り方ガイド</p>
+      <p className="eyebrow">煙道 基本の型</p>
       <h1 className="mt-3 text-3xl leading-tight sm:text-4xl" style={{ fontWeight: 800 }}>
-        美味しいシーシャの、<br />作り方ガイド。
+        美味しいシーシャの、<br />基本の型。
       </h1>
       <p className="mt-4 text-base leading-relaxed" style={{ color: 'var(--color-ash)' }}>
         現場で受け継がれてきた「美味しいシーシャの作り方」を、下準備から提供まで順番にまとめました。
-        投稿する熱管理カーブと合わせて読むと、一気に再現度が上がります。
+        これは<b>唯一の正解ではなく出発点</b>——ここを土台に、投稿レシピの熱管理カーブと合わせて読むと、一気に再現度が上がります。
       </p>
+      {/* 「道」＝型の三段。固定の正解に見せず、上達の階段として提示する */}
+      <div className="kaisen mt-5" aria-hidden><span className="seal-dot" /></div>
+      <div className="mt-5 grid grid-cols-3 gap-2 text-center">
+        {[
+          { n: '基本の型', d: 'この図鑑で学ぶ土台' },
+          { n: '達人の型', d: 'プロの投稿レシピで応用' },
+          { n: '自分の型', d: '吸って試し、あなたの一台へ' },
+        ].map((t, i) => (
+          <div key={t.n} className="relative">
+            <div className="rank-kanji text-sm">{['壱', '弐', '参'][i]}</div>
+            <div className="mt-1 text-xs sm:text-sm" style={{ fontWeight: 700 }}>{t.n}</div>
+            <div className="mt-0.5 text-[0.68rem] leading-snug" style={{ color: 'var(--color-ash-dim)' }}>{t.d}</div>
+          </div>
+        ))}
+      </div>
 
       {/* 目指すところ */}
       <section className="mt-10">
