@@ -29,7 +29,7 @@ import { BowlIcon } from '@/components/bowl-icon'
 import { PackIcon } from '@/components/pack-icon'
 import { Avatar } from '@/components/avatar'
 import { CompletenessMeter } from '@/components/completeness'
-import { relativeTime } from '@/lib/time'
+import { relativeTime, formatJaDate } from '@/lib/time'
 import { CommentForm } from '@/components/comment-form'
 import { CommentThread } from '@/components/comment-thread'
 import { ViewTracker } from '@/components/view-tracker'
@@ -259,7 +259,7 @@ export default async function MixDetail({ params }: { params: Promise<{ id: stri
         {mix.unlock_at && !timeReleased && (
           <div className="mt-2 inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs"
             style={{ background: 'var(--color-smoke-850)', color: 'var(--color-ash)', border: '1px solid var(--line-strong)' }}>
-            ⏳ {new Date(mix.unlock_at).toLocaleDateString('ja-JP')} に全公開予定
+            ⏳ {formatJaDate(mix.unlock_at)} に全公開予定
           </div>
         )}
         {mix.premium && (mix.locked_sections ?? []).length > 0 && timeReleased && (

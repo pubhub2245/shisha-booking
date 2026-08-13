@@ -13,7 +13,7 @@ import {
 } from '@/lib/heat'
 import { withAffiliateTag, AFFILIATE_TAG } from '@/lib/affiliate'
 import { goHref } from '@/lib/go'
-import { relativeTime } from '@/lib/time'
+import { relativeTime, formatJaDate } from '@/lib/time'
 
 describe('combo', () => {
   it('flavorKey normalizes brand/name (trim + lowercase)', () => {
@@ -181,5 +181,12 @@ describe('time', () => {
     expect(relativeTime(new Date(Date.now() - 2 * 60000).toISOString())).toBe('2分前')
     expect(relativeTime(new Date(Date.now() - 3 * 3600000).toISOString())).toBe('3時間前')
     expect(relativeTime(new Date(Date.now() - 2 * 86400000).toISOString())).toBe('2日前')
+  })
+  it('formatJaDate is JST-fixed and handles empty/invalid', () => {
+    expect(formatJaDate(null)).toBe('')
+    expect(formatJaDate('not-a-date')).toBe('')
+    // UTC 22:00 は JST では翌日。timeZone 固定でズレないこと（UTC 実行環境でも同じ）。
+    expect(formatJaDate('2026-08-13T22:00:00Z')).toBe('2026/8/14')
+    expect(formatJaDate('2026-08-13T00:00:00Z')).toBe('2026/8/13')
   })
 })
