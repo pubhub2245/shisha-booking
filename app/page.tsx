@@ -83,11 +83,15 @@ export default async function Home({
           今日のミックス、<span className="text-grad-anim">もう迷わない。</span>
         </h1>
         <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed" style={{ color: 'var(--color-ash)' }}>
-          その組み合わせの<b>“いちばん美味しい作り方”</b>を、みんなで育てる日本代表シーシャ図鑑。
+          その組み合わせの<b className="bouten">いちばん美味しい作り方</b>を、みんなで育てる日本代表シーシャ図鑑。
         </p>
         <p className="mt-1 text-xs" style={{ color: 'var(--color-ash-dim)' }}>
-          気分で探す ・ {combos.length}通りの組み合わせ ・ {flavors.length}種のフレーバー
+          {flavors.length > 0
+            ? `気分で探す ・ ${combos.length}通りの組み合わせ ・ ${flavors.length}種のフレーバー`
+            : '気分で探す ・ 作り方で選ぶ日本代表シーシャ図鑑'}
         </p>
+        {/* 煙（けむり）＝ブランド"煙道"の象徴を一筋 */}
+        <div className="smoke-line mx-auto mt-3 w-6" aria-hidden />
         {/* モード連動のショートカット */}
         <div className="mt-4 flex flex-wrap justify-center gap-2">
           {mode === 'pro' ? (
@@ -325,17 +329,20 @@ export default async function Home({
       <section className="mt-16">
         <div className="mb-5 text-center">
           <p className="eyebrow">How it works</p>
-          <h2 className="mt-2 text-2xl" style={{ fontWeight: 800 }}>3ステップで、迷わず一台</h2>
+          <h2 className="noren-heading mt-2 text-2xl" style={{ fontWeight: 800 }}>三段で、迷わず一台</h2>
         </div>
         <div className="grid gap-4 sm:grid-cols-3">
           {[
-            { preset: 'green' as const, icon: '🔍', n: 1, t: '気分で探す', d: '甘い・スッキリ・系統から、いま吸いたい組み合わせを見つける。' },
-            { preset: 'amber' as const, icon: '🔥', n: 2, t: '作り方を極める', d: '熱管理カーブや炭のセットアップまで、詳しい作り方が見られる。' },
-            { preset: 'violet' as const, icon: '🛒', n: 3, t: '買って・投稿する', d: '材料をそのまま購入。自分の一台も図鑑に投稿しよう。' },
+            { preset: 'green' as const, icon: '🔍', n: 1, kanji: '序', t: '気分で探す', d: '甘い・スッキリ・系統から、いま吸いたい組み合わせを見つける。' },
+            { preset: 'amber' as const, icon: '🔥', n: 2, kanji: '破', t: '作り方を極める', d: '熱管理カーブや炭のセットアップまで、詳しい作り方が見られる。' },
+            { preset: 'violet' as const, icon: '🛒', n: 3, kanji: '急', t: '買って・投稿する', d: '材料をそのまま購入。自分の一台も図鑑に投稿しよう。' },
           ].map((s) => (
-            <div key={s.n} className="card flex flex-col items-center gap-3 p-6 text-center">
+            <div key={s.n} className="card card-wa flex flex-col items-center gap-3 p-6 text-center">
               <span className={`float d${s.n}`}><IconOrb preset={s.preset} size={60}>{s.icon}</IconOrb></span>
-              <div className="text-xs" style={{ color: 'var(--color-ember-hot)', fontWeight: 700, letterSpacing: '0.1em' }}>STEP {s.n}</div>
+              <div className="flex items-center gap-1.5">
+                <span className="rank-kanji text-lg">{s.kanji}</span>
+                <span className="text-xs" style={{ color: 'var(--color-ash-dim)', fontWeight: 700, letterSpacing: '0.16em' }}>其ノ{['一', '二', '三'][s.n - 1]}</span>
+              </div>
               <h3 className="text-base" style={{ fontWeight: 700 }}>{s.t}</h3>
               <p className="text-sm" style={{ color: 'var(--color-ash)' }}>{s.d}</p>
             </div>

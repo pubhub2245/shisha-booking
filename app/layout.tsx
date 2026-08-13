@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Outfit, Noto_Sans_JP, Shippori_Mincho } from "next/font/google";
+import { Noto_Sans_JP, Shippori_Mincho } from "next/font/google";
 import "./globals.css";
 import { cookies } from "next/headers";
 import { Analytics } from "@vercel/analytics/next";
@@ -8,13 +8,6 @@ import { SiteFooter } from "@/components/site-footer";
 import { MobileNav } from "@/components/mobile-nav";
 import { AgeGate } from "@/components/age-gate";
 import { BRAND, BRAND_TITLE } from "@/lib/site";
-
-const outfit = Outfit({
-  weight: ["400", "500", "600", "700", "800"],
-  subsets: ["latin"],
-  display: "swap",
-  variable: "--font-outfit",
-});
 
 const notoSansJp = Noto_Sans_JP({
   weight: ["400", "500", "700"],
@@ -67,7 +60,7 @@ export default async function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   const ageOk = (await cookies()).get("age_ok")?.value === "1";
   return (
-    <html lang="ja" className={`${outfit.variable} ${notoSansJp.variable} ${shipporiMincho.variable}`}>
+    <html lang="ja" className={`${notoSansJp.variable} ${shipporiMincho.variable}`}>
       <body className="flex min-h-dvh flex-col pb-16 md:pb-0">
         <a href="#main" className="skip-link">本文へスキップ</a>
         <SiteHeader />

@@ -22,15 +22,15 @@ export default function AboutPage() {
         「日本人に美味しい」を、<br />みんなで作る。<span className="ember-text">日本代表シーシャ図鑑。</span>
       </h1>
       <p className="mt-4 text-base leading-relaxed" style={{ color: 'var(--color-ash)' }}>
-        <b>煙道（えんどう / ENDOH）</b>とは、煙の通り道のこと。茶道・華道・香道に連なる“道”として、
+        <b><ruby>煙道<rt>えんどう</rt></ruby>（ENDOH）</b>とは、煙の通り道のこと。茶道・華道・香道に連なる“道”として、
         日本流に洗練されたシーシャの作法を集めます。本場の作り方はあっても、「日本人の舌に美味しいシーシャの標準」は世界のどこにもありません。
-        煙道は、その基準を作り手みんなで選び・磨いていく図鑑です。系統ごとに最も支持されたミックスが「日本代表」に選ばれ、
+        煙道は、その基準を作り手みんなで選び・磨いていく図鑑です。系統ごとに最も支持されたミックスが<span className="bouten">日本代表</span>に選ばれ、
         シーシャ屋で迷ったとき「まずこれ」と言える鉄板が見つかる場所を目指します。
       </p>
 
       <div className="mt-10 flex flex-col gap-4">
         {features.map((f) => (
-          <div key={f.title} className="card flex items-center gap-4 p-5">
+          <div key={f.title} className="card card-wa flex items-center gap-4 p-5">
             <IconOrb preset={f.preset} size={50}>{f.icon}</IconOrb>
             <div>
               <h2 className="text-base" style={{ fontWeight: 700 }}>{f.title}</h2>
