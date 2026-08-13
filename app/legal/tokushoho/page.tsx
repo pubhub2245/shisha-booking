@@ -1,5 +1,5 @@
 export const dynamic = 'force-dynamic'
-export const metadata = { title: '特定商取引法に基づく表記 — MixHub' }
+export const metadata = { title: '特定商取引法に基づく表記 — 煙道' }
 
 const PLACEHOLDER = '（未設定）'
 function env(name: string): string {

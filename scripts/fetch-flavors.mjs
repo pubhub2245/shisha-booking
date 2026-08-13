@@ -66,7 +66,7 @@ function cleanTitle(title, brand) {
 }
 
 async function getJson(url) {
-  const res = await fetch(url, { headers: { 'user-agent': 'MixHub-flavor-importer' } })
+  const res = await fetch(url, { headers: { 'user-agent': 'Endoh-flavor-importer' } })
   if (!res.ok) throw new Error(`HTTP ${res.status}`)
   return res.json()
 }

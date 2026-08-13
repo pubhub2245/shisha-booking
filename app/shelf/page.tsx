@@ -9,7 +9,7 @@ import type { Flavor } from '@/lib/types/database'
 
 export const dynamic = 'force-dynamic'
 export const metadata = {
-  title: 'マイフレーバー — MixHub',
+  title: 'マイフレーバー — 煙道',
   description: '持っているフレーバーを登録すると、いま手元で作れるミックスだけが表示されます。',
 }
 

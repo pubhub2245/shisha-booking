@@ -7,7 +7,7 @@ import { EmptyState } from '@/components/empty-state'
 
 export const dynamic = 'force-dynamic'
 export const metadata = {
-  title: '人気ランキング — MixHub',
+  title: '人気ランキング — 煙道',
   description: 'いいねが多い人気のシーシャ ミックスランキング。週間・月間・全期間。',
 }
 

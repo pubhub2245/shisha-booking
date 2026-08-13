@@ -15,9 +15,9 @@ export const dynamic = 'force-dynamic'
 export async function generateMetadata({ params }: { params: Promise<{ type: string }> }): Promise<Metadata> {
   const { type } = await params
   const bowl = bowlOption(type)
-  if (!bowl) return { title: 'ボウル — MixHub' }
+  if (!bowl) return { title: 'ボウル — 煙道' }
   return {
-    title: `${bowl.l}ボウルの実例・使い方 — MixHub`,
+    title: `${bowl.l}ボウルの実例・使い方 — 煙道`,
     description: `${bowl.l}（${bowl.en}）を使ったシーシャの盛り方・作り方の実例まとめ。${bowl.desc}`,
   }
 }

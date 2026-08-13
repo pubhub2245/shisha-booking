@@ -1,9 +1,14 @@
 import { ImageResponse } from 'next/og'
+import { readFile } from 'node:fs/promises'
+import { BRAND } from '@/lib/site'
 
 export const size = { width: 64, height: 64 }
 export const contentType = 'image/png'
 
-export default function Icon() {
+// 朱の落款に白抜きの「煙」。和の意匠（washi × 朱の落款）に合わせる。
+export default async function Icon() {
+  const jp = await readFile(new URL('./brand-jp.ttf', import.meta.url))
+
   return new ImageResponse(
     (
       <div
@@ -13,15 +18,18 @@ export default function Icon() {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          background: '#1f8a76',
-          color: '#ffffff',
-          fontSize: 44,
-          fontWeight: 800,
+          background: '#b23b2e',
+          color: '#fbf8f0',
+          fontSize: 42,
+          fontFamily: 'BrandJP',
         }}
       >
-        M
+        {BRAND.mark}
       </div>
     ),
-    { ...size }
+    {
+      ...size,
+      fonts: [{ name: 'BrandJP', data: jp, style: 'normal', weight: 700 }],
+    }
   )
 }

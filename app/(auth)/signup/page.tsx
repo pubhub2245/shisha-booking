@@ -4,7 +4,7 @@ import { getCurrentUser } from '@/lib/auth'
 import { AuthForm } from '../auth-form'
 
 export const dynamic = 'force-dynamic'
-export const metadata = { title: '新規登録 — MixHub' }
+export const metadata = { title: '新規登録 — 煙道' }
 
 export default async function SignupPage({
   searchParams,

@@ -12,7 +12,7 @@ import { IDEA_CATEGORIES, ideaCategory } from '@/lib/ideas'
 
 export const dynamic = 'force-dynamic'
 export const metadata: Metadata = {
-  title: '意見箱 — MixHub',
+  title: '意見箱 — 煙道',
   description: 'アプリの改修要望を投稿して、みんなの👍👎で優先度を決めます。要望が多いものから改善します。',
 }
 

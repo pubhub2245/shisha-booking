@@ -26,9 +26,9 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { username } = await params
   const profile = await getProfileByUsername(username)
-  if (!profile) return { title: 'ユーザーが見つかりません — MixHub' }
+  if (!profile) return { title: 'ユーザーが見つかりません — 煙道' }
   const name = profile.is_shop && profile.shop_name ? profile.shop_name : profile.display_name || `@${username}`
-  return { title: `${name} のミックス — MixHub`, description: profile.bio ?? undefined }
+  return { title: `${name} のミックス — 煙道`, description: profile.bio ?? undefined }
 }
 
 export default async function ProfilePage({ params }: { params: Promise<{ username: string }> }) {

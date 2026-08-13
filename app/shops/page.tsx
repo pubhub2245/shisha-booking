@@ -4,8 +4,8 @@ import { getCurrentUser } from '@/lib/auth'
 
 export const dynamic = 'force-dynamic'
 export const metadata = {
-  title: '店舗一覧 — MixHub',
-  description: 'MixHub に登録しているシーシャ店の一覧。お店の在庫メニューや作れるミックスをチェックしよう。',
+  title: '店舗一覧 — 煙道',
+  description: '煙道 に登録しているシーシャ店の一覧。お店の在庫メニューや作れるミックスをチェックしよう。',
 }
 
 export default async function ShopsPage() {
@@ -21,7 +21,7 @@ export default async function ShopsPage() {
         {user && <Link href="/shop/new" className="btn btn-ember shrink-0 text-sm">＋ お店を登録</Link>}
       </div>
       <p className="mt-2 text-sm" style={{ color: 'var(--color-ash)' }}>
-        MixHub に登録しているシーシャ店。お店の在庫メニューから「今そこで吸える一台」を見つけよう。
+        煙道 に登録しているシーシャ店。お店の在庫メニューから「今そこで吸える一台」を見つけよう。
       </p>
 
       {shops.length > 0 ? (

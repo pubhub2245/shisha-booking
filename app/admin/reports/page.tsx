@@ -6,7 +6,7 @@ import { adminDismissReport, adminDeleteMix, adminRestoreContent } from '@/actio
 import { relativeTime } from '@/lib/time'
 
 export const dynamic = 'force-dynamic'
-export const metadata = { title: '通報の管理 — MixHub' }
+export const metadata = { title: '通報の管理 — 煙道' }
 
 export default async function AdminReportsPage() {
   const user = await getCurrentUser()

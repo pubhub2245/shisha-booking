@@ -4,7 +4,7 @@ import { getCurrentUser } from '@/lib/auth'
 import { getClickStats } from '@/lib/queries'
 
 export const dynamic = 'force-dynamic'
-export const metadata = { title: '送客クリック集計 — MixHub' }
+export const metadata = { title: '送客クリック集計 — 煙道' }
 
 export default async function AdminClicksPage() {
   const user = await getCurrentUser()

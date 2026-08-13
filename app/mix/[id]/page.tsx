@@ -42,7 +42,7 @@ import { OnsiteRating } from '@/components/onsite-rating'
 import { SectionTabs, type SectionTab } from '@/components/section-tabs'
 import { resolveMode } from '@/lib/mode'
 import { unlockPassed, isActivelyLocked } from '@/lib/lock'
-import { SITE_URL } from '@/lib/site'
+import { SITE_URL, BRAND } from '@/lib/site'
 import { goHref } from '@/lib/go'
 import { comboKey, comboSlug } from '@/lib/combo'
 import type { MixWithRelations, MixAuthor } from '@/lib/types/database'
@@ -50,7 +50,7 @@ import type { MixWithRelations, MixAuthor } from '@/lib/types/database'
 export const dynamic = 'force-dynamic'
 
 function authorName(author: MixAuthor | null): string {
-  if (!author) return 'MixHub 編集部'
+  if (!author) return BRAND.editorial
   return author.display_name || (author.username ? `@${author.username}` : '名無し')
 }
 
@@ -80,19 +80,17 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { id } = await params
   const mix = await getMixById(id)
-  if (!mix) return { title: 'ミックスが見つかりません — MixHub' }
+  if (!mix) return { title: `ミックスが見つかりません — ${BRAND.full}` }
   const flavorLine = (mix.mix_flavors ?? []).map((f) => f.name).join(' × ')
-  // 盛り方写真があればOG画像に使う。無ければブランド既定画像にフォールバック。
-  const images = mix.pack_photo_url
-    ? [{ url: mix.pack_photo_url }]
-    : [{ url: '/og-default.png', width: 1200, height: 630 }]
+  // 盛り方写真があればOG画像に使う。無ければブランド既定の動的OG画像（opengraph-image）へフォールバック。
+  const images = mix.pack_photo_url ? [{ url: mix.pack_photo_url }] : undefined
   const heading = flavorLine || mix.title || 'ミックス'
   const desc = mix.description ?? (mix.title ? `${mix.title}｜${flavorLine}` : flavorLine) ?? 'シーシャのミックスレシピ'
   return {
-    title: `${heading} — MixHub`,
+    title: `${heading} — ${BRAND.full}`,
     description: desc,
-    openGraph: { title: heading, description: desc, images },
-    twitter: { card: 'summary_large_image', title: heading, description: desc, images },
+    openGraph: { title: heading, description: desc, ...(images ? { images } : {}) },
+    twitter: { card: 'summary_large_image', title: heading, description: desc, ...(images ? { images } : {}) },
   }
 }
 
@@ -155,8 +153,8 @@ export default async function MixDetail({ params }: { params: Promise<{ id: stri
   const taglineSuffix = mix.title ? `（${mix.title}）` : ''
   // 日本代表に選ばれていれば、その"自慢"をシェア文面に載せる（バイラルの起点）
   const shareText = isRep
-    ? `🇯🇵 ${repLabel}系の日本代表に選ばれました！\n${headingLine}${taglineSuffix}\n#シーシャ #MixHub #日本代表シーシャ図鑑`
-    : `${headingLine}${taglineSuffix}\n#シーシャ #MixHub`
+    ? `🇯🇵 ${repLabel}系の日本代表に選ばれました！\n${headingLine}${taglineSuffix}\n#シーシャ #煙道 #日本代表シーシャ図鑑`
+    : `${headingLine}${taglineSuffix}\n#シーシャ #煙道`
 
   // 構造化データ（有料・非公開の熱管理データは含めない）
   const jsonLd = {
@@ -166,7 +164,7 @@ export default async function MixDetail({ params }: { params: Promise<{ id: stri
     description: mix.description ?? flavorLine,
     recipeIngredient: flavors.map((f) => `${f.brand ? `${f.brand} ` : ''}${f.name}`),
     recipeCategory: 'Shisha Mix',
-    keywords: ['シーシャ', 'MixHub', ...mix.taste_tags].join(', '),
+    keywords: ['シーシャ', '煙道', ...mix.taste_tags].join(', '),
     url: `${SITE_URL}/mix/${mix.id}`,
     ...(mix.author?.display_name || mix.author?.username
       ? { author: { '@type': 'Person', name: mix.author.display_name || `@${mix.author.username}` } }
@@ -200,7 +198,7 @@ export default async function MixDetail({ params }: { params: Promise<{ id: stri
           className="mt-4 rounded-xl border px-4 py-3 text-sm"
           style={{ borderColor: 'var(--line-strong)', background: 'var(--accent-tint)', color: 'var(--color-ash)' }}
         >
-          🧪 これは <b>MixHub 編集部のサンプル</b>です。作り方は一般的な目安で、専門家の監修はされていません。
+          🧪 これは <b>煙道 編集部のサンプル</b>です。作り方は一般的な目安で、専門家の監修はされていません。
           実際の「美味しい作り方」は、これから皆さんの投稿で育てていきます。
         </div>
       )}

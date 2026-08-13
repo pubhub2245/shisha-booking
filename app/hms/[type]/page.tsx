@@ -16,9 +16,9 @@ export const dynamic = 'force-dynamic'
 export async function generateMetadata({ params }: { params: Promise<{ type: string }> }): Promise<Metadata> {
   const { type } = await params
   const hms = hmsOption(type)
-  if (!hms) return { title: 'HMS — MixHub' }
+  if (!hms) return { title: 'HMS — 煙道' }
   return {
-    title: `${hms.l}の実例・使い方 — MixHub`,
+    title: `${hms.l}の実例・使い方 — 煙道`,
     description: `${hms.l}（${hms.en}）を使ったシーシャの作り方・盛り方の実例まとめ。${hms.desc}`,
   }
 }

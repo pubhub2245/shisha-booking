@@ -42,7 +42,7 @@ async function getJson(url: string, timeoutMs = 6000): Promise<unknown> {
   const ctrl = new AbortController()
   const t = setTimeout(() => ctrl.abort(), timeoutMs)
   try {
-    const res = await fetch(url, { headers: { 'user-agent': 'MixHub-flavor-importer' }, signal: ctrl.signal })
+    const res = await fetch(url, { headers: { 'user-agent': 'Endoh-flavor-importer' }, signal: ctrl.signal })
     if (!res.ok) throw new Error(`HTTP ${res.status}`)
     return await res.json()
   } finally {

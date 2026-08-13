@@ -1,4 +1,4 @@
-export const metadata = { title: 'プライバシーポリシー — MixHub' }
+export const metadata = { title: 'プライバシーポリシー — 煙道' }
 
 export default function PrivacyPage() {
   const sections: { h: string; b: string }[] = [

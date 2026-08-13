@@ -5,7 +5,7 @@ import { getFollowingMixes, getLikedMixIds } from '@/lib/queries'
 import { MixCard } from '@/components/mix-card'
 
 export const dynamic = 'force-dynamic'
-export const metadata = { title: 'タイムライン — MixHub' }
+export const metadata = { title: 'タイムライン — 煙道' }
 
 export default async function TimelinePage() {
   const user = await getCurrentUser()

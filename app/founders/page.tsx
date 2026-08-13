@@ -3,9 +3,9 @@ import type { Metadata } from 'next'
 import { IconOrb, type OrbPreset } from '@/components/icon-orb'
 
 export const metadata: Metadata = {
-  title: '創設メンバー募集 — MixHub',
+  title: '創設メンバー募集 — 煙道',
   description:
-    '日本のシーシャに、まだ「美味しい作り方」の標準はありません。その基準を最初に作る側になりませんか。MixHub 創設メンバー（作り手）を募集しています。',
+    '日本のシーシャに、まだ「美味しい作り方」の標準はありません。その基準を最初に作る側になりませんか。煙道 創設メンバー（作り手）を募集しています。',
 }
 
 const perks: { icon: string; preset: OrbPreset; title: string; body: string }[] = [
@@ -50,7 +50,7 @@ export default function FoundersPage() {
       </h1>
       <p className="mt-4 text-base leading-relaxed" style={{ color: 'var(--color-ash)' }}>
         本場（中東・欧米）の作り方はあっても、<b>「日本人の舌に美味しいシーシャの標準」は世界のどこにもありません</b>。
-        MixHub は、その基準を作り手みんなで選び・磨いていく「日本代表シーシャ図鑑」です。
+        煙道 は、その基準を作り手みんなで選び・磨いていく「日本代表シーシャ図鑑」です。
         いまはまだ立ち上げ期。だからこそ、<b>最初の作り手＝創設メンバー</b>には、後から入る人には得られない場所があります。
       </p>
 

@@ -16,10 +16,10 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { slug } = await params
   const combo = await getComboBySlug(slug)
-  if (!combo) return { title: '組み合わせが見つかりません — MixHub' }
+  if (!combo) return { title: '組み合わせが見つかりません — 煙道' }
   const line = combo.flavorNames.join(' × ')
   return {
-    title: `${line} のミックス（${combo.methods.length}通りの作り方）— MixHub`,
+    title: `${line} のミックス（${combo.methods.length}通りの作り方）— 煙道`,
     description: `${line} の作り方を比較。人気の作り方から自分に合った作り方を見つけよう。`,
   }
 }
