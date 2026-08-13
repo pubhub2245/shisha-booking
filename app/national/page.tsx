@@ -11,9 +11,9 @@ import { flavorLine } from '@/lib/mix'
 
 export const dynamic = 'force-dynamic'
 export const metadata: Metadata = {
-  title: '日本代表シーシャ図鑑 — 煙道',
+  title: '王道シーシャ図鑑 — 煙道',
   description:
-    '日本人が「美味しい」と認めた鉄板ミックスを系統ごとに選出。みんなの👍と「作った！」で選ばれた、日本代表の殿堂です。',
+    '日本人が「美味しい」と認めた鉄板ミックスを系統ごとに選出。みんなの👍と「作った！」で選ばれた、王道の殿堂です。',
 }
 
 // 系統（TYPE_TAGS）ごとの見た目
@@ -31,7 +31,7 @@ const CAT_META: Record<string, { icon: string; label: string }> = {
 }
 
 export default async function NationalTeamPage() {
-  // 代表スナップショットを同期（変化があれば新代表の投稿者へ通知）。表示は常に最新計算。
+  // 王道スナップショットを同期（変化があれば新王道の投稿者へ通知）。表示は常に最新計算。
   await refreshNationalReps()
   const [team, user] = await Promise.all([getNationalTeam(), getCurrentUser()])
   const likedIds = user ? await getLikedMixIds() : new Set<string>()
@@ -41,25 +41,25 @@ export default async function NationalTeamPage() {
       <RankingTabs current="national" />
       {/* ヒーロー */}
       <div className="text-center">
-        <p className="eyebrow">Japan National Team</p>
+        <p className="eyebrow">The Royal Road</p>
         <h1 className="mt-2 text-3xl sm:text-4xl" style={{ fontWeight: 800 }}>
-          🇯🇵 日本代表シーシャ図鑑
+          王道シーシャ図鑑
         </h1>
         <p className="mx-auto mt-3 max-w-2xl text-sm leading-relaxed" style={{ color: 'var(--color-ash)' }}>
           「日本人に美味しい」と言われるシーシャを、みんなで選ぶ。
           <br className="hidden sm:block" />
-          系統ごとに、<b>👍いいね</b>・<b>🔥「作った！」</b>・<b>📍実地評価</b>で最も支持を集めたミックスが<b>日本代表</b>に選出されます。
+          系統ごとに、<b>👍いいね</b>・<b>🔥「作った！」</b>・<b>📍実地評価</b>で最も支持を集めたミックスが<b>王道</b>に選出されます。
         </p>
         <p className="mx-auto mt-2 max-w-2xl text-xs" style={{ color: 'var(--color-ash-dim)' }}>
           ※ 選出基準：支持スコア（👍×1＋🔥作った×2＋📍実地評価×5）が1以上・本物のレシピを優先。現地で実物を吸った「実地評価」を最重視します。
-          <br />本物のレシピが未選出の系統は「暫定代表」と表示され、投稿が集まり次第 差し替わります。
+          <br />本物のレシピが未選出の系統は「暫定王道」と表示され、投稿が集まり次第 差し替わります。
         </p>
       </div>
 
       {team.length === 0 ? (
         <EmptyState
-          icon="🇯🇵"
-          title="まだ代表が決まっていません"
+          icon="王"
+          title="まだ王道が決まっていません"
           className="mt-10"
           action={
             <>
@@ -68,13 +68,13 @@ export default async function NationalTeamPage() {
             </>
           }
         >
-          ミックスに👍・「作った！」・📍実地評価が集まると、系統ごとの日本代表が選出されます。
+          ミックスに👍・「作った！」・📍実地評価が集まると、系統ごとの王道が選出されます。
         </EmptyState>
       ) : (
         <>
           <div className="mt-8 flex items-center justify-center gap-2 text-xs" style={{ color: 'var(--color-ash-dim)' }}>
             <span className="rounded-full px-3 py-1" style={{ background: 'var(--accent-tint)', color: 'var(--color-ember-hot)', fontWeight: 700 }}>
-              現在の代表 {team.length} 系統
+              現在の王道 {team.length} 系統
             </span>
           </div>
           <div className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -86,7 +86,7 @@ export default async function NationalTeamPage() {
                   <div className="flex items-center justify-between px-1">
                     <span className="flex items-center gap-1.5 text-sm" style={{ fontWeight: 800 }}>
                       <span aria-hidden>{meta.icon}</span>
-                      {meta.label} 代表
+                      {meta.label}の王道
                     </span>
                     {rep.sample ? (
                       <span
@@ -94,18 +94,18 @@ export default async function NationalTeamPage() {
                         style={{ background: 'var(--line)', color: 'var(--color-ash-dim)', fontWeight: 800, letterSpacing: '0.05em' }}
                         title="本物のレシピが集まるまでの暫定枠です"
                       >
-                        暫定代表
+                        暫定王道
                       </span>
                     ) : (
                       <span
                         className="rounded-full px-2 py-0.5 text-[0.6rem]"
                         style={{ background: 'linear-gradient(90deg, #9a3226, #b23b2e)', color: '#fff', fontWeight: 800, letterSpacing: '0.05em' }}
                       >
-                        日本代表
+                        王道
                       </span>
                     )}
                   </div>
-                  {/* 代表ミックス */}
+                  {/* 王道ミックス */}
                   <MixCard mix={rep.mix} liked={likedIds.has(rep.mix.id)} isAuthed={!!user} />
                   {/* 支持スタッツ */}
                   <div className="flex items-center gap-3 px-1 text-xs" style={{ color: 'var(--color-ash-dim)' }}>
@@ -124,7 +124,7 @@ export default async function NationalTeamPage() {
                     <div className="px-1">
                       <ShareBar
                         url={`${SITE_URL}/mix/${rep.mix.id}`}
-                        text={`🇯🇵 ${meta.label}の日本代表はこれ！\n${flavorLine(rep.mix.mix_flavors)}${rep.mix.title ? `（${rep.mix.title}）` : ''}\n#シーシャ #煙道 #日本代表シーシャ図鑑`}
+                        text={`${meta.label}の王道はこれ！\n${flavorLine(rep.mix.mix_flavors)}${rep.mix.title ? `（${rep.mix.title}）` : ''}\n#シーシャ #煙道 #王道シーシャ図鑑`}
                       />
                     </div>
                   )}

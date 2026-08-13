@@ -84,12 +84,12 @@ export default async function Home({
           今日のミックス、<span className="text-grad-anim">もう迷わない。</span>
         </h1>
         <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed" style={{ color: 'var(--color-ash)' }}>
-          その組み合わせの<b className="bouten">いちばん美味しい作り方</b>を、みんなで育てる日本代表シーシャ図鑑。
+          その組み合わせの<b className="bouten">いちばん美味しい作り方</b>を、みんなで育てる王道シーシャ図鑑。
         </p>
         <p className="mt-1 text-xs" style={{ color: 'var(--color-ash-dim)' }}>
           {flavors.length > 0
             ? `気分で探す ・ ${combos.length}通りの組み合わせ ・ ${flavors.length}種のフレーバー`
-            : '気分で探す ・ 作り方で選ぶ日本代表シーシャ図鑑'}
+            : '気分で探す ・ 作り方で選ぶ王道シーシャ図鑑'}
         </p>
         {/* 煙（けむり）＝ブランド"煙道"の象徴を一筋 */}
         <div className="smoke-line mx-auto mt-3 w-6" aria-hidden />
@@ -98,14 +98,14 @@ export default async function Home({
           {mode === 'pro' ? (
             <>
               <Link href="/post" className="chip chip-active">🛠 フル投稿</Link>
-              <Link href="/national" className="chip">🇯🇵 日本代表</Link>
+              <Link href="/national" className="chip">王道</Link>
               <Link href="/areas" className="chip">📍 地域別・近くの名店</Link>
               <Link href="/timeline" className="chip">🕒 タイムライン</Link>
               <Link href="/shop/new" className="chip">🏠 店舗を登録</Link>
             </>
           ) : (
             <>
-              <Link href="/national" className="chip chip-active">🇯🇵 日本代表</Link>
+              <Link href="/national" className="chip chip-active">王道</Link>
               <Link href="/areas" className="chip">📍 近くの名店</Link>
               <Link href="/shelf" className="chip">🫙 あと1つで作れる</Link>
               <Link href="/guide" className="chip">📖 作り方ガイド</Link>

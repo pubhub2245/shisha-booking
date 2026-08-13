@@ -49,8 +49,8 @@ export async function SiteHeader() {
 
         <nav className="hidden items-center gap-6 text-sm md:flex" style={{ color: 'var(--color-ash)' }}>
           <Link href="/" className="brush-underline transition-colors hover:text-[var(--color-cream)]">図鑑</Link>
-          {/* ランキング系（日本代表/地域別/人気）は日本代表ページ上部のタブで束ねる */}
-          <Link href="/national" className="brush-underline transition-colors hover:text-[var(--color-cream)]" style={{ fontWeight: 700 }}>🇯🇵 ランキング</Link>
+          {/* ランキング系（王道/地域別/人気）は王道ページ上部のタブで束ねる */}
+          <Link href="/national" className="brush-underline transition-colors hover:text-[var(--color-cream)]" style={{ fontWeight: 700 }}>王道</Link>
           <Link href="/flavors" className="brush-underline transition-colors hover:text-[var(--color-cream)]">フレーバー</Link>
           {/* プロは深掘り導線、初心者は学習導線 */}
           {isPro ? (

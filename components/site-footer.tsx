@@ -32,7 +32,7 @@ export function SiteFooter() {
         </div>
         <nav className="flex flex-wrap gap-x-6 gap-y-2 text-sm" style={{ color: 'var(--color-ash)' }}>
           <Link href="/" className="brush-underline hover:text-[var(--color-cream)]">図鑑</Link>
-          <Link href="/national" className="brush-underline hover:text-[var(--color-cream)]">🇯🇵 日本代表</Link>
+          <Link href="/national" className="brush-underline hover:text-[var(--color-cream)]">王道</Link>
           <Link href="/areas" className="brush-underline hover:text-[var(--color-cream)]">地域別ランキング</Link>
           <Link href="/flavors" className="brush-underline hover:text-[var(--color-cream)]">フレーバー</Link>
           <Link href="/ranking" className="brush-underline hover:text-[var(--color-cream)]">ランキング</Link>

@@ -151,9 +151,9 @@ export default async function MixDetail({ params }: { params: Promise<{ id: stri
   // 表示名＝フレーバー名。title は任意の一言（あれば添える）
   const headingLine = flavorLine || mix.title || 'ミックス'
   const taglineSuffix = mix.title ? `（${mix.title}）` : ''
-  // 日本代表に選ばれていれば、その"自慢"をシェア文面に載せる（バイラルの起点）
+  // 王道に選ばれていれば、その"自慢"をシェア文面に載せる（バイラルの起点）
   const shareText = isRep
-    ? `🇯🇵 ${repLabel}系の日本代表に選ばれました！\n${headingLine}${taglineSuffix}\n#シーシャ #煙道 #日本代表シーシャ図鑑`
+    ? `${repLabel}系の王道に選ばれました！\n${headingLine}${taglineSuffix}\n#シーシャ #煙道 #王道シーシャ図鑑`
     : `${headingLine}${taglineSuffix}\n#シーシャ #煙道`
 
   // 構造化データ（有料・非公開の熱管理データは含めない）
@@ -227,7 +227,7 @@ export default async function MixDetail({ params }: { params: Promise<{ id: stri
         <div className="mt-2 flex flex-wrap items-center gap-2">
           {isRep && (
             <Link href="/national" className="seal text-xs">
-              🇯🇵 {repLabel}系の日本代表
+              {repLabel}系の王道
             </Link>
           )}
           {regionRep && (
@@ -236,7 +236,7 @@ export default async function MixDetail({ params }: { params: Promise<{ id: stri
               className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs"
               style={{ background: 'var(--accent-tint)', color: 'var(--color-ember-hot)', fontWeight: 800, border: '1px solid var(--color-ember)' }}
             >
-              🏅 {regionRep}代表
+              🏅 {regionRep}の王道
             </Link>
           )}
           {/* 完全公開の充実レシピを称える（詳しい中身があり、ロックが効いていない） */}
@@ -253,7 +253,7 @@ export default async function MixDetail({ params }: { params: Promise<{ id: stri
           <div className="mt-2 inline-flex flex-wrap items-center gap-1 rounded-full px-2.5 py-1 text-xs"
             style={{ background: 'var(--accent-tint)', color: 'var(--color-ember-hot)', fontWeight: 700 }}>
             💎 有料ノート{mix.price != null ? ` ¥${mix.price}` : ''}
-            <span style={{ color: 'var(--color-ash-dim)', fontWeight: 400 }}>・一部ロック中（日本代表の選出対象外）</span>
+            <span style={{ color: 'var(--color-ash-dim)', fontWeight: 400 }}>・一部ロック中（王道の選出対象外）</span>
           </div>
         )}
         {mix.unlock_at && !timeReleased && (
@@ -283,7 +283,7 @@ export default async function MixDetail({ params }: { params: Promise<{ id: stri
             style={{ borderColor: 'rgb(178 59 46 / 0.35)', background: 'rgb(178 59 46 / 0.06)' }}
           >
             <p className="text-sm" style={{ fontWeight: 800 }}>
-              🎉 おめでとうございます！あなたのミックスが <span style={{ color: '#b23b2e' }}>{repLabel}系の日本代表</span> に選ばれています。
+              🎉 おめでとうございます！あなたのミックスが <span style={{ color: '#b23b2e' }}>{repLabel}系の王道</span> に選ばれています。
             </p>
             <p className="mt-1 text-xs" style={{ color: 'var(--color-ash)' }}>
               みんなの👍と「作った！」で選出された証。ぜひSNSで自慢しましょう。

@@ -10,7 +10,7 @@ export function MobileNavBar({ isAuthed }: { isAuthed: boolean }) {
   const pathname = usePathname()
   const items: Item[] = [
     { href: '/', icon: '📖', label: '図鑑' },
-    { href: '/national', icon: '🇯🇵', label: '日本代表' },
+    { href: '/national', icon: '王', label: '王道' },
     { href: '/post', icon: '➕', label: '投稿' },
     { href: '/search', icon: '🔍', label: '検索' },
     isAuthed ? { href: '/mypage', icon: '👤', label: 'マイ' } : { href: '/login', icon: '👤', label: 'ログイン' },

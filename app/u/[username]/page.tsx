@@ -99,10 +99,10 @@ export default async function ProfilePage({ params }: { params: Promise<{ userna
           </p>
         )}
 
-        {/* 日本代表の冠（保有していれば実力の証） */}
+        {/* 王道の冠（保有していれば実力の証） */}
         {stats.repCategories.length > 0 && (
           <div className="mt-4 flex flex-wrap items-center gap-2">
-            <span className="text-xs" style={{ color: 'var(--color-ash-dim)', fontWeight: 600 }}>🇯🇵 日本代表</span>
+            <span className="text-xs" style={{ color: 'var(--color-ash-dim)', fontWeight: 600 }}>王道</span>
             {stats.repCategories.map((c) => (
               <Link
                 key={c}
@@ -122,7 +122,7 @@ export default async function ProfilePage({ params }: { params: Promise<{ userna
             { n: stats.mixCount, l: 'ミックス' },
             { n: stats.totalLikes, l: '累計いいね' },
             { n: stats.totalMakes, l: '作られた' },
-            { n: stats.repCategories.length, l: '代表 冠' },
+            { n: stats.repCategories.length, l: '王道 冠' },
           ].map((s) => (
             <div key={s.l} className="rounded-xl border px-2 py-2.5 text-center" style={{ borderColor: 'var(--line)' }}>
               <div className="text-lg" style={{ fontWeight: 800 }}>{s.n}</div>

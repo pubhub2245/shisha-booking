@@ -36,18 +36,18 @@ export const metadata: Metadata = {
   },
   applicationName: BRAND.full,
   description:
-    "シーシャ屋で迷わない。日本中の「美味しい」ミックスと作り方が集まる、日本代表シーシャ図鑑 & コミュニティ。人気のミックスを探して、あなたのレシピも投稿しよう。",
+    "シーシャ屋で迷わない。日本中の「美味しい」ミックスと作り方が集まる、王道シーシャ図鑑 & コミュニティ。人気のミックスを探して、あなたのレシピも投稿しよう。",
   openGraph: {
     title: BRAND_TITLE,
     siteName: BRAND.full,
-    description: "日本中の「美味しい」シーシャ ミックスと作り方が集まる、日本代表シーシャ図鑑コミュニティ。",
+    description: "日本中の「美味しい」シーシャ ミックスと作り方が集まる、王道シーシャ図鑑コミュニティ。",
     type: "website",
     locale: "ja_JP",
   },
   twitter: {
     card: "summary_large_image",
     title: BRAND_TITLE,
-    description: "日本中の「美味しい」シーシャ ミックスと作り方が集まる、日本代表シーシャ図鑑コミュニティ。",
+    description: "日本中の「美味しい」シーシャ ミックスと作り方が集まる、王道シーシャ図鑑コミュニティ。",
   },
 };
 

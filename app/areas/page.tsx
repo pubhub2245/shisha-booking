@@ -126,7 +126,7 @@ export default async function AreasPage() {
                               className="absolute -top-2 left-3 z-10 rounded-full px-2 py-0.5 text-[0.62rem]"
                               style={{ background: 'linear-gradient(90deg, var(--color-ember), var(--color-ember-deep))', color: '#fff', fontWeight: 800, boxShadow: '0 4px 10px -4px rgb(224 85 42 / 0.6)' }}
                             >
-                              🏅 {r.region}代表
+                              🏅 {r.region}の王道
                             </span>
                           )}
                           <MixCard mix={x.mix} liked={likedIds.has(x.mix.id)} isAuthed={!!user} />

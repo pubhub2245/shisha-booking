@@ -16,7 +16,7 @@ export const EMAIL_ENABLED = process.env.NEXT_PUBLIC_EMAIL_ENABLED === 'true'
  * ブランド定義（唯一の出典）。表記ゆれを防ぐため、名称・タグライン等はここを参照する。
  *
  * 「煙道（えんどう / ENDOH）」= 煙の通り道。茶道・華道・香道に連なる“道”として、
- * 日本流に洗練されたシーシャの作法＝「日本代表シーシャ図鑑」を体現するブランド名。
+ * 日本流に洗練されたシーシャの作法＝「王道シーシャ図鑑」を体現するブランド名。
  * 意匠は和（washi × 墨 × 苔緑 × 朱の落款・明朝体）。ロゴマークは朱の落款に白抜きの「煙」。
  */
 export const BRAND = {
@@ -33,10 +33,10 @@ export const BRAND = {
   /** タグライン（情緒） */
   tagline: '煙を、味わう。',
   /** カテゴリ（機能を一言で） */
-  category: '日本代表シーシャ図鑑',
+  category: '王道シーシャ図鑑',
   /** author_id が null（運営提供サンプル）の既定表示名 */
   editorial: '煙道 編集部',
 } as const
 
-/** メタタイトル等で使う「煙道 ENDOH — 日本代表シーシャ図鑑」 */
+/** メタタイトル等で使う「煙道 ENDOH — 王道シーシャ図鑑」 */
 export const BRAND_TITLE = `${BRAND.full} — ${BRAND.category}`

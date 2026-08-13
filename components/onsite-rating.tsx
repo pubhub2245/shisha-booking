@@ -179,7 +179,7 @@ export function OnsiteRating({
         </div>
         <p className="mt-1.5 text-xs leading-relaxed" style={{ color: 'var(--color-ash)' }}>
           お店で<b>来店チェックイン</b>したあと、<b>24時間後</b>から星で採点できます。
-          店員さんのいない場所で、はしごして他店と比べてから、正直に評価できます。いいねより<b>重い一票</b>として日本代表の選出に効きます。
+          店員さんのいない場所で、はしごして他店と比べてから、正直に評価できます。いいねより<b>重い一票</b>として王道の選出に効きます。
         </p>
 
         {ctx.shops.length > 0 && (
