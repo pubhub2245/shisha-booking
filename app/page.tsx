@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { getCombos, getTasteTags, getFlavors, getRecentPhotoMixes, getOnboardingStatus, getRecommendedMixes, getLikedMixIds } from '@/lib/queries'
+import { getCombos, getTasteTags, getFlavors, getRecentPhotoMixes, getOnboardingStatus, getRecommendedMixes, getLikedMixIds, getMakeableReps } from '@/lib/queries'
 import { getCurrentUser } from '@/lib/auth'
 import { ComboCard } from '@/components/combo-card'
 import { MixCard } from '@/components/mix-card'
@@ -40,6 +40,9 @@ export default async function Home({
   const hasProfile = !!(user?.profile?.username && user?.profile?.display_name)
   const [recommended, recLikedIds] =
     user && !hasFilters ? await Promise.all([getRecommendedMixes(6), getLikedMixIds()]) : [[], new Set<string>()]
+  // 棚（マイフレーバー）×王道＝「今作れる王道 / あと1種で作れる王道」（再訪動機＋購入導線）
+  const makeableReps =
+    user && !hasFilters && onboarding.hasShelf ? await getMakeableReps() : { ready: [], almost: [] }
 
   const [combos, allTags, flavors, photoMixes] = await Promise.all([
     getCombos({ sort, tags: activeTags, q, makeableOnly }),
@@ -155,6 +158,55 @@ export default async function Home({
       {/* ---------- オンボーディング（初回ユーザー向け） ---------- */}
       {user && (
         <OnboardingCard hasProfile={hasProfile} hasShelf={onboarding.hasShelf} hasPosted={onboarding.hasPosted} mode={mode} />
+      )}
+
+      {/* ---------- 棚×王道：あなたが今作れる王道（再訪動機＋購入導線） ---------- */}
+      {user && (makeableReps.ready.length > 0 || makeableReps.almost.length > 0) && (
+        <section className="mt-10">
+          <div className="mb-3 flex flex-wrap items-baseline justify-between gap-2">
+            <h2 className="text-lg" style={{ fontWeight: 700 }}>
+              <span className="seal seal-stamp mr-2 text-xs">王道</span>
+              あなたが<span className="ember-text">今作れる王道</span>
+              {makeableReps.ready.length > 0 && (
+                <span className="ml-2 text-sm" style={{ color: 'var(--color-ash-dim)' }}>{makeableReps.ready.length}件</span>
+              )}
+            </h2>
+            <Link href="/shelf" className="brush-underline text-sm" style={{ color: 'var(--color-ember-hot)', fontWeight: 600 }}>
+              マイフレーバーを編集 →
+            </Link>
+          </div>
+          {makeableReps.ready.length > 0 ? (
+            <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+              {makeableReps.ready.map((rep) => (
+                <MixCard key={rep.mix.id} mix={rep.mix} liked={recLikedIds.has(rep.mix.id)} isAuthed={!!user} />
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm" style={{ color: 'var(--color-ash)' }}>
+              棚のフレーバーだけで作れる王道はまだありません。<b>あと1種</b>で作れる王道はこちら↓
+            </p>
+          )}
+          {makeableReps.almost.length > 0 && (
+            <div className="mt-6">
+              <h3 className="mb-2 text-sm" style={{ fontWeight: 700, color: 'var(--color-ash)' }}>
+                あと1種で作れる王道 <span style={{ color: 'var(--color-ash-dim)' }}>{makeableReps.almost.length}件</span>
+              </h3>
+              <div className="flex flex-wrap gap-2">
+                {makeableReps.almost.map(({ rep, missing }) => (
+                  <Link
+                    key={rep.mix.id}
+                    href={missing.flavorId ? `/flavor/${missing.flavorId}` : `/mix/${rep.mix.id}`}
+                    className="chip"
+                    title={`不足：${missing.name}（タップで入手）`}
+                  >
+                    {flavorLine(rep.mix.mix_flavors)}
+                    <span style={{ color: 'var(--color-seal)', fontWeight: 700 }}>＋{missing.name}</span>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
+        </section>
       )}
 
       {/* ---------- 気分で探す（デフォルトは味わい＋検索、詳細は折りたたみ） ---------- */}
