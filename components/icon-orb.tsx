@@ -1,8 +1,9 @@
+/* 和の伝統色でまとめた円形アイコン。多色の"飴色"を避け、苔緑・朱土・藍・利休茶で統一。 */
 const PRESETS = {
-  green: { from: '#2ba088', to: '#1f8a76', glow: 'rgb(31 138 118 / 0.38)' },
-  amber: { from: '#f0b445', to: '#e0552a', glow: 'rgb(224 85 42 / 0.32)' },
-  blue: { from: '#5b9bf0', to: '#3a6fd8', glow: 'rgb(74 134 232 / 0.32)' },
-  violet: { from: '#a479e2', to: '#7c53c9', glow: 'rgb(164 121 226 / 0.32)' },
+  green: { from: '#4f8f6b', to: '#356a4d', glow: 'rgb(47 97 71 / 0.30)' },   // 苔緑
+  amber: { from: '#c65b3c', to: '#a5382a', glow: 'rgb(165 56 42 / 0.28)' },  // 朱土（赭）
+  blue: { from: '#3f6a8c', to: '#2c5069', glow: 'rgb(44 80 105 / 0.28)' },   // 藍
+  violet: { from: '#8f7355', to: '#6f5638', glow: 'rgb(111 86 56 / 0.26)' }, // 利休茶
 } as const
 
 export type OrbPreset = keyof typeof PRESETS

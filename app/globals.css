@@ -40,6 +40,10 @@
   --line: rgb(33 30 24 / 0.11);
   --line-strong: rgb(33 30 24 / 0.19);
   --accent-tint: rgb(63 125 95 / 0.10);
+  /* 藍（リンク・補助アクセントの差し色） */
+  --color-indigo: #2f5876;
+  /* 金（箔のヘアライン／特別バッジ） */
+  --foil-gold: #b48a3f;
   /* 半透明の紙色（ヘッダー/ボトムナビ等） */
   --surface-blur: rgb(243 237 225 / 0.82);
   --surface-blur-strong: rgb(243 237 225 / 0.93);
@@ -70,6 +74,8 @@
     --line: rgb(255 255 255 / 0.10);
     --line-strong: rgb(255 255 255 / 0.18);
     --accent-tint: rgb(79 157 120 / 0.16);
+    --color-indigo: #7ea6c8;   /* 藍（暗地で映える明るめ） */
+    --foil-gold: #d8b366;      /* 金（宵に映える箔） */
     --surface-blur: rgb(22 19 13 / 0.82);
     --surface-blur-strong: rgb(22 19 13 / 0.93);
   }
@@ -93,19 +99,25 @@ body {
   font-family: var(--font-jp);
   font-weight: 400;
   line-height: 1.75;
-  letter-spacing: 0.01em;
-  font-feature-settings: "palt" 1;
+  letter-spacing: 0.02em;
+  /* palt=約物ツメ / pkna=プロポーショナル仮名（和文の"間"を整える） */
+  font-feature-settings: "palt" 1, "pkna" 1;
+  /* 和文の行分割：禁則を厳格に、英数字は必要時のみ折り返す */
+  line-break: strict;
+  word-break: normal;
+  overflow-wrap: anywhere;
   min-height: 100dvh;
   overflow-x: clip;
   max-width: 100%;
 }
 
-::selection { background: var(--color-ember); color: #fff; }
+/* 選択は朱（落款の色）で和らしく */
+::selection { background: var(--color-seal); color: #fbf8f0; }
 
 a { color: inherit; text-decoration: none; }
 
-/* アクセシビリティ：キーボード操作時のフォーカスリング */
-:focus-visible { outline: 2px solid var(--color-ember); outline-offset: 2px; border-radius: 4px; }
+/* アクセシビリティ：キーボード操作時のフォーカスリング（朱の細罫） */
+:focus-visible { outline: 2px solid var(--color-seal); outline-offset: 2px; border-radius: 4px; }
 
 /* 本文へスキップ（キーボード/スクリーンリーダー用） */
 .skip-link {
@@ -117,7 +129,15 @@ a { color: inherit; text-decoration: none; }
 }
 .skip-link:focus { top: 8px; }
 
-h1, h2, h3, h4 { font-family: var(--font-display); line-height: 1.32; font-weight: 700; letter-spacing: 0.02em; color: var(--color-cream); }
+h1, h2, h3, h4 {
+  font-family: var(--font-display);
+  line-height: 1.44;               /* 明朝は行間をやや広く取り"間"を出す */
+  font-weight: 700;
+  letter-spacing: 0.045em;         /* 字間を開けて凛とした佇まいに */
+  color: var(--color-cream);
+  text-wrap: balance;              /* 和文見出しの改行を均等に */
+  line-break: strict;
+}
 
 /* ============================================================ Typography */
 .font-display { font-family: var(--font-display); }
@@ -364,4 +384,177 @@ body { font-variant-numeric: tabular-nums; }
 main a[href]:not(.btn):not(.chip):not(.seal):hover { text-underline-offset: 3px; }
 
 /* 見出しの約物を詰める（明朝の"間"を整える） */
-h1, h2, h3 { font-feature-settings: "palt" 1; }
+h1, h2, h3 { font-feature-settings: "palt" 1, "pkna" 1; }
+
+/* ============================================================ 和の意匠 v2
+   書式（傍点・ルビ・縦組み）／界線・和柄／短冊・落款／筆・煙・金箔 等。
+   すべて任意適用のユーティリティ。既存の見た目は壊さない。 */
+
+/* ---------- 傍点（圏点）＝キーワードの和的強調 ---------- */
+.bouten {
+  -webkit-text-emphasis: filled dot var(--color-seal);
+  text-emphasis: filled dot var(--color-seal);
+  -webkit-text-emphasis-position: over right;
+  text-emphasis-position: over right;
+  font-style: normal;
+  font-weight: 700;
+}
+.bouten-sesame {
+  -webkit-text-emphasis: filled sesame var(--color-cream);
+  text-emphasis: filled sesame var(--color-cream);
+}
+
+/* ---------- ルビ（ふりがな） ---------- */
+ruby { ruby-align: center; }
+ruby rt {
+  font-size: 0.5em;
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  color: var(--color-ash-dim);
+  font-feature-settings: "palt" 0;
+}
+
+/* ---------- 縦組み（アクセント用の脇ラベル・帯） ---------- */
+.tategaki {
+  writing-mode: vertical-rl;
+  text-orientation: upright;
+  line-height: 1.5;
+  letter-spacing: 0.12em;
+}
+.tategaki .tcy { text-combine-upright: all; } /* 縦中横（数字を横に組む） */
+
+/* ---------- 界線（けいせん）＝中央に朱点を置く二重罫の仕切り ---------- */
+.kaisen {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  color: var(--color-ash-dim);
+}
+.kaisen::before, .kaisen::after {
+  content: "";
+  height: 1px;
+  flex: 1;
+  background: linear-gradient(90deg, transparent, var(--line-strong) 40%, var(--line-strong) 60%, transparent);
+}
+.kaisen .seal-dot {
+  width: 7px; height: 7px; border-radius: 999px;
+  background: var(--color-seal);
+  box-shadow: 0 0 0 4px rgb(178 59 46 / 0.10);
+  flex: none;
+}
+
+/* ---------- 和柄の地紋（極薄・背景専用） ---------- */
+/* 麻の葉 */
+.pattern-asanoha {
+  background-image:
+    repeating-linear-gradient(60deg,  var(--line) 0 1px, transparent 1px 34px),
+    repeating-linear-gradient(-60deg, var(--line) 0 1px, transparent 1px 34px),
+    repeating-linear-gradient(0deg,   var(--line) 0 1px, transparent 1px 34px);
+  background-blend-mode: normal;
+}
+/* 青海波（同心の弧を重ねた波） */
+.pattern-seigaiha {
+  background-image:
+    radial-gradient(circle at 50% 100%, transparent 9px, var(--line) 9px 10px, transparent 10px),
+    radial-gradient(circle at 0 100%,   transparent 9px, var(--line) 9px 10px, transparent 10px),
+    radial-gradient(circle at 100% 100%,transparent 9px, var(--line) 9px 10px, transparent 10px);
+  background-size: 28px 14px;
+  background-position: 0 0;
+}
+/* 七宝（円を四方に連ねる） */
+.pattern-shippou {
+  background-image:
+    radial-gradient(circle at 0 0,   transparent 13px, var(--line) 13px 14px, transparent 14px),
+    radial-gradient(circle at 100% 100%, transparent 13px, var(--line) 13px 14px, transparent 14px);
+  background-size: 28px 28px;
+}
+
+/* ---------- 短冊（たんざく）＝縦長の木札風タグ ---------- */
+.tanzaku {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 3px;
+  border: 1px solid var(--line-strong);
+  border-top: 2px solid var(--color-seal);
+  background: var(--color-smoke-850);
+  color: var(--color-ash);
+  font-size: 0.76rem;
+  letter-spacing: 0.04em;
+}
+
+/* ---------- 煙（けむり）＝立ち上る一筋。ブランド"煙道"の象徴 ---------- */
+.smoke-line {
+  height: 40px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='40' viewBox='0 0 24 40'%3E%3Cpath d='M12 40 C12 32 5 30 5 22 C5 15 12 14 12 7 C12 3 10 1 10 0' fill='none' stroke='%23b23b2e' stroke-width='1' stroke-linecap='round' opacity='0.5'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: center bottom;
+}
+
+/* ---------- 筆のアンダーライン（ホバーで引かれる） ---------- */
+.brush-underline {
+  background-image: linear-gradient(var(--color-seal), var(--color-seal));
+  background-position: 0 100%;
+  background-repeat: no-repeat;
+  background-size: 0 1.5px;
+  transition: background-size .28s cubic-bezier(.2,.7,.2,1);
+  padding-bottom: 2px;
+}
+.brush-underline:hover, .brush-underline:focus-visible { background-size: 100% 1.5px; }
+
+/* ---------- 金箔のヘアライン（特別バッジ／日本代表・プロ） ---------- */
+.foil-gold {
+  border: 1px solid var(--foil-gold);
+  color: var(--foil-gold);
+  background:
+    linear-gradient(180deg, rgb(180 138 63 / 0.12), rgb(180 138 63 / 0.04));
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.15);
+}
+
+/* ---------- 落款を"捺す"アニメ（いいね/作った 等） ---------- */
+@keyframes stampPress {
+  0%   { transform: scale(1.6) rotate(-14deg); opacity: 0; }
+  55%  { transform: scale(0.86) rotate(-2deg); opacity: 1; }
+  100% { transform: scale(1) rotate(-2deg); opacity: 1; }
+}
+.stamp-press { animation: stampPress .34s cubic-bezier(.2,.8,.2,1) both; }
+
+/* ---------- 序列の漢数字（番付・STEP 等） ---------- */
+.rank-kanji {
+  font-family: var(--font-display);
+  font-weight: 800;
+  color: var(--color-seal);
+  letter-spacing: 0.04em;
+  line-height: 1;
+}
+
+/* ---------- のれん見出し（中央に題字、両脇に墨引き） ---------- */
+.noren-heading {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  justify-content: center;
+  font-family: var(--font-display);
+}
+.noren-heading::before, .noren-heading::after {
+  content: "";
+  height: 1px; width: clamp(24px, 12vw, 80px);
+  background: var(--line-strong);
+}
+
+/* ---------- カード（和）＝上辺に朱の細罫 ---------- */
+.card-wa { position: relative; overflow: hidden; }
+.card-wa::before {
+  content: "";
+  position: absolute; left: 0; top: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, transparent, var(--color-seal) 20%, var(--color-seal) 80%, transparent);
+  opacity: 0.7;
+}
+
+/* 動きの配慮 */
+@media (prefers-reduced-motion: reduce) {
+  .brush-underline { transition: none; }
+  .stamp-press { animation: none; }
+}
