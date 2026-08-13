@@ -7,11 +7,11 @@ export const metadata = {
 }
 
 const features: { icon: string; preset: OrbPreset; title: string; body: string }[] = [
-  { icon: '🇯🇵', preset: 'amber', title: '日本代表シーシャ図鑑', body: '系統ごとに、みんなの👍と「作った！」で最も支持されたミックスを「日本代表」に選出。日本の"美味しい"の基準を可視化する。' },
-  { icon: '📖', preset: 'green', title: 'ミックス図鑑', body: 'フレーバーの組み合わせを検索・閲覧。気分から「吸いたいミックス」が見つかる。' },
-  { icon: '🔥', preset: 'amber', title: '作り方ノート', body: '熱管理カーブや炭のセットアップ、フレーバーの置き方まで。作り手のノウハウを共有できる。' },
-  { icon: '🛒', preset: 'violet', title: 'そのまま買える', body: '使用フレーバーに購入リンク。気になったらすぐ手に入れて、自分でも作れる。' },
-  { icon: '🏠', preset: 'blue', title: '店舗も参加', body: 'お店として登録すれば、あなたのミックスがファンに届き、来店のきっかけに。' },
+  { icon: '代', preset: 'amber', title: '日本代表シーシャ図鑑', body: '系統ごとに、みんなの「いいね」と「作った！」で最も支持されたミックスを「日本代表」に選出。日本の"美味しい"の基準を可視化する。' },
+  { icon: '図', preset: 'green', title: 'ミックス図鑑', body: 'フレーバーの組み合わせを検索・閲覧。気分から「吸いたいミックス」が見つかる。' },
+  { icon: '技', preset: 'amber', title: '作り方ノート', body: '熱管理カーブや炭のセットアップ、フレーバーの置き方まで。作り手のノウハウを共有できる。' },
+  { icon: '購', preset: 'violet', title: 'そのまま買える', body: '使用フレーバーに購入リンク。気になったらすぐ手に入れて、自分でも作れる。' },
+  { icon: '店', preset: 'blue', title: '店舗も参加', body: 'お店として登録すれば、あなたのミックスがファンに届き、来店のきっかけに。' },
 ]
 
 export default function AboutPage() {
@@ -31,7 +31,7 @@ export default function AboutPage() {
       <div className="mt-10 flex flex-col gap-4">
         {features.map((f) => (
           <div key={f.title} className="card card-wa flex items-center gap-4 p-5">
-            <IconOrb preset={f.preset} size={50}>{f.icon}</IconOrb>
+            <IconOrb preset={f.preset} size={50}><span className="font-display" style={{ fontWeight: 700 }}>{f.icon}</span></IconOrb>
             <div>
               <h2 className="text-base" style={{ fontWeight: 700 }}>{f.title}</h2>
               <p className="mt-1 text-sm" style={{ color: 'var(--color-ash)' }}>{f.body}</p>
