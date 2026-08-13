@@ -989,6 +989,60 @@ export async function getMixesUsingBrand(brand: string): Promise<MixWithRelation
   }
 }
 
+export type SmokeLogEntry = {
+  kind: 'made' | 'rated'
+  mix: MixWithRelations
+  at: string
+  score?: number
+  shopName?: string | null
+}
+export type SmokeLog = { entries: SmokeLogEntry[]; madeTotal: number; ratedTotal: number; thisYear: number }
+
+/**
+ * 煙道帳：ログイン中ユーザーの「作った！」＋「実地評価」の履歴を時系列でまとめる。
+ * 再訪動機（記録が溜まる）＋シェア（年間まとめ）の土台。データが無ければ空で返す。
+ */
+export async function getSmokeLog(limit = 40): Promise<SmokeLog> {
+  try {
+    const supabase = await createClient()
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+    if (!user) return { entries: [], madeTotal: 0, ratedTotal: 0, thisYear: 0 }
+    const [makesRes, ratesRes] = await Promise.all([
+      supabase.from('mix_makes').select('mix_id, created_at').eq('user_id', user.id).order('created_at', { ascending: false }).limit(limit),
+      supabase.from('mix_onsite_ratings').select('mix_id, score, shop_id, rated_at').eq('user_id', user.id).not('rated_at', 'is', null).order('rated_at', { ascending: false }).limit(limit),
+    ])
+    const makes = (makesRes.data ?? []) as { mix_id: string; created_at: string }[]
+    const rates = (ratesRes.data ?? []) as { mix_id: string; score: number; shop_id: string | null; rated_at: string }[]
+    const mixIds = [...new Set([...makes.map((m) => m.mix_id), ...rates.map((r) => r.mix_id)])]
+    if (mixIds.length === 0) return { entries: [], madeTotal: 0, ratedTotal: 0, thisYear: 0 }
+    const shopIds = [...new Set(rates.map((r) => r.shop_id).filter((s): s is string => !!s))]
+    const [mixRows, shopRows] = await Promise.all([
+      supabase.from('mixes').select('*').in('id', mixIds),
+      shopIds.length ? supabase.from('shops').select('id, name').in('id', shopIds) : Promise.resolve({ data: [] as { id: string; name: string }[] }),
+    ])
+    const mixesWith = await attachRelations(supabase, (mixRows.data ?? []) as Mix[])
+    const mixById = new Map(mixesWith.map((m) => [m.id, m]))
+    const shopName = new Map(((shopRows.data ?? []) as { id: string; name: string }[]).map((s) => [s.id, s.name]))
+    const entries: SmokeLogEntry[] = []
+    for (const m of makes) {
+      const mix = mixById.get(m.mix_id)
+      if (mix) entries.push({ kind: 'made', mix, at: m.created_at })
+    }
+    for (const r of rates) {
+      const mix = mixById.get(r.mix_id)
+      if (mix) entries.push({ kind: 'rated', mix, at: r.rated_at, score: r.score, shopName: r.shop_id ? shopName.get(r.shop_id) ?? null : null })
+    }
+    entries.sort((a, b) => (a.at < b.at ? 1 : -1))
+    const year = new Date().getFullYear()
+    const thisYear = entries.filter((e) => new Date(e.at).getFullYear() === year).length
+    return { entries: entries.slice(0, limit), madeTotal: makes.length, ratedTotal: rates.length, thisYear }
+  } catch {
+    return { entries: [], madeTotal: 0, ratedTotal: 0, thisYear: 0 }
+  }
+}
+
 /** 「作った！」の件数と、現在ユーザーが作ったか */
 export async function getMadeStatus(mixId: string): Promise<{ count: number; made: boolean }> {
   try {
