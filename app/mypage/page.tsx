@@ -163,8 +163,8 @@ export default async function MyPage() {
       <div className="divider my-10" />
 
       <section>
-        <h2 className="mb-4 text-lg" style={{ fontWeight: 700 }}>🔖 保存したミックス（{bookmarked.length}）</h2>
-        <MixGrid mixes={bookmarked} likedIds={likedIds} emptyText="保存したミックスはまだありません。" />
+        <h2 className="mb-4 text-lg" style={{ fontWeight: 700 }}>🔖 吸いたいリスト（{bookmarked.length}）</h2>
+        <MixGrid mixes={bookmarked} likedIds={likedIds} emptyText="「吸いたい」に追加したミックスはまだありません。" />
       </section>
 
       <div className="divider my-10" />
