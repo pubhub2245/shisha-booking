@@ -8,12 +8,15 @@ import {
   getLikedMixes,
   getFollowCounts,
   getMyShops,
+  getSmokeLog,
 } from '@/lib/queries'
 import { MixCard } from '@/components/mix-card'
 import { Avatar } from '@/components/avatar'
 import { VerifiedBadge } from '@/components/verified-badge'
 import type { MixWithRelations } from '@/lib/types/database'
 import { InviteButton } from '@/components/invite-button'
+import { flavorLine } from '@/lib/mix'
+import { formatJaDate } from '@/lib/time'
 
 export const dynamic = 'force-dynamic'
 export const metadata = { title: 'マイページ — 煙道' }
@@ -47,13 +50,14 @@ export default async function MyPage() {
   const user = await getCurrentUser()
   if (!user) redirect('/login?next=/mypage')
 
-  const [myMixes, likedIds, bookmarked, liked, counts, myShops] = await Promise.all([
+  const [myMixes, likedIds, bookmarked, liked, counts, myShops, smokeLog] = await Promise.all([
     getMixesByAuthor(user.id),
     getLikedMixIds(),
     getBookmarkedMixes(),
     getLikedMixes(),
     getFollowCounts(user.id),
     getMyShops(),
+    getSmokeLog(30),
   ])
 
   const displayName = user.profile?.display_name || (user.profile?.username ? `@${user.profile.username}` : 'あなた')
@@ -121,6 +125,45 @@ export default async function MyPage() {
         <InviteButton />
         <Link href="/mypage/edit" className="btn btn-ghost text-sm">⚙️ 設定</Link>
       </div>
+
+      {/* ---------- 煙道帳：吸った履歴（再訪動機） ---------- */}
+      {(smokeLog.entries.length > 0 || smokeLog.madeTotal > 0) && (
+        <section className="mt-8">
+          <div className="card card-wa p-5 sm:p-6">
+            <div className="flex flex-wrap items-baseline justify-between gap-2">
+              <h2 className="text-lg" style={{ fontWeight: 700 }}>
+                <span className="seal seal-stamp mr-2 text-xs">帳</span>煙道帳
+              </h2>
+              <span className="text-xs" style={{ color: 'var(--color-ash-dim)' }}>
+                今年 <b style={{ color: 'var(--color-cream)' }}>{smokeLog.thisYear}</b> 台 ・ 作った {smokeLog.madeTotal} ・ 実地評価 {smokeLog.ratedTotal}
+              </span>
+            </div>
+            <div className="kaisen mt-3" aria-hidden><span className="seal-dot" /></div>
+            <ul className="mt-3 flex flex-col divide-y" style={{ borderColor: 'var(--line)' }}>
+              {smokeLog.entries.map((e, i) => (
+                <li key={`${e.kind}-${e.mix.id}-${i}`} className="flex items-center gap-3 py-2.5">
+                  <span className="w-16 shrink-0 text-xs" style={{ color: 'var(--color-ash-dim)' }}>{formatJaDate(e.at)}</span>
+                  <Link href={`/mix/${e.mix.id}`} className="min-w-0 flex-1 truncate text-sm brush-underline" style={{ fontWeight: 600 }}>
+                    {flavorLine(e.mix.mix_flavors)}
+                  </Link>
+                  {e.kind === 'rated' ? (
+                    <span className="shrink-0 text-xs" style={{ color: 'var(--color-ember-hot)', fontWeight: 700 }}>
+                      ★{e.score}{e.shopName ? ` ・ ${e.shopName}` : ''}
+                    </span>
+                  ) : (
+                    <span className="shrink-0 text-xs" style={{ color: 'var(--color-ash-dim)' }}>作った</span>
+                  )}
+                </li>
+              ))}
+            </ul>
+            {smokeLog.entries.length === 0 && (
+              <p className="mt-3 text-sm" style={{ color: 'var(--color-ash)' }}>
+                「作った！」や📍実地評価をすると、ここに記録が残ります。
+              </p>
+            )}
+          </div>
+        </section>
+      )}
 
       <section className="mt-8">
         <div className="mb-3 flex items-center justify-between">
