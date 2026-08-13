@@ -4,6 +4,7 @@ import { getCurrentUser } from '@/lib/auth'
 import { ComboCard } from '@/components/combo-card'
 import { MixCard } from '@/components/mix-card'
 import { IconOrb } from '@/components/icon-orb'
+import { Kamon } from '@/components/kamon'
 import { OnboardingCard } from '@/components/onboarding-card'
 import { ModeChooser } from '@/components/mode-chooser'
 import { needsModeChoice, resolveMode } from '@/lib/mode'
@@ -73,11 +74,11 @@ export default async function Home({
       {/* ---------- HERO（コンパクト） ---------- */}
       <section className="glow-bg fade-up mx-auto max-w-2xl text-center">
         <div className="mb-3 flex flex-wrap justify-center gap-2">
-          <span className="float d1"><IconOrb preset="green" size={30}>🍏</IconOrb></span>
-          <span className="float d2"><IconOrb preset="amber" size={30}>🍊</IconOrb></span>
-          <span className="float d3"><IconOrb preset="blue" size={30}>🫐</IconOrb></span>
-          <span className="float d4"><IconOrb preset="violet" size={30}>🍇</IconOrb></span>
-          <span className="float d5"><IconOrb preset="green" size={30}>🍃</IconOrb></span>
+          <span className="float d1"><IconOrb preset="green" size={30}><Kamon name="hanabishi" size={17} /></IconOrb></span>
+          <span className="float d2"><IconOrb preset="amber" size={30}><Kamon name="sakura" size={17} /></IconOrb></span>
+          <span className="float d3"><IconOrb preset="blue" size={30}><Kamon name="seigaiha" size={17} /></IconOrb></span>
+          <span className="float d4"><IconOrb preset="violet" size={30}><Kamon name="shippou" size={17} /></IconOrb></span>
+          <span className="float d5"><IconOrb preset="green" size={30}><Kamon name="igeta" size={17} /></IconOrb></span>
         </div>
         <h1 className="text-3xl leading-tight sm:text-4xl" style={{ fontWeight: 800, letterSpacing: '-0.01em' }}>
           今日のミックス、<span className="text-grad-anim">もう迷わない。</span>
@@ -333,12 +334,12 @@ export default async function Home({
         </div>
         <div className="grid gap-4 sm:grid-cols-3">
           {[
-            { preset: 'green' as const, icon: '🔍', n: 1, kanji: '序', t: '気分で探す', d: '甘い・スッキリ・系統から、いま吸いたい組み合わせを見つける。' },
-            { preset: 'amber' as const, icon: '🔥', n: 2, kanji: '破', t: '作り方を極める', d: '熱管理カーブや炭のセットアップまで、詳しい作り方が見られる。' },
-            { preset: 'violet' as const, icon: '🛒', n: 3, kanji: '急', t: '買って・投稿する', d: '材料をそのまま購入。自分の一台も図鑑に投稿しよう。' },
+            { preset: 'green' as const, icon: '探', n: 1, kanji: '序', t: '気分で探す', d: '甘い・スッキリ・系統から、いま吸いたい組み合わせを見つける。' },
+            { preset: 'amber' as const, icon: '熱', n: 2, kanji: '破', t: '作り方を極める', d: '熱管理カーブや炭のセットアップまで、詳しい作り方が見られる。' },
+            { preset: 'violet' as const, icon: '購', n: 3, kanji: '急', t: '買って・投稿する', d: '材料をそのまま購入。自分の一台も図鑑に投稿しよう。' },
           ].map((s) => (
             <div key={s.n} className="card card-wa flex flex-col items-center gap-3 p-6 text-center">
-              <span className={`float d${s.n}`}><IconOrb preset={s.preset} size={60}>{s.icon}</IconOrb></span>
+              <span className={`float d${s.n}`}><IconOrb preset={s.preset} size={60}><span className="font-display" style={{ fontWeight: 700 }}>{s.icon}</span></IconOrb></span>
               <div className="flex items-center gap-1.5">
                 <span className="rank-kanji text-lg">{s.kanji}</span>
                 <span className="text-xs" style={{ color: 'var(--color-ash-dim)', fontWeight: 700, letterSpacing: '0.16em' }}>其ノ{['一', '二', '三'][s.n - 1]}</span>
@@ -355,7 +356,7 @@ export default async function Home({
       {!user && (
       <section className="mt-14 grid gap-4 sm:grid-cols-2">
         <Link href="/for-shops" className="card card-hover flex items-center gap-4 p-6">
-          <IconOrb preset="amber" size={52}>🏠</IconOrb>
+          <IconOrb preset="amber" size={52}><span className="font-display" style={{ fontWeight: 700 }}>店</span></IconOrb>
           <div>
             <h3 className="text-base" style={{ fontWeight: 700 }}>店舗の方へ</h3>
             <p className="mt-1 text-sm" style={{ color: 'var(--color-ash)' }}>
@@ -365,7 +366,7 @@ export default async function Home({
           </div>
         </Link>
         <Link href="/about" className="card card-hover flex items-center gap-4 p-6">
-          <IconOrb preset="green" size={52}>📖</IconOrb>
+          <IconOrb preset="green" size={52}><span className="font-display" style={{ fontWeight: 700 }}>図</span></IconOrb>
           <div>
             <h3 className="text-base" style={{ fontWeight: 700 }}>煙道とは</h3>
             <p className="mt-1 text-sm" style={{ color: 'var(--color-ash)' }}>
