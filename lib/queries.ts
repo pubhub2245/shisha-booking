@@ -1,4 +1,6 @@
+import { unstable_cache } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
+import { createPublicClient } from '@/lib/supabase/public'
 import { comboKey, comboSlug, comboKeyFromSlug, flavorKey } from '@/lib/combo'
 import { mixQuality, mixCompleteness } from '@/lib/quality'
 import { searchVariants } from '@/lib/kana'
@@ -547,6 +549,7 @@ export async function getMixesByAuthor(authorId: string): Promise<MixWithRelatio
       .select('*')
       .eq('author_id', authorId)
       .order('created_at', { ascending: false })
+      .limit(100)
     if (error) return []
     return attachRelations(supabase, (data ?? []) as Mix[])
   } catch {
@@ -1082,9 +1085,12 @@ export async function getRankedMixes(period: 'week' | 'month' | 'all'): Promise<
  * （実際に作られた＝より強い支持、と重み付け）。
  * 初期はデータが少ないため、AI生成サンプルも候補に含める（バッジで区別済み）。
  */
-export async function getNationalTeam(): Promise<NationalRep[]> {
-  try {
-    const supabase = await createClient()
+// 公開データの重い集計（最大 1000 mix + 10000 makes + 10000 onsite を JS 集計）。
+// /national・/mix/[id]（王道バッジ）・/u/[username]（実績）から毎回呼ばれるため、
+// クッキー非依存の公開クライアントで計算し 5 分キャッシュする（王道は最短でも5分間隔で更新）。
+const _getNationalTeamCached = unstable_cache(
+  async (): Promise<NationalRep[]> => {
+    const supabase = createPublicClient()
     const { data } = await supabase.from('mixes').select('*').eq('hidden', false).limit(1000)
     const mixes = (data ?? []) as Mix[]
     if (mixes.length === 0) return []
@@ -1141,6 +1147,15 @@ export async function getNationalTeam(): Promise<NationalRep[]> {
       }))
       .filter((r) => r.mix)
       .sort((a, b) => b.score - a.score)
+  },
+  ['national-team-v1'],
+  { revalidate: 300, tags: ['national'] }
+)
+
+/** 系統ごとの王道（公開データの集計・5分キャッシュ）。 */
+export async function getNationalTeam(): Promise<NationalRep[]> {
+  try {
+    return await _getNationalTeamCached()
   } catch {
     return []
   }
@@ -1241,13 +1256,9 @@ export async function getNationalRepCategories(mixId: string): Promise<string[]>
  * を出す。お店スコアは実地評価を最重視（onsite×5＋いいね＋作った×2）。
  * ミックスの地域は「投稿者が承認所属し、都道府県を登録している店」で決まる。
  */
-export async function getAreaRankings(opts: { shopsPerRegion?: number; mixesPerRegion?: number } = {}): Promise<
-  RegionRanking[]
-> {
-  const shopsPerRegion = opts.shopsPerRegion ?? 5
-  const mixesPerRegion = opts.mixesPerRegion ?? 4
-  try {
-    const supabase = await createClient()
+const _getAreaRankingsCached = unstable_cache(
+  async (shopsPerRegion: number, mixesPerRegion: number): Promise<RegionRanking[]> => {
+    const supabase = createPublicClient()
 
     // 1) 都道府県を登録済みのお店
     const { data: shopRows } = await supabase.from('shops').select('*').not('prefecture', 'is', null)
@@ -1403,6 +1414,15 @@ export async function getAreaRankings(opts: { shopsPerRegion?: number; mixesPerR
       result.push({ region: r.key, emoji: REGION_EMOJI.get(r.key) ?? '📍', shops: shopList, mixes: mixList })
     }
     return result
+  },
+  ['area-rankings-v1'],
+  { revalidate: 300, tags: ['areas'] }
+)
+
+/** 地域別ランキング（公開データ集計・5分キャッシュ）。 */
+export async function getAreaRankings(opts: { shopsPerRegion?: number; mixesPerRegion?: number } = {}): Promise<RegionRanking[]> {
+  try {
+    return await _getAreaRankingsCached(opts.shopsPerRegion ?? 5, opts.mixesPerRegion ?? 4)
   } catch {
     return []
   }
@@ -1948,6 +1968,7 @@ export async function getMixesUsingFlavor(flavor: Flavor): Promise<MixWithRelati
       .select('*')
       .in('id', ids)
       .order('like_count', { ascending: false })
+      .limit(50)
     return attachRelations(supabase, (data ?? []) as Mix[])
   } catch {
     return []
