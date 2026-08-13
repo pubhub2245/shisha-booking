@@ -37,7 +37,7 @@ const ICON: Record<string, string> = {
   idea_considering: '🔎',
   idea_done: '✅',
   idea_declined: '📮',
-  national_selected: '🇯🇵',
+  national_selected: '王',
 }
 
 export default async function NotificationsPage() {
@@ -85,7 +85,7 @@ export default async function NotificationsPage() {
                       style={{ background: 'linear-gradient(135deg, #9a3226, #b23b2e)' }}
                       aria-hidden
                     >
-                      🇯🇵
+                      王
                     </div>
                   ) : (
                     <div className="relative shrink-0">
@@ -96,7 +96,7 @@ export default async function NotificationsPage() {
                   <div className="min-w-0 flex-1">
                     {isSystem ? (
                       <p className="text-sm leading-snug" style={{ fontWeight: 700, color: 'var(--color-cream)' }}>
-                        🎉 あなたのミックスが日本代表に選ばれました！
+                        🎉 あなたのミックスが王道に選ばれました！
                       </p>
                     ) : (
                       <p className="text-sm leading-snug" style={{ color: 'var(--color-cream)' }}>

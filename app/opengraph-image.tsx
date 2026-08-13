@@ -7,7 +7,7 @@ export const size = { width: 1200, height: 630 }
 export const contentType = 'image/png'
 
 // 煙道 = 「煙の通り道」。和（washi × 墨 × 苔緑 × 朱の落款）の意匠で、
-// 日本代表シーシャ図鑑を表現する既定OG画像。
+// 王道シーシャ図鑑を表現する既定OG画像。
 export default async function OpengraphImage() {
   const jp = await readFile(new URL('./brand-jp.ttf', import.meta.url))
 

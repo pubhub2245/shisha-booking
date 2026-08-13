@@ -125,7 +125,7 @@ export default async function ShopPage({ params }: { params: Promise<{ id: strin
           <div className="flex items-center gap-2" style={{ fontWeight: 800 }}>📍 ご来店ありがとうございます</div>
           <p className="mt-1 text-xs leading-relaxed" style={{ color: 'var(--color-ash)' }}>
             スタッフのミックスを実際に吸ったら、そのミックスのページで <b>「実地評価」</b> を押してください。
-            現地のGPSで確認された一票は、いいねより重く<b>日本代表の選出</b>に効きます。
+            現地のGPSで確認された一票は、いいねより重く<b>王道の選出</b>に効きます。
           </p>
         </div>
       )}

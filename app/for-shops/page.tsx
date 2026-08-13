@@ -44,8 +44,8 @@ export default function ForShops() {
         あなたのお店の一台を、<span className="ember-text">指名される味に。</span>
       </h1>
       <p className="mt-4 text-base" style={{ color: 'var(--color-ash)' }}>
-        煙道 は「日本代表シーシャ図鑑」。店舗として登録すると、あなたのお店のミックスがファンに届き、
-        来店のきっかけになります。人気ミックスは系統ごとの「日本代表」に選ばれ、指名需要につながります。
+        煙道 は「王道シーシャ図鑑」。店舗として登録すると、あなたのお店のミックスがファンに届き、
+        来店のきっかけになります。人気ミックスは系統ごとの「王道」に選ばれ、指名需要につながります。
       </p>
       <p className="mt-2 text-sm" style={{ color: 'var(--color-ash-dim)' }}>
         個人の作り手（スタッフ）としての参加は{' '}

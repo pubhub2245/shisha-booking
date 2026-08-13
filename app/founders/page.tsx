@@ -10,10 +10,10 @@ export const metadata: Metadata = {
 
 const perks: { icon: string; preset: OrbPreset; title: string; body: string }[] = [
   {
-    icon: '🇯🇵',
+    icon: '王',
     preset: 'amber',
-    title: '「日本代表」の冠を最初に獲れる',
-    body: '系統ごとに、みんなの👍と「作った！」で最も支持されたミックスが日本代表に選ばれます。人が少ない今こそ、あなたのレシピが代表になる最短のタイミングです。',
+    title: '「王道」の冠を最初に獲れる',
+    body: '系統ごとに、みんなの👍と「作った！」で最も支持されたミックスが王道に選ばれます。人が少ない今こそ、あなたのレシピが王道になる最短のタイミングです。',
   },
   {
     icon: '🎖️',
@@ -25,7 +25,7 @@ const perks: { icon: string; preset: OrbPreset; title: string; body: string }[] 
     icon: '📖',
     preset: 'green',
     title: 'あなたの作品集になる',
-    body: 'プロフィールが実績付きの作品集に。累計いいね・作られた回数・日本代表の冠が数字で残り、あなたの腕の証明になります。',
+    body: 'プロフィールが実績付きの作品集に。累計いいね・作られた回数・王道の冠が数字で残り、あなたの腕の証明になります。',
   },
   {
     icon: '🏠',
@@ -50,7 +50,7 @@ export default function FoundersPage() {
       </h1>
       <p className="mt-4 text-base leading-relaxed" style={{ color: 'var(--color-ash)' }}>
         本場（中東・欧米）の作り方はあっても、<b>「日本人の舌に美味しいシーシャの標準」は世界のどこにもありません</b>。
-        煙道 は、その基準を作り手みんなで選び・磨いていく「日本代表シーシャ図鑑」です。
+        煙道 は、その基準を作り手みんなで選び・磨いていく「王道シーシャ図鑑」です。
         いまはまだ立ち上げ期。だからこそ、<b>最初の作り手＝創設メンバー</b>には、後から入る人には得られない場所があります。
       </p>
 
@@ -85,13 +85,13 @@ export default function FoundersPage() {
 
       {/* CTA */}
       <div className="card mt-12 flex flex-col items-center gap-4 p-8 text-center">
-        <h2 className="text-xl" style={{ fontWeight: 800 }}>登録は無料。今なら、代表の座は空いています。</h2>
+        <h2 className="text-xl" style={{ fontWeight: 800 }}>登録は無料。今なら、王道の座は空いています。</h2>
         <p className="text-sm leading-relaxed" style={{ color: 'var(--color-ash)' }}>
           あなたの一台が、日本の「美味しい」の基準になる。まずはアカウントを作って、自慢のミックスを1つ投稿してみてください。
         </p>
         <div className="flex flex-wrap justify-center gap-3">
           <Link href="/signup" className="btn btn-ember">無料で創設メンバーになる</Link>
-          <Link href="/national" className="btn btn-ghost">🇯🇵 日本代表を見る</Link>
+          <Link href="/national" className="btn btn-ghost">王道を見る</Link>
         </div>
       </div>
 

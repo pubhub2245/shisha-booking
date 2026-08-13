@@ -92,7 +92,7 @@ export function MixNaming({
     <section className="mt-8">
       <h2 className="mb-1 flex items-center gap-2 text-sm eyebrow">📛 公募ネーミング</h2>
       <p className="mb-3 text-xs leading-relaxed" style={{ color: 'var(--color-ash)' }}>
-        日本代表に選ばれた一台の<b>愛称</b>を、みんなで決めましょう。案を出して👍が一番集まった名前が愛称になります。
+        王道に選ばれた一台の<b>愛称</b>を、みんなで決めましょう。案を出して👍が一番集まった名前が愛称になります。
       </p>
 
       {winner && (

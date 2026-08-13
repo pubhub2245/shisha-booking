@@ -3,11 +3,11 @@ import { IconOrb, type OrbPreset } from '@/components/icon-orb'
 
 export const metadata = {
   title: '煙道 ENDOH について',
-  description: '煙道（ENDOH）は「日本人に美味しい」シーシャをみんなで選び育てる、日本代表シーシャ図鑑です。',
+  description: '煙道（ENDOH）は「日本人に美味しい」シーシャをみんなで選び育てる、王道シーシャ図鑑です。',
 }
 
 const features: { icon: string; preset: OrbPreset; title: string; body: string }[] = [
-  { icon: '代', preset: 'amber', title: '日本代表シーシャ図鑑', body: '系統ごとに、みんなの「いいね」と「作った！」で最も支持されたミックスを「日本代表」に選出。日本の"美味しい"の基準を可視化する。' },
+  { icon: '代', preset: 'amber', title: '王道シーシャ図鑑', body: '系統ごとに、みんなの「いいね」と「作った！」で最も支持されたミックスを「王道」に選出。日本の"美味しい"の基準を可視化する。' },
   { icon: '図', preset: 'green', title: 'ミックス図鑑', body: 'フレーバーの組み合わせを検索・閲覧。気分から「吸いたいミックス」が見つかる。' },
   { icon: '技', preset: 'amber', title: '作り方ノート', body: '熱管理カーブや炭のセットアップ、フレーバーの置き方まで。作り手のノウハウを共有できる。' },
   { icon: '購', preset: 'violet', title: 'そのまま買える', body: '使用フレーバーに購入リンク。気になったらすぐ手に入れて、自分でも作れる。' },
@@ -19,12 +19,12 @@ export default function AboutPage() {
     <div className="wrap max-w-2xl py-14">
       <p className="eyebrow">About 煙道 ENDOH</p>
       <h1 className="mt-3 text-3xl leading-tight sm:text-4xl" style={{ fontWeight: 800 }}>
-        「日本人に美味しい」を、<br />みんなで作る。<span className="ember-text">日本代表シーシャ図鑑。</span>
+        「日本人に美味しい」を、<br />みんなで作る。<span className="ember-text">王道シーシャ図鑑。</span>
       </h1>
       <p className="mt-4 text-base leading-relaxed" style={{ color: 'var(--color-ash)' }}>
         <b><ruby>煙道<rt>えんどう</rt></ruby>（ENDOH）</b>とは、煙の通り道のこと。茶道・華道・香道に連なる“道”として、
         日本流に洗練されたシーシャの作法を集めます。本場の作り方はあっても、「日本人の舌に美味しいシーシャの標準」は世界のどこにもありません。
-        煙道は、その基準を作り手みんなで選び・磨いていく図鑑です。系統ごとに最も支持されたミックスが<span className="bouten">日本代表</span>に選ばれ、
+        煙道は、その基準を作り手みんなで選び・磨いていく図鑑です。系統ごとに最も支持されたミックスが<span className="bouten">王道</span>に選ばれ、
         シーシャ屋で迷ったとき「まずこれ」と言える鉄板が見つかる場所を目指します。
       </p>
 
@@ -41,7 +41,7 @@ export default function AboutPage() {
       </div>
 
       <div className="card mt-10 flex flex-col items-center gap-4 p-8 text-center">
-        <h2 className="text-xl" style={{ fontWeight: 700 }}>あなたのミックスも、日本代表に。</h2>
+        <h2 className="text-xl" style={{ fontWeight: 700 }}>あなたのミックスも、王道に。</h2>
         <p className="text-sm" style={{ color: 'var(--color-ash)' }}>
           いまは立ち上げ期。最初の作り手＝<b>創設メンバー</b>を募集しています。
         </p>

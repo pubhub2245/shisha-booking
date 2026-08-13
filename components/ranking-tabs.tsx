@@ -1,11 +1,11 @@
 import Link from 'next/link'
 
 /**
- * ランキング系ページ（日本代表／地域別／人気）を1つの家族として束ねるタブ。
+ * ランキング系ページ（王道／地域別／人気）を1つの家族として束ねるタブ。
  * 「良い順に並べる場所」が複数あって迷う問題への対策：各ページ上部に共通表示する。
  */
 const TABS = [
-  { key: 'national', href: '/national', label: '🇯🇵 日本代表', hint: '組み合わせごとの日本一' },
+  { key: 'national', href: '/national', label: '王道', hint: '組み合わせごとの王道' },
   { key: 'areas', href: '/areas', label: '📍 地域別', hint: '地方ごと・旅行先の名店' },
   { key: 'ranking', href: '/ranking', label: '🔥 人気', hint: 'いいねが多い順' },
 ] as const
