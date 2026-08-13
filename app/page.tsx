@@ -119,6 +119,36 @@ export default async function Home({
         )}
       </section>
 
+      {/* ---------- 王道とは（3秒で伝わる"仕組み"）───ただの検索でなく"決める場所"だと示す ---------- */}
+      <section className="mx-auto mt-8 max-w-2xl">
+        <div className="card card-wa p-5 sm:p-6">
+          <div className="flex items-center justify-center gap-2.5">
+            <span className="seal seal-stamp text-xs">王道</span>
+            <p className="text-sm sm:text-base" style={{ fontWeight: 700 }}>
+              その組み合わせで<span className="bouten">最も支持された作り方</span>が「王道」。
+            </p>
+          </div>
+          <div className="kaisen mt-4" aria-hidden><span className="seal-dot" /></div>
+          <div className="mt-4 grid grid-cols-3 gap-2 text-center">
+            {[
+              { n: '壱', t: '作り方を持ち寄る', d: '配分・熱管理・盛り方' },
+              { n: '弐', t: '実際に吸って評価', d: 'いいね・作った・実地評価' },
+              { n: '参', t: '王道が決まる', d: '日本の"美味しい"の基準' },
+            ].map((s) => (
+              <div key={s.n}>
+                <div className="rank-kanji text-lg">{s.n}</div>
+                <div className="mt-1 text-xs sm:text-sm" style={{ fontWeight: 700 }}>{s.t}</div>
+                <div className="mt-0.5 text-[0.68rem] leading-snug" style={{ color: 'var(--color-ash-dim)' }}>{s.d}</div>
+              </div>
+            ))}
+          </div>
+          <div className="mt-5 flex items-center justify-center gap-4">
+            <Link href="/national" className="btn btn-ember text-sm" style={{ padding: '9px 18px' }}>王道を見る</Link>
+            <Link href="/about" className="brush-underline text-sm" style={{ color: 'var(--color-ember-hot)', fontWeight: 600 }}>煙道とは →</Link>
+          </div>
+        </div>
+      </section>
+
       {/* ---------- モード選択（初回・未設定ユーザー向け） ---------- */}
       {user && needsModeChoice(user.profile) && <ModeChooser />}
 
