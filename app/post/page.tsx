@@ -5,7 +5,6 @@ import { getComboBySlug, getFlavors, getMixById, getCombos } from '@/lib/queries
 import { MixForm, type MixFormInitial } from '@/components/mix-form'
 import { mixHeading } from '@/lib/mix'
 import { SimpleMixForm } from '@/components/simple-mix-form'
-import { resolveMode } from '@/lib/mode'
 import type { MixWithRelations } from '@/lib/types/database'
 
 export const dynamic = 'force-dynamic'
@@ -130,10 +129,7 @@ export default async function PostPage({
     }
   }
 
-  // 投稿の深さは「表示モード（シンプル/詳細）」ではなく、その都度ユーザーが選ぶ。
-  // 既定の初期選択だけ表示モードから推測する（初心者/プロでサイトを分断しない）。
-  const mode = resolveMode(user.profile)
-  const suggested = mode === 'pro' ? 'detail' : 'simple'
+  // 投稿の深さは、その都度ユーザーが選ぶ（属性や設定で決めない）。
   const chosen = form === 'simple' || form === 'detail' ? form : null
   const keep = (extra: string) => {
     const p = new URLSearchParams()
@@ -161,9 +157,6 @@ export default async function PostPage({
             <span className="mt-1 text-sm" style={{ color: 'var(--color-ember-hot)', fontWeight: 600 }}>
               この方法で投稿する →
             </span>
-            {suggested === 'simple' && (
-              <span className="text-xs" style={{ color: 'var(--color-ash-dim)' }}>おすすめ</span>
-            )}
           </Link>
           <Link href={keep('detail')} className="card card-hover flex flex-col gap-2 p-6">
             <h2 className="text-lg" style={{ fontWeight: 800 }}>詳しく投稿</h2>
@@ -173,9 +166,6 @@ export default async function PostPage({
             <span className="mt-1 text-sm" style={{ color: 'var(--color-ember-hot)', fontWeight: 600 }}>
               この方法で投稿する →
             </span>
-            {suggested === 'detail' && (
-              <span className="text-xs" style={{ color: 'var(--color-ash-dim)' }}>おすすめ</span>
-            )}
           </Link>
         </div>
         <p className="mt-6 text-xs leading-relaxed" style={{ color: 'var(--color-ash-dim)' }}>

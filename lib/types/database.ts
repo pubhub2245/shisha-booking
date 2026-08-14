@@ -20,6 +20,8 @@ export type Profile = {
   is_pro: boolean
   is_admin: boolean
   is_founder: boolean
+  /** @deprecated 表示モード（シンプル/詳細）は廃止。属性でユーザーを分けず全員同じ段階開示にした。
+   *  列は復旧可能性のため残しているが、読み書きしていない。 */
   ui_mode: 'simple' | 'pro' | null
   shop_name: string | null
   shop_area: string | null

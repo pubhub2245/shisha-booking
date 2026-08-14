@@ -6,8 +6,6 @@ import { MixCard } from '@/components/mix-card'
 import { IconOrb } from '@/components/icon-orb'
 import { Kamon } from '@/components/kamon'
 import { OnboardingCard } from '@/components/onboarding-card'
-import { ModeChooser } from '@/components/mode-chooser'
-import { needsModeChoice, resolveMode } from '@/lib/mode'
 import { flavorLine } from '@/lib/mix'
 
 export const dynamic = 'force-dynamic'
@@ -75,7 +73,6 @@ export default async function Home({
   const otherTags = allTags.filter((t) => !MOOD_TASTE.includes(t) && !MOOD_TYPE.includes(t))
   // 系統・タグのいずれかが選択中なら「もっと絞り込む」を開いた状態にする
   const advancedActive = activeTags.some((t) => !MOOD_TASTE.includes(t))
-  const mode = resolveMode(user?.profile)
 
   return (
     <div className="wrap py-8 sm:py-12">
@@ -105,33 +102,15 @@ export default async function Home({
         </p>
         {/* 煙（けむり）＝ブランド"煙道"の象徴を一筋 */}
         <div className="smoke-line mx-auto mt-3 w-6" aria-hidden />
-        {/* モード連動のショートカット */}
+        {/* 全員に同じ入口。属性で出し分けない */}
         <div className="mt-4 flex flex-wrap justify-center gap-2">
-          {mode === 'pro' ? (
-            <>
-              <Link href="/post" className="chip chip-active">🛠 フル投稿</Link>
-              <Link href="/national" className="chip">王道</Link>
-              <Link href="/areas" className="chip">📍 地域別・近くの名店</Link>
-              <Link href="/timeline" className="chip">🕒 タイムライン</Link>
-              <Link href="/shop/new" className="chip">🏠 店舗を登録</Link>
-              {user && <Link href="/mypage" className="chip">帳 煙道帳</Link>}
-            </>
-          ) : (
-            <>
-              <Link href="/national" className="chip chip-active">王道</Link>
-              <Link href="/areas" className="chip">📍 近くの名店</Link>
-              <Link href="/shelf" className="chip">🫙 あと1つで作れる</Link>
-              <Link href="/guide" className="chip">📖 作り方ガイド</Link>
-              {/* 再訪導線：ログイン中だけ、主目的（今日の一台を探す）を邪魔しない大きさで */}
-              {user && <Link href="/mypage" className="chip">帳 煙道帳</Link>}
-            </>
-          )}
+          <Link href="/national" className="chip chip-active">王道</Link>
+          <Link href="/areas" className="chip">📍 近くの名店</Link>
+          <Link href="/shelf" className="chip">🫙 あと1つで作れる</Link>
+          <Link href="/guide" className="chip">📖 作り方ガイド</Link>
+          {/* 再訪導線：ログイン中だけ、主目的（今日の一台を探す）を邪魔しない大きさで */}
+          {user && <Link href="/mypage" className="chip">帳 煙道帳</Link>}
         </div>
-        {user && mode === 'simple' && (
-          <p className="mt-3 text-center text-xs" style={{ color: 'var(--color-ash-dim)' }}>
-            シンプル表示中。上部の <b style={{ color: 'var(--color-ash)' }}>詳細</b> で、熱管理・ランキング・タイムラインなどが最初から見られます。
-          </p>
-        )}
       </section>
 
       {/* ---------- 王道とは（3秒で伝わる"仕組み"）───ただの検索でなく"決める場所"だと示す ---------- */}
@@ -165,11 +144,10 @@ export default async function Home({
       </section>
 
       {/* ---------- モード選択（初回・未設定ユーザー向け） ---------- */}
-      {user && needsModeChoice(user.profile) && <ModeChooser />}
 
       {/* ---------- オンボーディング（初回ユーザー向け） ---------- */}
       {user && (
-        <OnboardingCard hasProfile={hasProfile} hasShelf={onboarding.hasShelf} hasPosted={onboarding.hasPosted} mode={mode} />
+        <OnboardingCard hasProfile={hasProfile} hasShelf={onboarding.hasShelf} hasPosted={onboarding.hasPosted} />
       )}
 
       {/* ---------- 棚×王道：あなたが今作れる王道（再訪動機＋購入導線） ---------- */}
@@ -234,8 +212,7 @@ export default async function Home({
           ))}
         </div>
 
-        {/* もっと絞り込む（系統・タグ）＝プロモードのみ。かんたんモードは味わいだけでシンプルに */}
-        {mode === 'pro' && (
+        {/* もっと絞り込む（系統・タグ）。既定は閉じた状態で、必要な人だけが開く */}
         <details className="mt-3" open={advancedActive}>
           <summary
             className="cursor-pointer list-none text-xs [&::-webkit-details-marker]:hidden"
@@ -260,7 +237,6 @@ export default async function Home({
             )}
           </div>
         </details>
-        )}
 
         {/* キーワード検索 */}
         <form action="/" method="get" className="mt-4 flex gap-2">
@@ -282,9 +258,7 @@ export default async function Home({
         <div className="flex flex-wrap gap-2">
           <Link href={href({ sort: 'new' })} className={`chip ${sort === 'new' ? 'chip-active' : ''}`}>新着</Link>
           <Link href={href({ sort: 'popular' })} className={`chip ${sort === 'popular' ? 'chip-active' : ''}`}>人気順</Link>
-          {mode === 'pro' && (
-            <Link href={href({ sort: 'detailed' })} className={`chip ${sort === 'detailed' ? 'chip-active' : ''}`}>詳しい順</Link>
-          )}
+          <Link href={href({ sort: 'detailed' })} className={`chip ${sort === 'detailed' ? 'chip-active' : ''}`}>詳しい順</Link>
           {user && (
             <Link href={href({ makeable: !makeableOnly })} className={`chip ${makeableOnly ? 'chip-active' : ''}`}>
               🫙 棚で作れる
