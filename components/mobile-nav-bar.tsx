@@ -13,7 +13,7 @@ export function MobileNavBar({ isAuthed }: { isAuthed: boolean }) {
     { href: '/national', icon: '王', label: '王道' },
     { href: '/post', icon: '➕', label: '投稿' },
     { href: '/search', icon: '🔍', label: '検索' },
-    isAuthed ? { href: '/mypage', icon: '👤', label: 'マイ' } : { href: '/login', icon: '👤', label: 'ログイン' },
+    isAuthed ? { href: '/mypage', icon: '👤', label: 'マイ煙道' } : { href: '/login', icon: '👤', label: 'ログイン' },
   ]
 
   const isActive = (href: string) => (href === '/' ? pathname === '/' : pathname.startsWith(href))

@@ -5,10 +5,28 @@ import { TASTE_AXES, tasteWords, tasteStage, MIN_RATERS_FOR_AVERAGE, type TasteS
  *   まず言葉（甘め・爽快・軽め）→「詳しい味覚を見る」で軸ごとの数値。
  * 母数が少ないうちは平均値を断定表示しない。レーダーチャートは使わない。
  */
-export function TasteSummaryView({ summary }: { summary: TasteSummary }) {
+export function TasteSummaryView({ summary, canRecord = false }: { summary: TasteSummary; canRecord?: boolean }) {
   const stage = tasteStage(summary)
-  // データが無いときはセクションごと出さない（無理に枠を作らない）
-  if (stage === 'none') return null
+
+  // 0件でも「味を記録できる機能がある」ことは伝える。ただし大きな空カードは作らない。
+  // 未ログインの人に登録CTAは押し付けない（canRecord のときだけ導線を出す）。
+  if (stage === 'none') {
+    return (
+      <section className="mt-6">
+        <h2 className="text-sm eyebrow">味の印象</h2>
+        <p className="mt-2 text-sm leading-relaxed" style={{ color: 'var(--color-ash)' }}>
+          味の印象は、まだ集まっていません。
+          <br />
+          この一台を吸ったら、感じた味を残せます。
+        </p>
+        {canRecord && (
+          <p className="mt-1.5 text-xs" style={{ color: 'var(--color-ash-dim)' }}>
+            上の「吸った」から、味の印象を残せます。
+          </p>
+        )}
+      </section>
+    )
+  }
 
   if (stage === 'collecting') {
     return (

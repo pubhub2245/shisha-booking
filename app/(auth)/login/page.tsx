@@ -22,7 +22,7 @@ export default async function LoginPage({
         おかえりなさい
       </h1>
       <p className="mt-2 text-sm" style={{ color: 'var(--color-ash)' }}>
-        ログインして、いいね・投稿を始めましょう。
+        吸った記録や保存を、マイ煙道に残せます。
       </p>
       {error === 'link' && (
         <div className="mt-6 rounded-xl border px-4 py-3 text-sm" style={{ borderColor: 'var(--color-ember-deep)', background: 'rgb(224 85 42 / 0.10)', color: 'var(--color-ember-hot)' }}>

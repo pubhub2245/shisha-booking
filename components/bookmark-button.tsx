@@ -37,7 +37,7 @@ export function BookmarkButton({
       onClick={onClick}
       disabled={pending}
       aria-pressed={saved}
-      aria-label={saved ? '吸いたいリストに登録済み' : '吸いたいリストに追加'}
+      aria-label={saved ? '保存済み' : '保存する'}
       className="inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm transition-colors"
       style={{
         borderColor: saved ? 'var(--color-ember)' : 'var(--line-strong)',
@@ -47,7 +47,7 @@ export function BookmarkButton({
       }}
     >
       <span aria-hidden>{saved ? '🔖' : '＋'}</span>
-      {saved ? '吸いたい ✓' : '吸いたい'}
+      {saved ? '保存済み' : '保存'}
     </button>
   )
 }

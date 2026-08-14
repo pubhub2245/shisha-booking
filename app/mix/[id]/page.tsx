@@ -131,9 +131,10 @@ export default async function MixDetail({
     getOnsiteContext(mix),
     getRegionRepLabel(id),
   ])
-  // 投稿直後の確認表示用：同じ組み合わせの作り方の件数（通常表示では取得しない）
+  // 同じ組み合わせに何通りの作り方があるか。1件しかないのに combo へ送ると
+  // combo 側が mix へ redirect して同じページに戻る（自己ループ）ため、件数で出し分ける。
   const siblingCount =
-    posted === '1' ? (await getComboBySlug(comboSlug(mix.combo_key || comboKey(mix.mix_flavors ?? []))))?.methods.length ?? 1 : 1
+    (await getComboBySlug(comboSlug(mix.combo_key || comboKey(mix.mix_flavors ?? []))))?.methods.length ?? 1
 
   const commentTotal = comments.reduce((n, c) => n + 1 + c.replies.length, 0)
   const isRep = repCats.length > 0
@@ -346,13 +347,16 @@ export default async function MixDetail({
           </div>
         )}
 
-        <Link
-          href={`/combo/${comboSlug(mix.combo_key || comboKey(flavors))}`}
-          className="mt-2 inline-block text-sm"
-          style={{ color: 'var(--color-ember-hot)', fontWeight: 600 }}
-        >
-          この組み合わせの作り方をすべて見る →
-        </Link>
+        {/* 別解が無いときは出さない（1件のみだと combo→mix へ戻され自己ループになる） */}
+        {siblingCount > 1 && (
+          <Link
+            href={`/combo/${comboSlug(mix.combo_key || comboKey(flavors))}`}
+            className="mt-2 inline-block text-sm"
+            style={{ color: 'var(--color-ember-hot)', fontWeight: 600 }}
+          >
+            ほかの作り方を見る（{siblingCount - 1}） →
+          </Link>
+        )}
 
         {isRep && isOwner && (
           <div
@@ -371,29 +375,31 @@ export default async function MixDetail({
           </div>
         )}
 
-        <div className="mt-4 flex flex-wrap items-center gap-3">
-          <LikeButton
-            mixId={mix.id}
-            initialCount={mix.like_count}
-            initialLiked={likedIds.has(mix.id)}
-            isAuthed={!!user}
-            size="lg"
-          />
-          <BookmarkButton mixId={mix.id} initialSaved={bookmarkedIds.has(mix.id)} isAuthed={!!user} />
-          <MadeButton mixId={mix.id} initialCount={madeStatus.count} initialMade={madeStatus.made} isAuthed={!!user} />
-          <ShareBar url={mixUrl} text={shareText} />
-        </div>
+        {/* Primary：体験を残す（コアループ）。吸った→どうだった？→味の印象 まで一続き */}
+        <div className="mt-5 flex flex-col gap-3">
+          <div className="flex flex-wrap items-start gap-3">
+            <SmokedButton
+              mixId={mix.id}
+              isAuthed={!!user}
+              initialCount={smokeStatus.count}
+              initialMine={smokeStatus.mine}
+              initialMyId={smokeStatus.myId}
+              initialVerdict={smokeStatus.myVerdict}
+            />
+            <MadeButton mixId={mix.id} initialCount={madeStatus.count} initialMade={madeStatus.made} isAuthed={!!user} />
+          </div>
 
-        {/* 吸った（最小フロー）：吸った → どうだった？（また吸いたい/おいしい/普通/好みではない） */}
-        <div className="mt-3">
-          <SmokedButton
-            mixId={mix.id}
-            isAuthed={!!user}
-            initialCount={smokeStatus.count}
-            initialMine={smokeStatus.mine}
-            initialMyId={smokeStatus.myId}
-            initialVerdict={smokeStatus.myVerdict}
-          />
+          {/* Secondary：保存・いいね・共有。体験より目立たせない */}
+          <div className="flex flex-wrap items-center gap-3">
+            <BookmarkButton mixId={mix.id} initialSaved={bookmarkedIds.has(mix.id)} isAuthed={!!user} />
+            <LikeButton
+              mixId={mix.id}
+              initialCount={mix.like_count}
+              initialLiked={likedIds.has(mix.id)}
+              isAuthed={!!user}
+            />
+            <ShareBar url={mixUrl} text={shareText} />
+          </div>
         </div>
 
         {/* 推薦は運営・認証プロのみ。一般ユーザーの支持は 吸った/作ってみた として蓄積する */}
@@ -509,7 +515,7 @@ export default async function MixDetail({
 
       {/* ---------- 味の印象（実際に吸った人の評価） ----------
            段階開示：王道/まずこの作り方 → 配合・セットアップ → 味の印象（言葉）→ 詳しい味覚（数値） */}
-      <TasteSummaryView summary={tasteSummary} />
+      <TasteSummaryView summary={tasteSummary} canRecord={!!user && smokeStatus.mine} />
 
       {/* ---------- PHOTOS（工程・追加写真） ---------- */}
       {showPhotos && (
