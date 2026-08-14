@@ -367,7 +367,7 @@ export default async function MixDetail({
               🎉 あなたのミックスが <span style={{ color: '#b23b2e' }}>{repLabel}系で人気</span> の作り方になっています。
             </p>
             <p className="mt-1 text-xs" style={{ color: 'var(--color-ash)' }}>
-              みんなの👍と「作った！」で選出された証。ぜひSNSで自慢しましょう。
+              よく吸われている作り方です。ぜひSNSで共有しましょう。
             </p>
             <div className="mt-3">
               <ShareBar url={mixUrl} text={shareText} />
@@ -389,8 +389,8 @@ export default async function MixDetail({
             <MadeButton mixId={mix.id} initialCount={madeStatus.count} initialMade={madeStatus.made} isAuthed={!!user} />
           </div>
 
-          {/* Secondary：保存・いいね・共有。体験より目立たせない */}
-          <div className="flex flex-wrap items-center gap-3">
+          {/* Tertiary：保存・いいね・共有。体験より弱く見せる（新しいUIは足さない） */}
+          <div className="flex flex-wrap items-center gap-3 text-sm" style={{ opacity: 0.85 }}>
             <BookmarkButton mixId={mix.id} initialSaved={bookmarkedIds.has(mix.id)} isAuthed={!!user} />
             <LikeButton
               mixId={mix.id}
@@ -402,7 +402,7 @@ export default async function MixDetail({
           </div>
         </div>
 
-        {/* 推薦は運営・認証プロのみ。一般ユーザーの支持は 吸った/作ってみた として蓄積する */}
+        {/* 推薦は運営・認証プロのみ。一般ユーザーの支持は 吸った/作った として蓄積する */}
         {(user?.profile?.is_admin || user?.profile?.is_pro) && (
           <div className="mt-3">
             <RecommendButton
@@ -487,7 +487,9 @@ export default async function MixDetail({
         <section className="mt-6">
           <div className="card card-wa p-5">
             <div className="flex items-center gap-2">
-              <span aria-hidden className="seal seal-stamp text-xs">王道</span>
+              {/* 王道印は combo_orthodoxy で認定された作り方だけに出す。
+                  「まずこの作り方」は初心者向けの案内であって王道認定ではない。 */}
+              {orthodoxy.isOrthodox && <span aria-hidden className="seal seal-stamp text-xs">王道</span>}
               <h2 className="text-sm" style={{ fontWeight: 800 }}>まずこの作り方</h2>
             </div>
             <p className="mt-1 text-xs" style={{ color: 'var(--color-ash-dim)' }}>

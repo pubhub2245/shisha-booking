@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { logMadeExperience } from '@/actions/social'
 
 /**
- * 「作ってみた」ボタン（追記型・楽観更新）。
+ * 「作った」ボタン（experience_type='made'＝この作り方を再現した履歴）。
  * made は履歴なので押しても過去の記録は消さない。取り消しは煙道帳からの明示削除で行う。
  * カウントは「作った人数（ユニーク）」なので、同一ユーザーの2回目以降は増えない。
  */
@@ -61,7 +61,7 @@ export function MadeButton({
       }}
     >
       <span aria-hidden>🎉</span>
-      {made ? 'また作った' : '作ってみた'}
+      {made ? 'また作った' : '作った'}
       {count > 0 && <span>{count}</span>}
     </button>
   )

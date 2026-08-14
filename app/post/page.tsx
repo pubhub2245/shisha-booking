@@ -179,7 +179,7 @@ export default async function PostPage({
           </Link>
         </div>
         <p className="mt-6 text-xs leading-relaxed" style={{ color: 'var(--color-ash-dim)' }}>
-          ※ 「吸った」「作ってみた」は<b>体験の記録</b>で、ミックス詳細から残せます。ここは<b>作り方の共有</b>です。
+          ※ 「吸った」「作った」は<b>体験の記録</b>で、ミックス詳細から残せます。ここは<b>作り方の共有</b>です。
         </p>
       </div>
     )
