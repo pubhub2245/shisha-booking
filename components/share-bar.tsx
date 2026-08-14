@@ -30,8 +30,10 @@ export function ShareBar({ url, text }: { url: string; text: string }) {
     }
   }
 
+  // 共有は最も低い視覚優先度。塗りをやめて細い罫のみにし、記録系より弱く見せる。
   const base =
-    'inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm transition-transform hover:scale-[1.03]'
+    'inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs transition-colors'
+  const quiet = { border: '1px solid var(--line)', color: 'var(--color-ash-dim)', fontWeight: 500 } as const
 
   return (
     <div className="flex flex-wrap items-center gap-2">
@@ -40,17 +42,17 @@ export function ShareBar({ url, text }: { url: string; text: string }) {
         target="_blank"
         rel="noopener noreferrer"
         className={base}
-        style={{ background: '#000', color: '#fff', fontWeight: 700 }}
+        style={quiet}
         aria-label="Xでシェア"
       >
-        𝕏 でシェア
+        𝕏
       </a>
       <a
         href={lineUrl}
         target="_blank"
         rel="noopener noreferrer"
         className={base}
-        style={{ background: '#06c755', color: '#fff', fontWeight: 700 }}
+        style={quiet}
         aria-label="LINEでシェア"
       >
         LINE
@@ -59,7 +61,7 @@ export function ShareBar({ url, text }: { url: string; text: string }) {
         type="button"
         onClick={share}
         className={base}
-        style={{ border: '1px solid var(--line-strong)', color: 'var(--color-ash)', fontWeight: 600 }}
+        style={quiet}
       >
         <span aria-hidden>{copied ? '✅' : '🔗'}</span>
         {copied ? 'コピーしました' : 'リンク'}
