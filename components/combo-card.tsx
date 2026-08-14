@@ -1,10 +1,12 @@
 import Link from 'next/link'
 import type { ComboSummary } from '@/lib/types/database'
+import { comboHref } from '@/lib/combo'
 
 export function ComboCard({ combo }: { combo: ComboSummary }) {
   const names = combo.flavorNames
   return (
-    <Link href={`/combo/${combo.slug}`} className="card card-hover flex flex-col overflow-hidden fade-up">
+    // 作り方が1件だけなら比較ページを挟まずミックス詳細へ直行（comboHref に規則を集約）
+    <Link href={comboHref(combo)} className="card card-hover flex flex-col overflow-hidden fade-up">
       {combo.top.pack_photo_url && (
         <>
           {/* eslint-disable-next-line @next/next/no-img-element */}

@@ -1,4 +1,4 @@
-import Link from 'next/link'
+import { BrandWordmark } from '@/components/brand-wordmark'
 import { redirect } from 'next/navigation'
 import { getCurrentUser } from '@/lib/auth'
 import { AuthForm } from '../auth-form'
@@ -17,9 +17,7 @@ export default async function SignupPage({
 
   return (
     <div className="wrap max-w-md py-16">
-      <Link href="/" className="brand-mark text-2xl">
-        Mix<span className="ember-text">Hub</span>
-      </Link>
+      <BrandWordmark />
       <h1 className="mt-6 text-3xl" style={{ fontWeight: 800 }}>
         図鑑に参加する
       </h1>

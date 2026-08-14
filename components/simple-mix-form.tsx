@@ -3,6 +3,7 @@
 import { useActionState, useState } from 'react'
 import { createMix, type MixFormState } from '@/actions/mixes'
 import { ALL_TASTE_TAGS } from '@/lib/tags'
+import { comboKey } from '@/lib/combo'
 import type { Flavor } from '@/lib/types/database'
 
 /**
@@ -13,9 +14,12 @@ import type { Flavor } from '@/lib/types/database'
 export function SimpleMixForm({
   flavors,
   initialFlavorIds = [],
+  comboCounts = {},
 }: {
   flavors: Flavor[]
   initialFlavorIds?: string[]
+  /** combo_key → 既存の作り方の件数（同じ組み合わせに別解があることを伝える） */
+  comboCounts?: Record<string, number>
 }) {
   const [state, action, pending] = useActionState<MixFormState, FormData>(createMix, null)
   const byId = new Map(flavors.map((f) => [f.id, f]))
@@ -38,6 +42,27 @@ export function SimpleMixForm({
   function toggleTag(t: string) {
     setTags((s) => (s.includes(t) ? s.filter((x) => x !== t) : [...s, t]))
   }
+
+  // 選択済みフレーバー（送信されるのはこれだけ）
+  const chosen = rows.map((r) => ({ row: r, f: byId.get(r.flavorId) })).filter((x) => !!x.f)
+
+  // 配合の % 表示。合計を100として正規化するので、比率入力でもグラム入力でも同じ結果になる。
+  const amounts = chosen.map((c) => Number(c.row.amount) || 0)
+  const total = amounts.reduce((a, b) => a + b, 0)
+  const percents =
+    total > 0
+      ? chosen.map((c, i) => ({ name: c.f!.name, pct: Math.round((amounts[i] / total) * 100) }))
+      : []
+
+  // 1フレーバーなら配合は自明（100%）。2つ以上は「どう混ぜたか」が無いと再現できないため必須。
+  const soloFlavor = chosen.length === 1
+  const missingRatio = chosen.length >= 2 && chosen.some((c) => !(Number(c.row.amount) > 0))
+
+  // 同じ組み合わせの既存の作り方の件数
+  const existingCount =
+    chosen.length > 0
+      ? comboCounts[comboKey(chosen.map((c) => ({ brand: c.f!.brand, name: c.f!.name })))] ?? 0
+      : 0
 
   return (
     <form action={action} className="mt-6 flex flex-col gap-6">
@@ -62,12 +87,13 @@ export function SimpleMixForm({
                   ))}
                 </select>
                 <input
-                  value={row.amount}
+                  value={soloFlavor ? '' : row.amount}
                   onChange={(e) => setRow(row.key, { amount: e.target.value })}
                   inputMode="decimal"
-                  placeholder="量(g)"
-                  aria-label="量（グラム・任意）"
-                  className="w-16 rounded-lg border px-2 py-2 text-sm"
+                  placeholder={soloFlavor ? '100%' : '配合'}
+                  disabled={soloFlavor}
+                  aria-label="配合（比率）"
+                  className="w-20 rounded-lg border px-2 py-2 text-base sm:text-sm"
                   style={{ background: 'var(--color-smoke-850)', borderColor: 'var(--line-strong)', color: 'var(--color-cream)' }}
                 />
                 {rows.length > 1 && (
@@ -81,7 +107,8 @@ export function SimpleMixForm({
                     <input type="hidden" name="flavor_id" value={f.id} />
                     <input type="hidden" name="flavor_brand" value={f.brand} />
                     <input type="hidden" name="flavor_name" value={f.name} />
-                    <input type="hidden" name="flavor_ratio" value={row.amount} />
+                    {/* 1フレーバーは 100% で自動確定。2つ以上は入力値をそのまま送る（正規化は表示側） */}
+                    <input type="hidden" name="flavor_ratio" value={soloFlavor ? '100' : row.amount} />
                     <input type="hidden" name="flavor_url" value="" />
                   </>
                 )}
@@ -90,9 +117,25 @@ export function SimpleMixForm({
           })}
         </div>
         <button type="button" onClick={addRow} className="btn btn-ghost mt-3 text-sm">＋ フレーバーを追加</button>
-        <p className="mt-2 text-xs" style={{ color: 'var(--color-ash-dim)' }}>
-          量はスケールがなければ空欄でOK。割合のコツはメモに書けます。
+
+        {/* 配合プレビュー：入力値の比を % に正規化して見せる（6:4 でも 3g:7g でも同じ結果） */}
+        {percents.length > 0 && (
+          <p className="mt-2 text-sm" style={{ color: 'var(--color-cream)', fontWeight: 600 }}>
+            {percents.map((p) => `${p.name} ${p.pct}%`).join(' ・ ')}
+          </p>
+        )}
+        <p className="mt-2 text-xs leading-relaxed" style={{ color: 'var(--color-ash-dim)' }}>
+          配合は「6 と 4」のような比率でOK。合計を100にする必要はありません（上に割合が出ます）。
+          <br />フレーバーが1つのときは <b>100%</b> として登録されます。
         </p>
+
+        {/* 同じ組み合わせに既に別の作り方があることを伝える（禁止はしない） */}
+        {existingCount > 0 && (
+          <p className="mt-3 rounded-lg px-3 py-2 text-xs leading-relaxed" style={{ background: 'var(--accent-tint)', color: 'var(--color-ash)' }}>
+            この組み合わせには既に <b style={{ color: 'var(--color-cream)' }}>{existingCount}通り</b> の作り方があります。
+            あなたの作り方も加えましょう。
+          </p>
+        )}
       </div>
 
       <div className="field">
@@ -128,8 +171,14 @@ export function SimpleMixForm({
       </div>
 
       {state?.error && <p className="text-sm" style={{ color: 'var(--color-ember-hot)' }}>{state.error}</p>}
+      {missingRatio && (
+        <p className="text-sm" style={{ color: 'var(--color-ember-hot)' }}>
+          2つ以上のフレーバーを使う場合は、配合を入力してください（「6 と 4」のような比率でOKです）。
+        </p>
+      )}
 
-      <button type="submit" disabled={pending} className="btn btn-ember">
+      <input type="hidden" name="form_kind" value="simple" />
+      <button type="submit" disabled={pending || missingRatio} className="btn btn-ember">
         {pending ? '投稿中…' : '投稿する'}
       </button>
     </form>

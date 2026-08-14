@@ -70,6 +70,7 @@ export default async function ProfileEditPage() {
             <Link href="/admin/pro" style={{ color: 'var(--color-ember-hot)', fontWeight: 600 }}>🛡 プロ認証の審査</Link>
             <Link href="/admin/clicks" style={{ color: 'var(--color-ember-hot)', fontWeight: 600 }}>📊 送客クリック集計</Link>
             <Link href="/admin/reports" style={{ color: 'var(--color-ember-hot)', fontWeight: 600 }}>🛡 通報の管理</Link>
+            <Link href="/admin/orthodoxy" style={{ color: 'var(--color-ember-hot)', fontWeight: 600 }}>王道の認定</Link>
           </div>
           <p className="mt-1.5 text-xs" style={{ color: 'var(--color-ash-dim)' }}>
             これらは管理者だけが閲覧できます。

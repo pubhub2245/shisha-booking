@@ -115,6 +115,65 @@ export type MixMake = {
   created_at: string
 }
 
+/** 実体験ログ：吸った(smoked)/作ってみた(made)。同一ユーザーが同一 mix を何度でも記録可。 */
+export type ExperienceType = 'smoked' | 'made'
+export type VerificationType = 'self' | 'shop_qr' | 'admin'
+export type Verdict = 'again' | 'good' | 'ok' | 'not_for_me'
+export type MixExperience = {
+  id: string
+  user_id: string
+  mix_id: string
+  experience_type: ExperienceType
+  verification_type: VerificationType
+  verified_at: string | null
+  shop_id: string | null
+  verdict: Verdict | null
+  occurred_at: string
+  created_at: string
+  note: string | null
+}
+
+/** 味覚5軸：実際に吸った体験に紐づく味の強度（1体験1件・上書きしない） */
+export type TasteEvaluation = {
+  experience_id: string
+  sweetness: number | null
+  coolness: number | null
+  sourness: number | null
+  richness: number | null
+  heaviness: number | null
+  created_at: string
+}
+
+/** 推薦：運営・認証プロによる「この作り方を推薦する」記録（公式王道とは別概念） */
+export type MethodRecommendation = {
+  id: string
+  mix_id: string
+  proposed_by: string
+  note: string | null
+  created_at: string
+}
+
+/** 公式王道：1つの combo_key につき最大1件。認定事実のみを持ち、変動値は保存しない。 */
+export type ComboOrthodoxy = {
+  combo_key: string
+  mix_id: string
+  certified_by: string
+  certified_at: string
+  created_at: string
+  updated_at: string
+}
+
+/** 王道の変遷（監査用・V1では一般UIに出さない） */
+export type ComboOrthodoxyHistory = {
+  id: string
+  combo_key: string
+  mix_id: string
+  action: 'certified' | 'replaced' | 'revoked'
+  changed_by: string | null
+  event_at: string
+  created_at: string
+}
+
 /** フレーバー練習ログ（「こする」＝繰り返し研究する非公開ノート） */
 export type FlavorLog = {
   id: number
@@ -481,7 +540,12 @@ export type Database = {
       mix_unlocks: Tbl<MixUnlock>
       notifications: Tbl<Notification>
       reports: Tbl<Report>
-      mix_makes: Tbl<MixMake>
+      mix_makes_legacy: Tbl<MixMake>
+      mix_experiences: Tbl<MixExperience>
+      taste_evaluations: Tbl<TasteEvaluation>
+      method_recommendations: Tbl<MethodRecommendation>
+      combo_orthodoxy: Tbl<ComboOrthodoxy>
+      combo_orthodoxy_history: Tbl<ComboOrthodoxyHistory>
       flavor_ratings: Tbl<FlavorRating>
       comment_likes: Tbl<CommentLike>
       flavor_logs: Tbl<FlavorLog>
@@ -512,6 +576,44 @@ export type Database = {
       notify: { Args: { p_recipient: string; p_type: string; p_mix?: string; p_comment?: string }; Returns: undefined }
       save_arbitration: { Args: { p_idea_id: number; p_summary: string }; Returns: undefined }
       refresh_national_reps: { Args: Record<string, never>; Returns: undefined }
+      mix_made_status: {
+        Args: { p_mix: string }
+        Returns: { made_count: number; maker_count: number; made: boolean }[]
+      }
+      mix_smoke_status: {
+        Args: { p_mix: string }
+        Returns: {
+          smoke_count: number
+          smoker_count: number
+          mine: boolean
+          my_id: string | null
+          my_verdict: string | null
+        }[]
+      }
+      mix_made_counts: { Args: Record<string, never>; Returns: { mix_id: string; maker_count: number }[] }
+      author_made_total: { Args: { p_author: string }; Returns: number }
+      can_recommend: { Args: Record<string, never>; Returns: boolean }
+      author_endo_stats: {
+        Args: { p_author: string }
+        Returns: {
+          method_count: number; orthodoxy_count: number
+          smoke_count: number; smoker_count: number
+          made_count: number; maker_count: number
+        }[]
+      }
+      mix_taste_summary: {
+        Args: { p_mix: string }
+        Returns: {
+          sweetness_avg: number | null; sweetness_count: number
+          coolness_avg: number | null; coolness_count: number
+          sourness_avg: number | null; sourness_count: number
+          richness_avg: number | null; richness_count: number
+          heaviness_avg: number | null; heaviness_count: number
+          rater_count: number
+        }[]
+      }
+      certify_orthodoxy: { Args: { p_mix: string; p_combo_key?: string | null }; Returns: undefined }
+      revoke_orthodoxy: { Args: { p_combo_key: string }; Returns: undefined }
       onsite_checkin: {
         Args: { p_mix_id: string; p_lat: number; p_lng: number }
         Returns: Record<string, unknown>

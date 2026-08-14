@@ -9,16 +9,23 @@ import {
   getRelatedMixes,
   isMixUnlocked,
   getMadeStatus,
+  getSmokeStatus,
+  getOrthodoxyStatus,
+  getTasteSummary,
   getMixPhotos,
   getNationalRepCategories,
   getMixNames,
   getOnsiteContext,
   getRegionRepLabel,
+  getComboBySlug,
 } from '@/lib/queries'
 import { getCurrentUser } from '@/lib/auth'
 import { LikeButton } from '@/components/like-button'
 import { BookmarkButton } from '@/components/bookmark-button'
 import { MadeButton } from '@/components/made-button'
+import { SmokedButton } from '@/components/smoked-button'
+import { RecommendButton } from '@/components/recommend-button'
+import { TasteSummaryView } from '@/components/taste-summary'
 import { ShareBar } from '@/components/share-bar'
 import { ReportButton } from '@/components/report-button'
 import { VerifiedBadge } from '@/components/verified-badge'
@@ -94,8 +101,15 @@ export async function generateMetadata({
   }
 }
 
-export default async function MixDetail({ params }: { params: Promise<{ id: string }> }) {
+export default async function MixDetail({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ id: string }>
+  searchParams: Promise<{ posted?: string }>
+}) {
   const { id } = await params
+  const { posted } = await searchParams
   const [mix, likedIds, bookmarkedIds, user, comments, unlocked] = await Promise.all([
     getMixById(id),
     getLikedMixIds(),
@@ -105,15 +119,22 @@ export default async function MixDetail({ params }: { params: Promise<{ id: stri
     isMixUnlocked(id),
   ])
   if (!mix) notFound()
-  const [related, madeStatus, photos, repCats, mixNames, onsite, regionRep] = await Promise.all([
+  const [related, madeStatus, smokeStatus, orthodoxy, tasteSummary, photos, repCats, mixNames, onsite, regionRep] = await Promise.all([
     getRelatedMixes(mix as MixWithRelations),
     getMadeStatus(id),
+    getSmokeStatus(id),
+    getOrthodoxyStatus(mix),
+    getTasteSummary(id),
     getMixPhotos(id),
     getNationalRepCategories(id),
     getMixNames(id),
     getOnsiteContext(mix),
     getRegionRepLabel(id),
   ])
+  // 投稿直後の確認表示用：同じ組み合わせの作り方の件数（通常表示では取得しない）
+  const siblingCount =
+    posted === '1' ? (await getComboBySlug(comboSlug(mix.combo_key || comboKey(mix.mix_flavors ?? []))))?.methods.length ?? 1 : 1
+
   const commentTotal = comments.reduce((n, c) => n + 1 + c.replies.length, 0)
   const isRep = repCats.length > 0
   const repLabel = repCats.join('・')
@@ -123,6 +144,20 @@ export default async function MixDetail({ params }: { params: Promise<{ id: stri
   const mode = resolveMode(user?.profile)
 
   const flavors = mix.mix_flavors ?? []
+  // 配合を「60 : 40」の形に正規化（比率入力でもグラム入力でも同じ結果）
+  const ratioTotal = flavors.reduce((n, f) => n + (Number(f.ratio) || 0), 0)
+  const ratioLine =
+    ratioTotal > 0
+      ? flavors.map((f) => Math.round(((Number(f.ratio) || 0) / ratioTotal) * 100)).join(' : ')
+      : ''
+  // 配合は「割合(%)」として共通表示する。ratio には比率入力とg入力が混在しうるため、
+  // 元値に単位(g)を付けて断定しない（合計を100に正規化すればどちらでも正しい）。
+  const ratioPct = new Map<string, number>()
+  if (ratioTotal > 0) {
+    for (const f of flavors) {
+      if (f.ratio != null) ratioPct.set(f.id, Math.round((Number(f.ratio) / ratioTotal) * 100))
+    }
+  }
   const isOwner = !!user && user.id === mix.author_id
   const isSample = mix.author_id === null
 
@@ -153,7 +188,7 @@ export default async function MixDetail({ params }: { params: Promise<{ id: stri
   const taglineSuffix = mix.title ? `（${mix.title}）` : ''
   // 王道に選ばれていれば、その"自慢"をシェア文面に載せる（バイラルの起点）
   const shareText = isRep
-    ? `${repLabel}系の王道に選ばれました！\n${headingLine}${taglineSuffix}\n#シーシャ #煙道 #王道シーシャ図鑑`
+    ? `${repLabel}系で人気の作り方です！\n${headingLine}${taglineSuffix}\n#シーシャ #煙道 #王道シーシャ図鑑`
     : `${headingLine}${taglineSuffix}\n#シーシャ #煙道`
 
   // 構造化データ（有料・非公開の熱管理データは含めない）
@@ -202,13 +237,28 @@ export default async function MixDetail({ params }: { params: Promise<{ id: stri
         )}
       </div>
 
-      {isSample && (
+      {/* 投稿直後：図鑑に追加されたことを伝える（同じ組み合わせの別解も示す） */}
+      {posted === '1' && (
         <div
-          className="mt-4 rounded-xl border px-4 py-3 text-sm"
-          style={{ borderColor: 'var(--line-strong)', background: 'var(--accent-tint)', color: 'var(--color-ash)' }}
+          className="mt-4 rounded-xl border px-4 py-3"
+          style={{ borderColor: 'var(--color-ember)', background: 'var(--accent-tint)' }}
         >
-          🧪 これは <b>煙道 編集部のサンプル</b>です。作り方は一般的な目安で、専門家の監修はされていません。
-          実際の「美味しい作り方」は、これから皆さんの投稿で育てていきます。
+          <p className="text-sm" style={{ fontWeight: 800, color: 'var(--color-cream)' }}>
+            作り方を公開しました
+          </p>
+          <p className="mt-1 text-sm" style={{ color: 'var(--color-ash)' }}>
+            {headingLine}
+            {ratioLine ? ` ・ ${ratioLine}` : ''}
+          </p>
+          {siblingCount > 1 && (
+            <p className="mt-1.5 text-xs" style={{ color: 'var(--color-ash-dim)' }}>
+              この組み合わせには現在{' '}
+              <Link href={`/combo/${comboSlug(mix.combo_key || comboKey(flavors))}`} style={{ color: 'var(--color-ember-hot)', fontWeight: 700 }}>
+                {siblingCount}通りの作り方
+              </Link>{' '}
+              があります。
+            </p>
+          )}
         </div>
       )}
 
@@ -234,9 +284,27 @@ export default async function MixDetail({ params }: { params: Promise<{ id: stri
           ))}
         </h1>
         <div className="mt-2 flex flex-wrap items-center gap-2">
+          {/* 公式に認定された王道（combo_orthodoxy が source of truth）。頂点なので先頭に置く */}
+          {orthodoxy.isOrthodox && (
+            <span
+              className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs"
+              style={{ background: 'var(--color-seal)', color: '#fff', fontWeight: 800 }}
+            >
+              王道
+            </span>
+          )}
+          {/* 公式王道ではないが、運営・認証プロが推薦している作り方 */}
+          {!orthodoxy.isOrthodox && orthodoxy.recommendCount > 0 && (
+            <span
+              className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs"
+              style={{ border: '1px solid var(--color-ember)', color: 'var(--color-ember-hot)', fontWeight: 700 }}
+            >
+              推薦 ・ まずはこの作り方
+            </span>
+          )}
           {isRep && (
             <Link href="/national" className="seal text-xs">
-              {repLabel}系の王道
+              {repLabel}系で人気
             </Link>
           )}
           {regionRep && (
@@ -245,7 +313,7 @@ export default async function MixDetail({ params }: { params: Promise<{ id: stri
               className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs"
               style={{ background: 'var(--accent-tint)', color: 'var(--color-ember-hot)', fontWeight: 800, border: '1px solid var(--color-ember)' }}
             >
-              🏅 {regionRep}の王道
+              🏅 {regionRep}で人気
             </Link>
           )}
           {/* 完全公開の充実レシピを称える（詳しい中身があり、ロックが効いていない） */}
@@ -292,7 +360,7 @@ export default async function MixDetail({ params }: { params: Promise<{ id: stri
             style={{ borderColor: 'rgb(178 59 46 / 0.35)', background: 'rgb(178 59 46 / 0.06)' }}
           >
             <p className="text-sm" style={{ fontWeight: 800 }}>
-              🎉 おめでとうございます！あなたのミックスが <span style={{ color: '#b23b2e' }}>{repLabel}系の王道</span> に選ばれています。
+              🎉 あなたのミックスが <span style={{ color: '#b23b2e' }}>{repLabel}系で人気</span> の作り方になっています。
             </p>
             <p className="mt-1 text-xs" style={{ color: 'var(--color-ash)' }}>
               みんなの👍と「作った！」で選出された証。ぜひSNSで自慢しましょう。
@@ -315,6 +383,29 @@ export default async function MixDetail({ params }: { params: Promise<{ id: stri
           <MadeButton mixId={mix.id} initialCount={madeStatus.count} initialMade={madeStatus.made} isAuthed={!!user} />
           <ShareBar url={mixUrl} text={shareText} />
         </div>
+
+        {/* 吸った（最小フロー）：吸った → どうだった？（また吸いたい/おいしい/普通/好みではない） */}
+        <div className="mt-3">
+          <SmokedButton
+            mixId={mix.id}
+            isAuthed={!!user}
+            initialCount={smokeStatus.count}
+            initialMine={smokeStatus.mine}
+            initialMyId={smokeStatus.myId}
+            initialVerdict={smokeStatus.myVerdict}
+          />
+        </div>
+
+        {/* 推薦は運営・認証プロのみ。一般ユーザーの支持は 吸った/作ってみた として蓄積する */}
+        {(user?.profile?.is_admin || user?.profile?.is_pro) && (
+          <div className="mt-3">
+            <RecommendButton
+              mixId={mix.id}
+              initialRecommended={orthodoxy.myRecommended}
+              initialCount={orthodoxy.recommendCount}
+            />
+          </div>
+        )}
         <div className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm" style={{ color: 'var(--color-ash)' }}>
           {mix.author && <Avatar name={mix.author.display_name || mix.author.username} seed={mix.author.id} size={24} />}
           <span>by <AuthorLink author={mix.author} /></span>
@@ -350,9 +441,9 @@ export default async function MixDetail({ params }: { params: Promise<{ id: stri
               <div className="flex-1">
                 <div className="flex items-baseline gap-2">
                   <span style={{ fontWeight: 700 }}>{f.name}</span>
-                  {f.ratio != null && (
+                  {ratioPct.has(f.id) && (
                     <span className="text-xs" style={{ color: 'var(--color-ember-hot)', fontWeight: 600 }}>
-                      {f.ratio}g
+                      {ratioPct.get(f.id)}%
                     </span>
                   )}
                 </div>
@@ -415,6 +506,10 @@ export default async function MixDetail({ params }: { params: Promise<{ id: stri
           </div>
         </section>
       )}
+
+      {/* ---------- 味の印象（実際に吸った人の評価） ----------
+           段階開示：王道/まずこの作り方 → 配合・セットアップ → 味の印象（言葉）→ 詳しい味覚（数値） */}
+      <TasteSummaryView summary={tasteSummary} />
 
       {/* ---------- PHOTOS（工程・追加写真） ---------- */}
       {showPhotos && (
@@ -710,6 +805,21 @@ export default async function MixDetail({ params }: { params: Promise<{ id: stri
         <Link href={`/post?from=${mix.id}`} className="btn btn-ember">この作り方をベースに投稿</Link>
         <Link href="/post" className="btn btn-ghost">ゼロから投稿する</Link>
       </div>
+
+      {/* ---------- この情報について（誠実さは保つが、意思決定の直下では不安を訴求しない） ---------- */}
+      {isSample && (
+        <section className="mt-12">
+          <details className="card p-4 text-sm" style={{ color: 'var(--color-ash)' }}>
+            <summary className="cursor-pointer text-sm" style={{ fontWeight: 700, color: 'var(--color-cream)' }}>
+              この情報について
+            </summary>
+            <p className="mt-3 leading-relaxed">
+              これは <b>煙道 編集部の見本</b>です。作り方は一般的な目安で、専門家の監修はされていません。
+              実際の「美味しい作り方」は、これから皆さんの投稿と実際に吸った評価で育てていきます。
+            </p>
+          </details>
+        </section>
+      )}
 
       <div className="mt-10 flex justify-center">
         <ReportButton mixId={mix.id} isAuthed={!!user} />

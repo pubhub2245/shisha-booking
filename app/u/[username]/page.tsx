@@ -9,6 +9,7 @@ import {
   isFollowing,
   getShopsByMember,
   getAuthorStats,
+  getAuthorEndoStats,
 } from '@/lib/queries'
 import { getCurrentUser } from '@/lib/auth'
 import { MixCard } from '@/components/mix-card'
@@ -36,7 +37,7 @@ export default async function ProfilePage({ params }: { params: Promise<{ userna
   const profile = await getProfileByUsername(username)
   if (!profile) notFound()
 
-  const [mixes, likedIds, counts, following, me, shops, stats] = await Promise.all([
+  const [mixes, likedIds, counts, following, me, shops, stats, endo] = await Promise.all([
     getMixesByAuthor(profile.id),
     getLikedMixIds(),
     getFollowCounts(profile.id),
@@ -44,6 +45,7 @@ export default async function ProfilePage({ params }: { params: Promise<{ userna
     getCurrentUser(),
     getShopsByMember(profile.id),
     getAuthorStats(profile.id),
+    getAuthorEndoStats(profile.id),
   ])
   const isSelf = me?.id === profile.id
   const displayName = profile.display_name || `@${profile.username}`
@@ -102,7 +104,7 @@ export default async function ProfilePage({ params }: { params: Promise<{ userna
         {/* 王道の冠（保有していれば実力の証） */}
         {stats.repCategories.length > 0 && (
           <div className="mt-4 flex flex-wrap items-center gap-2">
-            <span className="text-xs" style={{ color: 'var(--color-ash-dim)', fontWeight: 600 }}>王道</span>
+            <span className="text-xs" style={{ color: 'var(--color-ash-dim)', fontWeight: 600 }}>人気の系統</span>
             {stats.repCategories.map((c) => (
               <Link
                 key={c}
@@ -116,20 +118,40 @@ export default async function ProfilePage({ params }: { params: Promise<{ userna
           </div>
         )}
 
-        {/* 実績スタッツ（作品集の"顔"） */}
-        <div className="mt-4 grid grid-cols-4 gap-2">
-          {[
-            { n: stats.mixCount, l: 'ミックス' },
-            { n: stats.totalLikes, l: '累計いいね' },
-            { n: stats.totalMakes, l: '作られた' },
-            { n: stats.repCategories.length, l: '王道 冠' },
-          ].map((s) => (
-            <div key={s.l} className="rounded-xl border px-2 py-2.5 text-center" style={{ borderColor: 'var(--line)' }}>
-              <div className="text-lg" style={{ fontWeight: 800 }}>{s.n}</div>
-              <div className="text-[0.65rem]" style={{ color: 'var(--color-ash-dim)' }}>{s.l}</div>
-            </div>
-          ))}
-        </div>
+        {/* 煙道に残した実績。スコアや順位ではなく「実際にどう使われたか」を静かに示す。
+            認証プロかどうかで数値を上乗せしない。 */}
+        {endo.methodCount > 0 ? (
+          <div className="mt-4 grid grid-cols-4 gap-2">
+            {[
+              { n: endo.methodCount, l: '作り方', t: '' },
+              { n: endo.orthodoxyCount, l: '王道', t: '' },
+              { n: endo.smokeCount, l: '吸われた', t: `${endo.smokerCount}人が吸っています` },
+              { n: endo.madeCount, l: '再現された', t: `${endo.makerCount}人が再現しています` },
+            ].map((s) => (
+              <div
+                key={s.l}
+                title={s.t || undefined}
+                className="rounded-xl border px-2 py-2.5 text-center"
+                style={{ borderColor: 'var(--line)' }}
+              >
+                <div className="text-lg" style={{ fontWeight: 800 }}>{s.n}</div>
+                <div className="text-[0.65rem]" style={{ color: 'var(--color-ash-dim)' }}>{s.l}</div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="mt-4 rounded-xl border px-4 py-3 text-sm" style={{ borderColor: 'var(--line)', color: 'var(--color-ash)' }}>
+            まだ作り方の投稿はありません。
+            {isSelf && (
+              <>
+                {' '}
+                <Link href="/post" style={{ color: 'var(--color-ember-hot)', fontWeight: 600 }}>
+                  最初の作り方を投稿する →
+                </Link>
+              </>
+            )}
+          </div>
+        )}
 
         <div className="mt-3 flex gap-5 text-sm">
           <span><b>{counts.followers}</b> <span style={{ color: 'var(--color-ash-dim)' }}>フォロワー</span></span>

@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { notFound } from 'next/navigation'
+import { notFound, redirect } from 'next/navigation'
 import type { Metadata } from 'next'
 import { getComboBySlug, getLikedMixIds, getMyUnlockedMixIds } from '@/lib/queries'
 import { getCurrentUser } from '@/lib/auth'
@@ -33,6 +33,9 @@ export default async function ComboPage({ params }: { params: Promise<{ slug: st
     getMyUnlockedMixIds(),
   ])
   if (!combo) notFound()
+  // 作り方が1件だけなら比較する対象が無い。中間ページを挟まずミックス詳細へ送る
+  // （カード側の comboHref と同じ規則。直リンク・ブックマーク経由でも1ホップ削減）。
+  if (combo.methods.length === 1) redirect(`/mix/${combo.methods[0].id}`)
 
   const [top, ...rest] = combo.methods
   const totalLikes = combo.methods.reduce((s, m) => s + m.like_count, 0)

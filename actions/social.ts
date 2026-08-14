@@ -149,8 +149,12 @@ export async function toggleFollow(targetId: string): Promise<{ following: boole
   return { following }
 }
 
-/** 「作った！」のトグル。戻り値で最新状態を返す。 */
-export async function toggleMade(mixId: string): Promise<{ made: boolean; count: number } | { error: string }> {
+/**
+ * 「作ってみた」を記録（追記型）。mix_experiences(experience_type='made') に1件追加する。
+ * made も履歴なので、再実行しても過去の made 記録は削除しない（取り消しは煙道帳からの明示削除のみ）。
+ * 通知は初回のみ（連投で作者に通知が飛び続けないように）。
+ */
+export async function logMadeExperience(mixId: string): Promise<{ made: boolean; count: number } | { error: string }> {
   const supabase = await createClient()
   const {
     data: { user },
@@ -158,27 +162,85 @@ export async function toggleMade(mixId: string): Promise<{ made: boolean; count:
   if (!user) return { error: 'ログインが必要です。' }
 
   const { data: existing } = await supabase
-    .from('mix_makes')
-    .select('mix_id')
+    .from('mix_experiences')
+    .select('id')
     .eq('mix_id', mixId)
     .eq('user_id', user.id)
+    .eq('experience_type', 'made')
+    .limit(1)
     .maybeSingle()
+  const isFirst = !existing
 
-  let made: boolean
-  if (existing) {
-    await supabase.from('mix_makes').delete().eq('mix_id', mixId).eq('user_id', user.id)
-    made = false
-  } else {
-    await supabase.from('mix_makes').insert({ mix_id: mixId, user_id: user.id })
-    made = true
+  const { error } = await supabase.from('mix_experiences').insert({
+    mix_id: mixId,
+    user_id: user.id,
+    experience_type: 'made',
+  })
+  if (error) return { error: '記録に失敗しました。' }
+
+  if (isFirst) {
     const { data: target } = await supabase.from('mixes').select('author_id').eq('id', mixId).maybeSingle()
     if (target?.author_id) {
       await supabase.rpc('notify', { p_recipient: target.author_id as string, p_type: 'make', p_mix: mixId })
     }
   }
-  const { count } = await supabase.from('mix_makes').select('mix_id', { count: 'exact', head: true }).eq('mix_id', mixId)
+
+  const { data: status } = await supabase.rpc('mix_made_status', { p_mix: mixId })
+  const count = status?.[0]?.maker_count ?? 0
   revalidatePath(`/mix/${mixId}`)
-  return { made, count: count ?? 0 }
+  return { made: true, count }
+}
+
+
+/**
+ * 「吸った」を記録（最小フロー）。追記型：同じミックスを何度でも記録できる。
+ * verdict は任意で後から setExperienceVerdict で付ける。
+ */
+export async function logSmoke(
+  mixId: string,
+  verdict?: 'again' | 'good' | 'ok' | 'not_for_me'
+): Promise<{ id: string; count: number } | { error: string }> {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) return { error: 'ログインが必要です。' }
+
+  const { data: row, error } = await supabase
+    .from('mix_experiences')
+    .insert({
+      mix_id: mixId,
+      user_id: user.id,
+      experience_type: 'smoked',
+      verdict: verdict ?? null,
+    })
+    .select('id')
+    .single()
+  if (error || !row) return { error: '記録に失敗しました。' }
+
+  const { data: status } = await supabase.rpc('mix_smoke_status', { p_mix: mixId })
+  const count = status?.[0]?.smoke_count ?? 0
+  revalidatePath(`/mix/${mixId}`)
+  return { id: row.id as string, count }
+}
+
+/** 「どうだった？」——直近の吸った記録に満足度(verdict)を付ける（本人のみ）。 */
+export async function setExperienceVerdict(
+  experienceId: string,
+  verdict: 'again' | 'good' | 'ok' | 'not_for_me'
+): Promise<{ ok: true } | { error: string }> {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) return { error: 'ログインが必要です。' }
+  const { error } = await supabase
+    .from('mix_experiences')
+    .update({ verdict })
+    .eq('id', experienceId)
+    .eq('user_id', user.id)
+  if (error) return { error: '保存に失敗しました。' }
+  return { ok: true }
 }
 
 /** フレーバー評価（★1-5）。upsert。 */
@@ -233,4 +295,20 @@ export async function incrementView(mixId: string): Promise<void> {
   } catch {
     // best-effort
   }
+}
+
+/**
+ * 煙道帳の記録を1件だけ削除する（誤登録の取り消し）。
+ * 削除は experience 単位。同じミックスの他の履歴は消さない。RLS でも本人限定。
+ */
+export async function deleteExperience(formData: FormData): Promise<void> {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) return
+  const id = String(formData.get('experience_id') ?? '')
+  if (!id) return
+  await supabase.from('mix_experiences').delete().eq('id', id).eq('user_id', user.id)
+  revalidatePath('/mypage')
 }

@@ -2,9 +2,13 @@
 
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
-import { toggleMade } from '@/actions/social'
+import { logMadeExperience } from '@/actions/social'
 
-/** 「作った！」ボタン（楽観更新）。 */
+/**
+ * 「作ってみた」ボタン（追記型・楽観更新）。
+ * made は履歴なので押しても過去の記録は消さない。取り消しは煙道帳からの明示削除で行う。
+ * カウントは「作った人数（ユニーク）」なので、同一ユーザーの2回目以降は増えない。
+ */
 export function MadeButton({
   mixId,
   initialCount,
@@ -26,14 +30,15 @@ export function MadeButton({
       router.push(`/login?next=/mix/${mixId}`)
       return
     }
-    const next = !made
-    setMade(next)
-    setCount((c) => c + (next ? 1 : -1))
+    const wasMade = made
+    // 楽観更新：初回のみ人数が増える
+    setMade(true)
+    if (!wasMade) setCount((c) => c + 1)
     startTransition(async () => {
-      const res = await toggleMade(mixId)
+      const res = await logMadeExperience(mixId)
       if ('error' in res) {
-        setMade(!next)
-        setCount((c) => c + (next ? -1 : 1))
+        setMade(wasMade)
+        if (!wasMade) setCount((c) => c - 1)
       } else {
         setMade(res.made)
         setCount(res.count)
@@ -56,7 +61,7 @@ export function MadeButton({
       }}
     >
       <span aria-hidden>🎉</span>
-      {made ? '作った！' : '作った'}
+      {made ? 'また作った' : '作ってみた'}
       {count > 0 && <span>{count}</span>}
     </button>
   )
