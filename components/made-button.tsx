@@ -55,9 +55,9 @@ export function MadeButton({
       className="inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm transition-colors"
       style={{
         borderColor: made ? 'var(--color-ember)' : 'var(--line-strong)',
-        color: made ? 'var(--color-ember-hot)' : 'var(--color-ash)',
+        color: made ? 'var(--color-ember-hot)' : 'var(--color-cream)',
         background: made ? 'var(--accent-tint)' : 'transparent',
-        fontWeight: 600,
+        fontWeight: 700,
       }}
     >
       <span aria-hidden>🎉</span>

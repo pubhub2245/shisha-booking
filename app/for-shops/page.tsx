@@ -14,7 +14,7 @@ const benefits: { icon: string; preset: OrbPreset; title: string; body: string }
     icon: '📈',
     preset: 'amber',
     title: '集客につながる',
-    body: '人気ミックスの発信元としてエリア・SNSリンクを掲載。来店の動機を生み出します。',
+    body: 'あなたのお店の作り方の発信元としてエリア・SNSリンクを掲載。来店の動機を生み出します。',
   },
   {
     icon: '📖',
@@ -45,7 +45,8 @@ export default function ForShops() {
       </h1>
       <p className="mt-4 text-base" style={{ color: 'var(--color-ash)' }}>
         煙道 は「王道シーシャ図鑑」。店舗として登録すると、あなたのお店のミックスがファンに届き、
-        来店のきっかけになります。人気ミックスは系統ごとの「王道」に選ばれ、指名需要につながります。
+        来店のきっかけになります。実際に吸われ、再現された作り方の中から煙道が確認・認定した「王道」が、
+        店舗への指名や来店のきっかけになります。
       </p>
       <p className="mt-2 text-sm" style={{ color: 'var(--color-ash-dim)' }}>
         個人の作り手（スタッフ）としての参加は{' '}

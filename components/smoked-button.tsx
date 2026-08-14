@@ -82,12 +82,13 @@ export function SmokedButton({
         onClick={onSmoke}
         disabled={pending}
         aria-pressed={logged}
-        className="inline-flex items-center gap-1.5 self-start rounded-full border px-3 py-1.5 text-sm transition-colors"
+        // コアループの主役。ページ内で最も強い塗りのアクションにする。
+        className="inline-flex items-center gap-1.5 self-start rounded-full border px-4 py-2 text-sm transition-colors"
         style={{
-          borderColor: logged ? 'var(--color-seal)' : 'var(--line-strong)',
-          color: logged ? 'var(--color-seal)' : 'var(--color-ash)',
-          background: logged ? 'var(--accent-tint, transparent)' : 'transparent',
-          fontWeight: 600,
+          borderColor: 'var(--color-seal)',
+          background: logged ? 'transparent' : 'var(--color-seal)',
+          color: logged ? 'var(--color-seal)' : '#fbf8f0',
+          fontWeight: 800,
         }}
       >
         <span aria-hidden style={{ fontSize: '0.9em' }}>◦</span>
