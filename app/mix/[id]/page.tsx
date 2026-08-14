@@ -16,6 +16,7 @@ import {
   getMixNames,
   getOnsiteContext,
   getRegionRepLabel,
+  getComboBySlug,
 } from '@/lib/queries'
 import { getCurrentUser } from '@/lib/auth'
 import { LikeButton } from '@/components/like-button'
@@ -98,8 +99,15 @@ export async function generateMetadata({
   }
 }
 
-export default async function MixDetail({ params }: { params: Promise<{ id: string }> }) {
+export default async function MixDetail({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ id: string }>
+  searchParams: Promise<{ posted?: string }>
+}) {
   const { id } = await params
+  const { posted } = await searchParams
   const [mix, likedIds, bookmarkedIds, user, comments, unlocked] = await Promise.all([
     getMixById(id),
     getLikedMixIds(),
@@ -120,6 +128,10 @@ export default async function MixDetail({ params }: { params: Promise<{ id: stri
     getOnsiteContext(mix),
     getRegionRepLabel(id),
   ])
+  // 投稿直後の確認表示用：同じ組み合わせの作り方の件数（通常表示では取得しない）
+  const siblingCount =
+    posted === '1' ? (await getComboBySlug(comboSlug(mix.combo_key || comboKey(mix.mix_flavors ?? []))))?.methods.length ?? 1 : 1
+
   const commentTotal = comments.reduce((n, c) => n + 1 + c.replies.length, 0)
   const isRep = repCats.length > 0
   const repLabel = repCats.join('・')
@@ -129,6 +141,12 @@ export default async function MixDetail({ params }: { params: Promise<{ id: stri
   const mode = resolveMode(user?.profile)
 
   const flavors = mix.mix_flavors ?? []
+  // 配合を「60 : 40」の形に正規化（比率入力でもグラム入力でも同じ結果）
+  const ratioTotal = flavors.reduce((n, f) => n + (Number(f.ratio) || 0), 0)
+  const ratioLine =
+    ratioTotal > 0
+      ? flavors.map((f) => Math.round(((Number(f.ratio) || 0) / ratioTotal) * 100)).join(' : ')
+      : ''
   const isOwner = !!user && user.id === mix.author_id
   const isSample = mix.author_id === null
 
@@ -207,6 +225,31 @@ export default async function MixDetail({ params }: { params: Promise<{ id: stri
           </div>
         )}
       </div>
+
+      {/* 投稿直後：図鑑に追加されたことを伝える（同じ組み合わせの別解も示す） */}
+      {posted === '1' && (
+        <div
+          className="mt-4 rounded-xl border px-4 py-3"
+          style={{ borderColor: 'var(--color-ember)', background: 'var(--accent-tint)' }}
+        >
+          <p className="text-sm" style={{ fontWeight: 800, color: 'var(--color-cream)' }}>
+            作り方を公開しました
+          </p>
+          <p className="mt-1 text-sm" style={{ color: 'var(--color-ash)' }}>
+            {headingLine}
+            {ratioLine ? ` ・ ${ratioLine}` : ''}
+          </p>
+          {siblingCount > 1 && (
+            <p className="mt-1.5 text-xs" style={{ color: 'var(--color-ash-dim)' }}>
+              この組み合わせには現在{' '}
+              <Link href={`/combo/${comboSlug(mix.combo_key || comboKey(flavors))}`} style={{ color: 'var(--color-ember-hot)', fontWeight: 700 }}>
+                {siblingCount}通りの作り方
+              </Link>{' '}
+              があります。
+            </p>
+          )}
+        </div>
+      )}
 
       {/* ---------- HEADER ---------- */}
       <header className="mt-5 fade-up">

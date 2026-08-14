@@ -8,6 +8,7 @@ import { TYPE_TAGS } from '@/lib/tags'
 import { REGIONS, regionOf, REGION_EMOJI, type RegionKey } from '@/lib/regions'
 import { mixSupportScore, shopSupportScore, openRankValue } from '@/lib/score'
 import { isActivelyLocked, isFullyOpen } from '@/lib/lock'
+import { jstMonthStartIso } from '@/lib/time'
 import type {
   MixWithRelations,
   Mix,
@@ -1031,9 +1032,8 @@ export async function getSmokeLog(limit = 40): Promise<SmokeLog> {
     } = await supabase.auth.getUser()
     if (!user) return empty
 
-    // 今月の範囲（ローカル月初〜）
-    const now = new Date()
-    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString()
+    // 今月の範囲は Asia/Tokyo 基準（サーバーTZ=UTCに引きずられないように）
+    const monthStart = jstMonthStartIso()
 
     const [expRes, monthRes, ratesRes] = await Promise.all([
       // タイムライン本体

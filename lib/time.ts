@@ -33,3 +33,17 @@ export function relativeTime(iso: string | null | undefined): string {
   if (mo < 12) return `${mo}ヶ月前`
   return `${Math.floor(mo / 12)}年前`
 }
+
+/** 日本標準時のオフセット（JSTは夏時間が無いので固定でよい） */
+const JST_OFFSET_MS = 9 * 60 * 60 * 1000
+
+/**
+ * 「今月」の開始時刻を **Asia/Tokyo 基準** で求め、ISO(UTC)で返す。
+ * サーバーのTZ（Vercelでは UTC）に依存すると、日本時間の月初 0:00〜9:00 の記録が
+ * 前月扱いになってしまうため、JSTの壁時計で月初を計算してからUTCへ戻す。
+ */
+export function jstMonthStartIso(now: Date = new Date()): string {
+  const jst = new Date(now.getTime() + JST_OFFSET_MS)
+  const startUtcMs = Date.UTC(jst.getUTCFullYear(), jst.getUTCMonth(), 1) - JST_OFFSET_MS
+  return new Date(startUtcMs).toISOString()
+}

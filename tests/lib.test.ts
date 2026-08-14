@@ -13,7 +13,7 @@ import {
 } from '@/lib/heat'
 import { withAffiliateTag, AFFILIATE_TAG } from '@/lib/affiliate'
 import { goHref } from '@/lib/go'
-import { relativeTime, formatJaDate } from '@/lib/time'
+import { relativeTime, formatJaDate, jstMonthStartIso } from '@/lib/time'
 
 describe('combo', () => {
   it('flavorKey normalizes brand/name (trim + lowercase)', () => {
@@ -188,5 +188,45 @@ describe('time', () => {
     // UTC 22:00 は JST では翌日。timeZone 固定でズレないこと（UTC 実行環境でも同じ）。
     expect(formatJaDate('2026-08-13T22:00:00Z')).toBe('2026/8/14')
     expect(formatJaDate('2026-08-13T00:00:00Z')).toBe('2026/8/13')
+  })
+})
+
+describe('jstMonthStartIso', () => {
+  it('日本時間の月初 0:00 を UTC 15:00(前月末) として返す', () => {
+    // 2026-08-01 09:00 JST = 2026-08-01T00:00:00Z
+    expect(jstMonthStartIso(new Date('2026-08-15T00:00:00Z'))).toBe('2026-07-31T15:00:00.000Z')
+  })
+  it('JST月初直後(0:30)の記録が前月扱いにならない', () => {
+    // JST 2026-08-01 00:30 = 2026-07-31T15:30:00Z
+    const occurred = new Date('2026-07-31T15:30:00Z')
+    const start = new Date(jstMonthStartIso(occurred))
+    expect(occurred.getTime()).toBeGreaterThanOrEqual(start.getTime())
+  })
+  it('JST月末直前(23:30)はまだ当月に含まれる', () => {
+    // JST 2026-08-31 23:30 = 2026-08-31T14:30:00Z
+    const occurred = new Date('2026-08-31T14:30:00Z')
+    expect(jstMonthStartIso(occurred)).toBe('2026-07-31T15:00:00.000Z')
+  })
+})
+
+describe('combo_key（STEP 5：投稿の組み合わせ判定）', () => {
+  it('フレーバーの順番を変えても同じ combo になる', () => {
+    const a = comboKey([{ brand: 'Al Fakher', name: 'ミント' }, { brand: 'Adalya', name: 'マンゴー' }])
+    const b = comboKey([{ brand: 'Adalya', name: 'マンゴー' }, { brand: 'Al Fakher', name: 'ミント' }])
+    expect(a).toBe(b)
+  })
+  it('同じ種類の重複は1つとして扱う', () => {
+    const a = comboKey([{ brand: 'Al Fakher', name: 'ミント' }, { brand: 'Al Fakher', name: 'ミント' }])
+    expect(a).toBe(comboKey([{ brand: 'Al Fakher', name: 'ミント' }]))
+  })
+  it('フレーバーが違えば別の combo になる', () => {
+    const a = comboKey([{ brand: 'Al Fakher', name: 'ミント' }])
+    const b = comboKey([{ brand: 'Al Fakher', name: 'レモンミント' }])
+    expect(a).not.toBe(b)
+  })
+  it('配合(量)は combo_key に影響しない＝同じ組み合わせの別の作り方になる', () => {
+    // combo_key はフレーバー種類のみで決まる（比率は mix_flavors 側に持つ）
+    const k = comboKey([{ brand: 'A', name: 'x' }, { brand: 'B', name: 'y' }])
+    expect(k).toBe(comboKey([{ brand: 'B', name: 'y' }, { brand: 'A', name: 'x' }]))
   })
 })

@@ -352,7 +352,8 @@ export async function createMix(_prev: MixFormState, formData: FormData): Promis
   }
 
   revalidatePath('/')
-  redirect(`/mix/${mix.id}`)
+  // 投稿直後は「図鑑に追加された」ことが伝わる状態で詳細へ送る
+  redirect(`/mix/${mix.id}?posted=1`)
 }
 
 function parseMixFields(formData: FormData) {
