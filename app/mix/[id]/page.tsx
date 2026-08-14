@@ -188,7 +188,7 @@ export default async function MixDetail({
   const taglineSuffix = mix.title ? `（${mix.title}）` : ''
   // 王道に選ばれていれば、その"自慢"をシェア文面に載せる（バイラルの起点）
   const shareText = isRep
-    ? `${repLabel}系の王道に選ばれました！\n${headingLine}${taglineSuffix}\n#シーシャ #煙道 #王道シーシャ図鑑`
+    ? `${repLabel}系で人気の作り方です！\n${headingLine}${taglineSuffix}\n#シーシャ #煙道 #王道シーシャ図鑑`
     : `${headingLine}${taglineSuffix}\n#シーシャ #煙道`
 
   // 構造化データ（有料・非公開の熱管理データは含めない）
@@ -304,7 +304,7 @@ export default async function MixDetail({
           )}
           {isRep && (
             <Link href="/national" className="seal text-xs">
-              {repLabel}系の王道
+              {repLabel}系で人気
             </Link>
           )}
           {regionRep && (
@@ -313,7 +313,7 @@ export default async function MixDetail({
               className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs"
               style={{ background: 'var(--accent-tint)', color: 'var(--color-ember-hot)', fontWeight: 800, border: '1px solid var(--color-ember)' }}
             >
-              🏅 {regionRep}の王道
+              🏅 {regionRep}で人気
             </Link>
           )}
           {/* 完全公開の充実レシピを称える（詳しい中身があり、ロックが効いていない） */}
@@ -360,7 +360,7 @@ export default async function MixDetail({
             style={{ borderColor: 'rgb(178 59 46 / 0.35)', background: 'rgb(178 59 46 / 0.06)' }}
           >
             <p className="text-sm" style={{ fontWeight: 800 }}>
-              🎉 おめでとうございます！あなたのミックスが <span style={{ color: '#b23b2e' }}>{repLabel}系の王道</span> に選ばれています。
+              🎉 あなたのミックスが <span style={{ color: '#b23b2e' }}>{repLabel}系で人気</span> の作り方になっています。
             </p>
             <p className="mt-1 text-xs" style={{ color: 'var(--color-ash)' }}>
               みんなの👍と「作った！」で選出された証。ぜひSNSで自慢しましょう。

@@ -2428,3 +2428,39 @@ export async function getMyTasteEvaluation(experienceId: string): Promise<TasteE
     return null
   }
 }
+
+/** 作り手が煙道に残した実績（事実の可視化。スコア・段位ではない）。 */
+export type AuthorEndoStats = {
+  methodCount: number
+  orthodoxyCount: number
+  smokeCount: number
+  smokerCount: number
+  madeCount: number
+  makerCount: number
+}
+
+/**
+ * 作り手実績を1RPCでまとめて取得する（method ごとに数えない＝N+1を作らない）。
+ * 作り手本人の自己体験は除外済み。公開されるのは集計値のみ。
+ */
+export async function getAuthorEndoStats(authorId: string): Promise<AuthorEndoStats> {
+  const empty: AuthorEndoStats = {
+    methodCount: 0, orthodoxyCount: 0, smokeCount: 0, smokerCount: 0, madeCount: 0, makerCount: 0,
+  }
+  try {
+    const supabase = await createClient()
+    const { data } = await supabase.rpc('author_endo_stats', { p_author: authorId })
+    const r = data?.[0]
+    if (!r) return empty
+    return {
+      methodCount: r.method_count ?? 0,
+      orthodoxyCount: r.orthodoxy_count ?? 0,
+      smokeCount: r.smoke_count ?? 0,
+      smokerCount: r.smoker_count ?? 0,
+      madeCount: r.made_count ?? 0,
+      makerCount: r.maker_count ?? 0,
+    }
+  } catch {
+    return empty
+  }
+}

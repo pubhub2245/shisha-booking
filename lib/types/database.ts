@@ -593,6 +593,14 @@ export type Database = {
       mix_made_counts: { Args: Record<string, never>; Returns: { mix_id: string; maker_count: number }[] }
       author_made_total: { Args: { p_author: string }; Returns: number }
       can_recommend: { Args: Record<string, never>; Returns: boolean }
+      author_endo_stats: {
+        Args: { p_author: string }
+        Returns: {
+          method_count: number; orthodoxy_count: number
+          smoke_count: number; smoker_count: number
+          made_count: number; maker_count: number
+        }[]
+      }
       mix_taste_summary: {
         Args: { p_mix: string }
         Returns: {

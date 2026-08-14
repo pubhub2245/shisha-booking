@@ -56,7 +56,7 @@ export function TasteSummaryView({ summary }: { summary: TasteSummary }) {
                   <span style={{ fontWeight: 600 }}>{axis.label}</span>
                   <span style={{ color: 'var(--color-ash-dim)' }}>
                     <b style={{ color: 'var(--color-cream)' }}>{a.avg.toFixed(1)}</b> / 5
-                    <span className="ml-1 text-xs">（{a.count}件）</span>
+                    <span className="ml-1 text-xs">（{a.count}人）</span>
                   </span>
                 </div>
                 <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full" style={{ background: 'var(--line)' }}>
@@ -66,7 +66,7 @@ export function TasteSummaryView({ summary }: { summary: TasteSummary }) {
             )
           })}
           <p className="mt-1 text-xs leading-relaxed" style={{ color: 'var(--color-ash-dim)' }}>
-            ※ 各項目は任意入力のため、項目ごとに評価件数が異なります。
+            ※ 各項目は任意入力のため、項目ごとに評価した人数が異なります。
           </p>
         </div>
       </details>
