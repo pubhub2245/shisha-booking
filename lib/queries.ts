@@ -2206,3 +2206,82 @@ export async function getTasteTags(): Promise<string[]> {
     return []
   }
 }
+
+// ---------------------------------------------------------------
+// 王道（公式認定）と推薦。source of truth は combo_orthodoxy。
+// 既存 national_reps（自動代表）は別物として温存し、混同しない。
+// ---------------------------------------------------------------
+
+export type OrthodoxyStatus = {
+  /** この作り方が、その組み合わせの公式王道か */
+  isOrthodox: boolean
+  /** 同じ組み合わせで、別の作り方が王道になっている場合その mix_id */
+  otherOrthodoxMixId: string | null
+  /** 推薦（運営・認証プロ）の件数 */
+  recommendCount: number
+  /** 自分が推薦済みか */
+  myRecommended: boolean
+}
+
+/** ミックス詳細用：公式王道か／推薦されているか。 */
+export async function getOrthodoxyStatus(mix: { id: string; combo_key: string }): Promise<OrthodoxyStatus> {
+  const empty: OrthodoxyStatus = { isOrthodox: false, otherOrthodoxMixId: null, recommendCount: 0, myRecommended: false }
+  try {
+    const supabase = await createClient()
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+    const [orthoRes, recRes, mineRes] = await Promise.all([
+      supabase.from('combo_orthodoxy').select('mix_id').eq('combo_key', mix.combo_key).maybeSingle(),
+      supabase.from('method_recommendations').select('id', { count: 'exact', head: true }).eq('mix_id', mix.id),
+      user
+        ? supabase
+            .from('method_recommendations')
+            .select('id')
+            .eq('mix_id', mix.id)
+            .eq('proposed_by', user.id)
+            .maybeSingle()
+        : Promise.resolve({ data: null }),
+    ])
+    const orthodoxMixId = (orthoRes.data as { mix_id: string } | null)?.mix_id ?? null
+    return {
+      isOrthodox: orthodoxMixId === mix.id,
+      otherOrthodoxMixId: orthodoxMixId && orthodoxMixId !== mix.id ? orthodoxMixId : null,
+      recommendCount: recRes.count ?? 0,
+      myRecommended: !!mineRes.data,
+    }
+  } catch {
+    return empty
+  }
+}
+
+/** 管理画面用：推薦された作り方の一覧（王道認定の候補）。 */
+export type RecommendedMethod = {
+  mix: MixWithRelations
+  recommendCount: number
+  isOrthodox: boolean
+}
+
+export async function getRecommendedMethods(): Promise<RecommendedMethod[]> {
+  try {
+    const supabase = await createClient()
+    const { data: recRows } = await supabase.from('method_recommendations').select('mix_id').limit(500)
+    const counts = new Map<string, number>()
+    for (const r of (recRows ?? []) as { mix_id: string }[]) {
+      counts.set(r.mix_id, (counts.get(r.mix_id) ?? 0) + 1)
+    }
+    if (counts.size === 0) return []
+    const { data: mixRows } = await supabase.from('mixes').select('*').in('id', [...counts.keys()])
+    const mixes = await attachRelations(supabase, (mixRows ?? []) as Mix[])
+    const { data: orthoRows } = await supabase
+      .from('combo_orthodoxy')
+      .select('mix_id')
+      .in('combo_key', [...new Set(mixes.map((m) => m.combo_key))])
+    const orthodox = new Set(((orthoRows ?? []) as { mix_id: string }[]).map((o) => o.mix_id))
+    return mixes
+      .map((m) => ({ mix: m, recommendCount: counts.get(m.id) ?? 0, isOrthodox: orthodox.has(m.id) }))
+      .sort((a, b) => b.recommendCount - a.recommendCount)
+  } catch {
+    return []
+  }
+}

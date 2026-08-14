@@ -133,6 +133,36 @@ export type MixExperience = {
   note: string | null
 }
 
+/** 推薦：運営・認証プロによる「この作り方を推薦する」記録（公式王道とは別概念） */
+export type MethodRecommendation = {
+  id: string
+  mix_id: string
+  proposed_by: string
+  note: string | null
+  created_at: string
+}
+
+/** 公式王道：1つの combo_key につき最大1件。認定事実のみを持ち、変動値は保存しない。 */
+export type ComboOrthodoxy = {
+  combo_key: string
+  mix_id: string
+  certified_by: string
+  certified_at: string
+  created_at: string
+  updated_at: string
+}
+
+/** 王道の変遷（監査用・V1では一般UIに出さない） */
+export type ComboOrthodoxyHistory = {
+  id: string
+  combo_key: string
+  mix_id: string
+  action: 'certified' | 'replaced' | 'revoked'
+  changed_by: string | null
+  event_at: string
+  created_at: string
+}
+
 /** フレーバー練習ログ（「こする」＝繰り返し研究する非公開ノート） */
 export type FlavorLog = {
   id: number
@@ -501,6 +531,9 @@ export type Database = {
       reports: Tbl<Report>
       mix_makes_legacy: Tbl<MixMake>
       mix_experiences: Tbl<MixExperience>
+      method_recommendations: Tbl<MethodRecommendation>
+      combo_orthodoxy: Tbl<ComboOrthodoxy>
+      combo_orthodoxy_history: Tbl<ComboOrthodoxyHistory>
       flavor_ratings: Tbl<FlavorRating>
       comment_likes: Tbl<CommentLike>
       flavor_logs: Tbl<FlavorLog>
@@ -547,6 +580,9 @@ export type Database = {
       }
       mix_made_counts: { Args: Record<string, never>; Returns: { mix_id: string; maker_count: number }[] }
       author_made_total: { Args: { p_author: string }; Returns: number }
+      can_recommend: { Args: Record<string, never>; Returns: boolean }
+      certify_orthodoxy: { Args: { p_mix: string; p_combo_key?: string | null }; Returns: undefined }
+      revoke_orthodoxy: { Args: { p_combo_key: string }; Returns: undefined }
       onsite_checkin: {
         Args: { p_mix_id: string; p_lat: number; p_lng: number }
         Returns: Record<string, unknown>

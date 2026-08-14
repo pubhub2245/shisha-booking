@@ -10,6 +10,7 @@ import {
   isMixUnlocked,
   getMadeStatus,
   getSmokeStatus,
+  getOrthodoxyStatus,
   getMixPhotos,
   getNationalRepCategories,
   getMixNames,
@@ -21,6 +22,7 @@ import { LikeButton } from '@/components/like-button'
 import { BookmarkButton } from '@/components/bookmark-button'
 import { MadeButton } from '@/components/made-button'
 import { SmokedButton } from '@/components/smoked-button'
+import { RecommendButton } from '@/components/recommend-button'
 import { ShareBar } from '@/components/share-bar'
 import { ReportButton } from '@/components/report-button'
 import { VerifiedBadge } from '@/components/verified-badge'
@@ -107,10 +109,11 @@ export default async function MixDetail({ params }: { params: Promise<{ id: stri
     isMixUnlocked(id),
   ])
   if (!mix) notFound()
-  const [related, madeStatus, smokeStatus, photos, repCats, mixNames, onsite, regionRep] = await Promise.all([
+  const [related, madeStatus, smokeStatus, orthodoxy, photos, repCats, mixNames, onsite, regionRep] = await Promise.all([
     getRelatedMixes(mix as MixWithRelations),
     getMadeStatus(id),
     getSmokeStatus(id),
+    getOrthodoxyStatus(mix),
     getMixPhotos(id),
     getNationalRepCategories(id),
     getMixNames(id),
@@ -227,6 +230,24 @@ export default async function MixDetail({ params }: { params: Promise<{ id: stri
           ))}
         </h1>
         <div className="mt-2 flex flex-wrap items-center gap-2">
+          {/* 公式に認定された王道（combo_orthodoxy が source of truth）。頂点なので先頭に置く */}
+          {orthodoxy.isOrthodox && (
+            <span
+              className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs"
+              style={{ background: 'var(--color-seal)', color: '#fff', fontWeight: 800 }}
+            >
+              王道
+            </span>
+          )}
+          {/* 公式王道ではないが、運営・認証プロが推薦している作り方 */}
+          {!orthodoxy.isOrthodox && orthodoxy.recommendCount > 0 && (
+            <span
+              className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs"
+              style={{ border: '1px solid var(--color-ember)', color: 'var(--color-ember-hot)', fontWeight: 700 }}
+            >
+              推薦 ・ まずはこの作り方
+            </span>
+          )}
           {isRep && (
             <Link href="/national" className="seal text-xs">
               {repLabel}系の王道
@@ -320,6 +341,17 @@ export default async function MixDetail({ params }: { params: Promise<{ id: stri
             initialVerdict={smokeStatus.myVerdict}
           />
         </div>
+
+        {/* 推薦は運営・認証プロのみ。一般ユーザーの支持は 吸った/作ってみた として蓄積する */}
+        {(user?.profile?.is_admin || user?.profile?.is_pro) && (
+          <div className="mt-3">
+            <RecommendButton
+              mixId={mix.id}
+              initialRecommended={orthodoxy.myRecommended}
+              initialCount={orthodoxy.recommendCount}
+            />
+          </div>
+        )}
         <div className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm" style={{ color: 'var(--color-ash)' }}>
           {mix.author && <Avatar name={mix.author.display_name || mix.author.username} seed={mix.author.id} size={24} />}
           <span>by <AuthorLink author={mix.author} /></span>
