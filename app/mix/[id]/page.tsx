@@ -385,6 +385,37 @@ export default async function MixDetail({ params }: { params: Promise<{ id: stri
         </p>
       </section>
 
+      {/* ---------- まずこの作り方（段階開示の"結論"。全員に見せる基本セットアップ） ---------- */}
+      {!locked('setup') && (mix.bowl_type || mix.charcoal_count != null || mix.steep_minutes != null) && (
+        <section className="mt-6">
+          <div className="card card-wa p-5">
+            <div className="flex items-center gap-2">
+              <span aria-hidden className="seal seal-stamp text-xs">王道</span>
+              <h2 className="text-sm" style={{ fontWeight: 800 }}>まずこの作り方</h2>
+            </div>
+            <p className="mt-1 text-xs" style={{ color: 'var(--color-ash-dim)' }}>
+              配合は上の使用フレーバーのとおり。あとはこれだけで、まず一台つくれます。
+            </p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              {bowlOption(mix.bowl_type) && (
+                <span className="chip"><b style={{ color: 'var(--color-ash)' }}>ボウル</b>&nbsp;{bowlOption(mix.bowl_type)!.l}</span>
+              )}
+              {mix.charcoal_count != null && (
+                <span className="chip"><b style={{ color: 'var(--color-ash)' }}>炭</b>&nbsp;{mix.charcoal_count}個</span>
+              )}
+              {mix.steep_minutes != null && (
+                <span className="chip"><b style={{ color: 'var(--color-ash)' }}>蒸らし</b>&nbsp;{mix.steep_minutes}分</span>
+              )}
+            </div>
+            {showBrew && (hasCurve || hasGear || hasNotes || hasSecrets) && (
+              <p className="mt-3 text-xs" style={{ color: 'var(--color-ember-hot)', fontWeight: 600 }}>
+                ▼ 熱管理カーブ・器具・炭移動など、<span className="brush-underline">詳しい作り方は下の「作り方ノート」</span>から。
+              </p>
+            )}
+          </div>
+        </section>
+      )}
+
       {/* ---------- PHOTOS（工程・追加写真） ---------- */}
       {showPhotos && (
         <section className="mt-8">
