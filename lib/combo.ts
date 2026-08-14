@@ -33,3 +33,13 @@ export function comboKeyFromSlug(slug: string): string {
     return slug
   }
 }
+
+/**
+ * カードの遷移先。作り方が1件しかない組み合わせでは比較ページを挟まず、
+ * ミックス詳細（＝実際に読みたい「まずこの作り方」）へ直行させる。
+ * 2件以上なら比較する価値があるので combo ページへ。
+ * 一覧・検索・気分検索など全カードで同じ規則にするため、ここに集約する。
+ */
+export function comboHref(combo: { slug: string; methodCount: number; top: { id: string } }): string {
+  return combo.methodCount <= 1 ? `/mix/${combo.top.id}` : `/combo/${combo.slug}`
+}

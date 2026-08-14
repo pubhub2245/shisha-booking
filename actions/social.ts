@@ -149,8 +149,12 @@ export async function toggleFollow(targetId: string): Promise<{ following: boole
   return { following }
 }
 
-/** 「作った！」のトグル。mix_experiences(experience_type='made') に記録。戻り値で最新状態を返す。 */
-export async function toggleMade(mixId: string): Promise<{ made: boolean; count: number } | { error: string }> {
+/**
+ * 「作ってみた」を記録（追記型）。mix_experiences(experience_type='made') に1件追加する。
+ * made も履歴なので、再実行しても過去の made 記録は削除しない（取り消しは煙道帳からの明示削除のみ）。
+ * 通知は初回のみ（連投で作者に通知が飛び続けないように）。
+ */
+export async function logMadeExperience(mixId: string): Promise<{ made: boolean; count: number } | { error: string }> {
   const supabase = await createClient()
   const {
     data: { user },
@@ -165,34 +169,28 @@ export async function toggleMade(mixId: string): Promise<{ made: boolean; count:
     .eq('experience_type', 'made')
     .limit(1)
     .maybeSingle()
+  const isFirst = !existing
 
-  let made: boolean
-  if (existing) {
-    // トグルOFF：自分の made 記録をすべて取り消す
-    await supabase
-      .from('mix_experiences')
-      .delete()
-      .eq('mix_id', mixId)
-      .eq('user_id', user.id)
-      .eq('experience_type', 'made')
-    made = false
-  } else {
-    await supabase.from('mix_experiences').insert({
-      mix_id: mixId,
-      user_id: user.id,
-      experience_type: 'made',
-    })
-    made = true
+  const { error } = await supabase.from('mix_experiences').insert({
+    mix_id: mixId,
+    user_id: user.id,
+    experience_type: 'made',
+  })
+  if (error) return { error: '記録に失敗しました。' }
+
+  if (isFirst) {
     const { data: target } = await supabase.from('mixes').select('author_id').eq('id', mixId).maybeSingle()
     if (target?.author_id) {
       await supabase.rpc('notify', { p_recipient: target.author_id as string, p_type: 'make', p_mix: mixId })
     }
   }
+
   const { data: status } = await supabase.rpc('mix_made_status', { p_mix: mixId })
-  const count = status?.[0]?.cnt ?? 0
+  const count = status?.[0]?.maker_count ?? 0
   revalidatePath(`/mix/${mixId}`)
-  return { made, count }
+  return { made: true, count }
 }
+
 
 /**
  * 「吸った」を記録（最小フロー）。追記型：同じミックスを何度でも記録できる。
@@ -221,7 +219,7 @@ export async function logSmoke(
   if (error || !row) return { error: '記録に失敗しました。' }
 
   const { data: status } = await supabase.rpc('mix_smoke_status', { p_mix: mixId })
-  const count = status?.[0]?.cnt ?? 0
+  const count = status?.[0]?.smoke_count ?? 0
   revalidatePath(`/mix/${mixId}`)
   return { id: row.id as string, count }
 }

@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { BrandWordmark } from '@/components/brand-wordmark'
 import { ForgotForm } from './forgot-form'
 import { EMAIL_ENABLED } from '@/lib/site'
 
@@ -8,9 +9,7 @@ export const metadata = { title: 'パスワード再設定 — 煙道' }
 export default function ForgotPage() {
   return (
     <div className="wrap max-w-md py-16">
-      <Link href="/" className="brand-mark text-2xl">
-        Mix<span className="ember-text">Hub</span>
-      </Link>
+      <BrandWordmark />
       <h1 className="mt-6 text-3xl" style={{ fontWeight: 800 }}>パスワードをお忘れですか？</h1>
       {EMAIL_ENABLED ? (
         <>

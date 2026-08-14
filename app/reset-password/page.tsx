@@ -1,4 +1,4 @@
-import Link from 'next/link'
+import { BrandWordmark } from '@/components/brand-wordmark'
 import { redirect } from 'next/navigation'
 import { getCurrentUser } from '@/lib/auth'
 import { ResetForm } from './reset-form'
@@ -13,9 +13,7 @@ export default async function ResetPasswordPage() {
 
   return (
     <div className="wrap max-w-md py-16">
-      <Link href="/" className="brand-mark text-2xl">
-        Mix<span className="ember-text">Hub</span>
-      </Link>
+      <BrandWordmark />
       <h1 className="mt-6 text-3xl" style={{ fontWeight: 800 }}>新しいパスワードを設定</h1>
       <p className="mt-2 text-sm" style={{ color: 'var(--color-ash)' }}>
         新しいパスワードを入力してください。更新後はそのままログインされます。

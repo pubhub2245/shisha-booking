@@ -44,12 +44,17 @@ export default async function Home({
   const makeableReps =
     user && !hasFilters && onboarding.hasShelf ? await getMakeableReps() : { ready: [], almost: [] }
 
-  const [combos, allTags, flavors, photoMixes] = await Promise.all([
+  const [combos, allTags, flavors, photoMixes, unfilteredCombos] = await Promise.all([
     getCombos({ sort, tags: activeTags, q, makeableOnly }),
     getTasteTags(),
     getFlavors(),
     hasFilters ? Promise.resolve([]) : getRecentPhotoMixes(12),
+    // ヒーローの総数は「サイト全体の組み合わせ数」で固定する（絞り込みで動かさない）。
+    // 絞り込み時だけ別途取得（並列なのでウォーターフォールにしない）。
+    hasFilters ? getCombos({}) : Promise.resolve(null),
   ])
+  // 総数＝サイト全体（固定）／件数フィードバックは操作地点＝フィルタUIの近くに出す
+  const totalCombos = unfilteredCombos ? unfilteredCombos.length : combos.length
   const flavorShortcuts = flavors.slice(0, 12)
   const topBrands = [...new Set(flavors.map((f) => f.brand))].sort((a, b) => a.localeCompare(b, 'ja')).slice(0, 12)
 
@@ -86,12 +91,16 @@ export default async function Home({
         <h1 className="text-3xl leading-tight sm:text-4xl" style={{ fontWeight: 800, letterSpacing: '-0.01em' }}>
           今日のミックス、<span className="text-grad-anim">もう迷わない。</span>
         </h1>
-        <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed" style={{ color: 'var(--color-ash)' }}>
-          その組み合わせの<b className="bouten">いちばん美味しい作り方</b>を、みんなで育てる王道シーシャ図鑑。
+        {/* ミッション（共創性）→ ベネフィットの根拠、の順で3〜5秒で伝える */}
+        <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed" style={{ color: 'var(--color-cream)', fontWeight: 600 }}>
+          日本のシーシャの「王道」を、みんなでつくる。
         </p>
-        <p className="mt-1 text-xs" style={{ color: 'var(--color-ash-dim)' }}>
+        <p className="mx-auto mt-1.5 max-w-md text-sm leading-relaxed" style={{ color: 'var(--color-ash)' }}>
+          実際に作られ、吸われ、<b className="bouten">支持された作り方</b>から、まず試したい一台が見つかります。
+        </p>
+        <p className="mt-1.5 text-xs" style={{ color: 'var(--color-ash-dim)' }}>
           {flavors.length > 0
-            ? `気分で探す ・ ${combos.length}通りの組み合わせ ・ ${flavors.length}種のフレーバー`
+            ? `${totalCombos}通りの組み合わせ ・ ${flavors.length}種のフレーバー`
             : '気分で探す ・ 作り方で選ぶ王道シーシャ図鑑'}
         </p>
         {/* 煙（けむり）＝ブランド"煙道"の象徴を一筋 */}
@@ -283,7 +292,17 @@ export default async function Home({
           {hasFilters && (
             <Link href="/" className="text-xs" style={{ color: 'var(--color-ember-hot)', fontWeight: 600 }}>条件をクリア</Link>
           )}
-          <span className="text-xs" style={{ color: 'var(--color-ash-dim)' }}>{combos.length} 件</span>
+          {/* 操作地点（フィルタUI）の直近に結果件数を出す。絞り込み中は強調する */}
+          <span
+            className="text-xs"
+            aria-live="polite"
+            style={{
+              color: hasFilters ? 'var(--color-ember-hot)' : 'var(--color-ash-dim)',
+              fontWeight: hasFilters ? 700 : 400,
+            }}
+          >
+            {hasFilters ? `${combos.length}件 見つかりました` : `${combos.length}件の組み合わせ`}
+          </span>
         </div>
       </div>
 

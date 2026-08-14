@@ -205,16 +205,6 @@ export default async function MixDetail({ params }: { params: Promise<{ id: stri
         )}
       </div>
 
-      {isSample && (
-        <div
-          className="mt-4 rounded-xl border px-4 py-3 text-sm"
-          style={{ borderColor: 'var(--line-strong)', background: 'var(--accent-tint)', color: 'var(--color-ash)' }}
-        >
-          🧪 これは <b>煙道 編集部のサンプル</b>です。作り方は一般的な目安で、専門家の監修はされていません。
-          実際の「美味しい作り方」は、これから皆さんの投稿で育てていきます。
-        </div>
-      )}
-
       {/* ---------- HEADER ---------- */}
       <header className="mt-5 fade-up">
         {/* 公募で決まった愛称（あれば最優先で大きく） */}
@@ -725,6 +715,21 @@ export default async function MixDetail({ params }: { params: Promise<{ id: stri
         <Link href={`/post?from=${mix.id}`} className="btn btn-ember">この作り方をベースに投稿</Link>
         <Link href="/post" className="btn btn-ghost">ゼロから投稿する</Link>
       </div>
+
+      {/* ---------- この情報について（誠実さは保つが、意思決定の直下では不安を訴求しない） ---------- */}
+      {isSample && (
+        <section className="mt-12">
+          <details className="card p-4 text-sm" style={{ color: 'var(--color-ash)' }}>
+            <summary className="cursor-pointer text-sm" style={{ fontWeight: 700, color: 'var(--color-cream)' }}>
+              この情報について
+            </summary>
+            <p className="mt-3 leading-relaxed">
+              これは <b>煙道 編集部の見本</b>です。作り方は一般的な目安で、専門家の監修はされていません。
+              実際の「美味しい作り方」は、これから皆さんの投稿と実際に吸った評価で育てていきます。
+            </p>
+          </details>
+        </section>
+      )}
 
       <div className="mt-10 flex justify-center">
         <ReportButton mixId={mix.id} isAuthed={!!user} />

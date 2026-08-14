@@ -1072,7 +1072,8 @@ export async function getMadeStatus(mixId: string): Promise<{ count: number; mad
     const supabase = await createClient()
     const { data } = await supabase.rpc('mix_made_status', { p_mix: mixId })
     const row = data?.[0]
-    return { count: row?.cnt ?? 0, made: row?.made ?? false }
+    // 表示は「作った人数」＝ maker_count（延べ回数は made_count）
+    return { count: row?.maker_count ?? 0, made: row?.made ?? false }
   } catch {
     return { count: 0, made: false }
   }
@@ -1081,19 +1082,20 @@ export async function getMadeStatus(mixId: string): Promise<{ count: number; mad
 /** 「吸った」の件数・自分の直近記録（id・verdict）。集計RPC経由。 */
 export async function getSmokeStatus(
   mixId: string
-): Promise<{ count: number; mine: boolean; myId: string | null; myVerdict: 'again' | 'good' | 'ok' | 'not_for_me' | null }> {
+): Promise<{ count: number; smokerCount: number; mine: boolean; myId: string | null; myVerdict: 'again' | 'good' | 'ok' | 'not_for_me' | null }> {
   try {
     const supabase = await createClient()
     const { data } = await supabase.rpc('mix_smoke_status', { p_mix: mixId })
     const row = data?.[0]
     return {
-      count: row?.cnt ?? 0,
+      count: row?.smoke_count ?? 0,
+      smokerCount: row?.smoker_count ?? 0,
       mine: row?.mine ?? false,
       myId: row?.my_id ?? null,
       myVerdict: (row?.my_verdict as 'again' | 'good' | 'ok' | 'not_for_me' | null) ?? null,
     }
   } catch {
-    return { count: 0, mine: false, myId: null, myVerdict: null }
+    return { count: 0, smokerCount: 0, mine: false, myId: null, myVerdict: null }
   }
 }
 
@@ -1236,8 +1238,8 @@ const _getNationalTeamCached = unstable_cache(
     ])
     const makes = new Map<string, number>()
     for (const r of makesRows ?? []) {
-      const row = r as { mix_id: string; cnt: number }
-      makes.set(row.mix_id, row.cnt)
+      const row = r as { mix_id: string; maker_count: number }
+      makes.set(row.mix_id, row.maker_count)
     }
     // 実地評価は「現地で実物を吸って評価した」検証済みの票。いいね(×1)・作った(×2)より
     // 大きく重み付けする（×5）。コアループ＝現地評価を選出の主軸にするため。
@@ -1411,8 +1413,8 @@ const _getAreaRankingsCached = unstable_cache(
     const mixes = (mixRows ?? []) as Mix[]
     const makes = new Map<string, number>()
     for (const r of makeRows ?? []) {
-      const row = r as { mix_id: string; cnt: number }
-      makes.set(row.mix_id, row.cnt)
+      const row = r as { mix_id: string; maker_count: number }
+      makes.set(row.mix_id, row.maker_count)
     }
     const onsiteByMix = new Map<string, number>()
     const onsiteByShop = new Map<string, number>()
@@ -1600,8 +1602,8 @@ export async function getNearbyShops(): Promise<ShopRankItem[]> {
     const mixById = new Map(mixes.map((m) => [m.id, m]))
     const makes = new Map<string, number>()
     for (const r of makeRows ?? []) {
-      const row = r as { mix_id: string; cnt: number }
-      makes.set(row.mix_id, row.cnt)
+      const row = r as { mix_id: string; maker_count: number }
+      makes.set(row.mix_id, row.maker_count)
     }
     const onsiteByMix = new Map<string, number>()
     const onsiteByShop = new Map<string, number>()

@@ -531,12 +531,21 @@ export type Database = {
       notify: { Args: { p_recipient: string; p_type: string; p_mix?: string; p_comment?: string }; Returns: undefined }
       save_arbitration: { Args: { p_idea_id: number; p_summary: string }; Returns: undefined }
       refresh_national_reps: { Args: Record<string, never>; Returns: undefined }
-      mix_made_status: { Args: { p_mix: string }; Returns: { cnt: number; made: boolean }[] }
+      mix_made_status: {
+        Args: { p_mix: string }
+        Returns: { made_count: number; maker_count: number; made: boolean }[]
+      }
       mix_smoke_status: {
         Args: { p_mix: string }
-        Returns: { cnt: number; mine: boolean; my_id: string | null; my_verdict: string | null }[]
+        Returns: {
+          smoke_count: number
+          smoker_count: number
+          mine: boolean
+          my_id: string | null
+          my_verdict: string | null
+        }[]
       }
-      mix_made_counts: { Args: Record<string, never>; Returns: { mix_id: string; cnt: number }[] }
+      mix_made_counts: { Args: Record<string, never>; Returns: { mix_id: string; maker_count: number }[] }
       author_made_total: { Args: { p_author: string }; Returns: number }
       onsite_checkin: {
         Args: { p_mix_id: string; p_lat: number; p_lng: number }
