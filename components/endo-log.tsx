@@ -37,7 +37,7 @@ function KindLabel({ entry }: { entry: SmokeLogEntry }) {
   }
   return (
     <span className="text-xs" style={{ color: 'var(--color-ash)' }}>
-      {entry.kind === 'made' ? '作ってみた' : '吸った'}
+      {entry.kind === 'made' ? '作った' : '吸った'}
     </span>
   )
 }

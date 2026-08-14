@@ -7,7 +7,7 @@ export const metadata = {
 }
 
 const features: { icon: string; preset: OrbPreset; title: string; body: string }[] = [
-  { icon: '代', preset: 'amber', title: '王道シーシャ図鑑', body: '系統ごとに、みんなの「いいね」と「作った！」で最も支持されたミックスを「王道」に選出。日本の"美味しい"の基準を可視化する。' },
+  { icon: '代', preset: 'amber', title: '王道シーシャ図鑑', body: '実際に吸われ、再現されながら育ってきた「まずこれ」と言える作り方を「王道」として認定。日本の"美味しい"の基準を可視化する。' },
   { icon: '図', preset: 'green', title: 'ミックス図鑑', body: 'フレーバーの組み合わせを検索・閲覧。気分から「吸いたいミックス」が見つかる。' },
   { icon: '技', preset: 'amber', title: '作り方ノート', body: '熱管理カーブや炭のセットアップ、フレーバーの置き方まで。作り手のノウハウを共有できる。' },
   { icon: '購', preset: 'violet', title: 'そのまま買える', body: '使用フレーバーに購入リンク。気になったらすぐ手に入れて、自分でも作れる。' },
@@ -24,8 +24,9 @@ export default function AboutPage() {
       <p className="mt-4 text-base leading-relaxed" style={{ color: 'var(--color-ash)' }}>
         <b><ruby>煙道<rt>えんどう</rt></ruby>（ENDO）</b>とは、煙の通り道のこと。茶道・華道・香道に連なる“道”として、
         日本流に洗練されたシーシャの作法を集めます。本場の作り方はあっても、「日本人の舌に美味しいシーシャの標準」は世界のどこにもありません。
-        煙道は、その基準を作り手みんなで選び・磨いていく図鑑です。系統ごとに最も支持されたミックスが<span className="bouten">王道</span>に選ばれ、
-        シーシャ屋で迷ったとき「まずこれ」と言える鉄板が見つかる場所を目指します。
+        煙道は、その基準を作り手みんなで育てていく図鑑です。実際に吸われ、再現されながら育ってきた作り方を
+        <span className="bouten">王道</span>として煙道が確認・認定し、シーシャ屋で迷ったとき「まずこれ」と言える一台が見つかる場所を目指します。
+        投稿数やいいねだけでは決まりません。
       </p>
 
       <div className="mt-10 flex flex-col gap-4">

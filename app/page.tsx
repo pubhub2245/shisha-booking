@@ -140,15 +140,15 @@ export default async function Home({
           <div className="flex items-center justify-center gap-2.5">
             <span className="seal seal-stamp text-xs">王道</span>
             <p className="text-sm sm:text-base" style={{ fontWeight: 700 }}>
-              その組み合わせで<span className="bouten">最も支持された作り方</span>が「王道」。
+              実際に吸われ、再現されながら育ってきた<span className="bouten">「まずこれ」</span>と言える作り方。
             </p>
           </div>
           <div className="kaisen mt-4" aria-hidden><span className="seal-dot" /></div>
           <div className="mt-4 grid grid-cols-3 gap-2 text-center">
             {[
               { n: '壱', t: '作り方を持ち寄る', d: '配分・熱管理・盛り方' },
-              { n: '弐', t: '実際に吸って評価', d: 'いいね・作った・実地評価' },
-              { n: '参', t: '王道が決まる', d: '日本の"美味しい"の基準' },
+              { n: '弐', t: '実際に吸って残す', d: '吸った・作った・味の印象' },
+              { n: '参', t: '煙道が確認して認定', d: '投稿数やいいねでは決まらない' },
             ].map((s) => (
               <div key={s.n}>
                 <div className="rank-kanji text-lg">{s.n}</div>
