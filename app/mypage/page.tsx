@@ -21,6 +21,13 @@ import { formatJaDate } from '@/lib/time'
 export const dynamic = 'force-dynamic'
 export const metadata = { title: 'マイページ — 煙道' }
 
+const VERDICT_LABEL: Record<'again' | 'good' | 'ok' | 'not_for_me', string> = {
+  again: 'また吸いたい',
+  good: 'おいしい',
+  ok: '普通',
+  not_for_me: '好みではない',
+}
+
 function MixGrid({
   mixes,
   likedIds,
@@ -127,7 +134,7 @@ export default async function MyPage() {
       </div>
 
       {/* ---------- 煙道帳：吸った履歴（再訪動機） ---------- */}
-      {(smokeLog.entries.length > 0 || smokeLog.madeTotal > 0) && (
+      {(smokeLog.entries.length > 0 || smokeLog.smokedTotal > 0 || smokeLog.madeTotal > 0) && (
         <section className="mt-8">
           <div className="card card-wa p-5 sm:p-6">
             <div className="flex flex-wrap items-baseline justify-between gap-2">
@@ -135,7 +142,7 @@ export default async function MyPage() {
                 <span className="seal seal-stamp mr-2 text-xs">帳</span>煙道帳
               </h2>
               <span className="text-xs" style={{ color: 'var(--color-ash-dim)' }}>
-                今年 <b style={{ color: 'var(--color-cream)' }}>{smokeLog.thisYear}</b> 台 ・ 作った {smokeLog.madeTotal} ・ 実地評価 {smokeLog.ratedTotal}
+                今年 <b style={{ color: 'var(--color-cream)' }}>{smokeLog.thisYear}</b> 台 ・ 吸った {smokeLog.smokedTotal} ・ 作った {smokeLog.madeTotal} ・ 実地評価 {smokeLog.ratedTotal}
               </span>
             </div>
             <div className="kaisen mt-3" aria-hidden><span className="seal-dot" /></div>
@@ -150,8 +157,12 @@ export default async function MyPage() {
                     <span className="shrink-0 text-xs" style={{ color: 'var(--color-ember-hot)', fontWeight: 700 }}>
                       ★{e.score}{e.shopName ? ` ・ ${e.shopName}` : ''}
                     </span>
-                  ) : (
+                  ) : e.kind === 'made' ? (
                     <span className="shrink-0 text-xs" style={{ color: 'var(--color-ash-dim)' }}>作った</span>
+                  ) : (
+                    <span className="shrink-0 text-xs" style={{ color: 'var(--color-seal)', fontWeight: 600 }}>
+                      吸った{e.verdict ? ` ・ ${VERDICT_LABEL[e.verdict]}` : ''}
+                    </span>
                   )}
                 </li>
               ))}

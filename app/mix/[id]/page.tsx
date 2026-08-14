@@ -9,6 +9,7 @@ import {
   getRelatedMixes,
   isMixUnlocked,
   getMadeStatus,
+  getSmokeStatus,
   getMixPhotos,
   getNationalRepCategories,
   getMixNames,
@@ -19,6 +20,7 @@ import { getCurrentUser } from '@/lib/auth'
 import { LikeButton } from '@/components/like-button'
 import { BookmarkButton } from '@/components/bookmark-button'
 import { MadeButton } from '@/components/made-button'
+import { SmokedButton } from '@/components/smoked-button'
 import { ShareBar } from '@/components/share-bar'
 import { ReportButton } from '@/components/report-button'
 import { VerifiedBadge } from '@/components/verified-badge'
@@ -105,9 +107,10 @@ export default async function MixDetail({ params }: { params: Promise<{ id: stri
     isMixUnlocked(id),
   ])
   if (!mix) notFound()
-  const [related, madeStatus, photos, repCats, mixNames, onsite, regionRep] = await Promise.all([
+  const [related, madeStatus, smokeStatus, photos, repCats, mixNames, onsite, regionRep] = await Promise.all([
     getRelatedMixes(mix as MixWithRelations),
     getMadeStatus(id),
+    getSmokeStatus(id),
     getMixPhotos(id),
     getNationalRepCategories(id),
     getMixNames(id),
@@ -314,6 +317,18 @@ export default async function MixDetail({ params }: { params: Promise<{ id: stri
           <BookmarkButton mixId={mix.id} initialSaved={bookmarkedIds.has(mix.id)} isAuthed={!!user} />
           <MadeButton mixId={mix.id} initialCount={madeStatus.count} initialMade={madeStatus.made} isAuthed={!!user} />
           <ShareBar url={mixUrl} text={shareText} />
+        </div>
+
+        {/* 吸った（最小フロー）：吸った → どうだった？（また吸いたい/おいしい/普通/好みではない） */}
+        <div className="mt-3">
+          <SmokedButton
+            mixId={mix.id}
+            isAuthed={!!user}
+            initialCount={smokeStatus.count}
+            initialMine={smokeStatus.mine}
+            initialMyId={smokeStatus.myId}
+            initialVerdict={smokeStatus.myVerdict}
+          />
         </div>
         <div className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm" style={{ color: 'var(--color-ash)' }}>
           {mix.author && <Avatar name={mix.author.display_name || mix.author.username} seed={mix.author.id} size={24} />}

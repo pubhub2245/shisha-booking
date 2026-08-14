@@ -990,13 +990,20 @@ export async function getMixesUsingBrand(brand: string): Promise<MixWithRelation
 }
 
 export type SmokeLogEntry = {
-  kind: 'made' | 'rated'
+  kind: 'smoked' | 'made' | 'rated'
   mix: MixWithRelations
   at: string
   score?: number
   shopName?: string | null
+  verdict?: 'again' | 'good' | 'ok' | 'not_for_me' | null
 }
-export type SmokeLog = { entries: SmokeLogEntry[]; madeTotal: number; ratedTotal: number; thisYear: number }
+export type SmokeLog = {
+  entries: SmokeLogEntry[]
+  smokedTotal: number
+  madeTotal: number
+  ratedTotal: number
+  thisYear: number
+}
 
 /**
  * 煙道帳：ログイン中ユーザーの「作った！」＋「実地評価」の履歴を時系列でまとめる。
@@ -1008,15 +1015,27 @@ export async function getSmokeLog(limit = 40): Promise<SmokeLog> {
     const {
       data: { user },
     } = await supabase.auth.getUser()
-    if (!user) return { entries: [], madeTotal: 0, ratedTotal: 0, thisYear: 0 }
-    const [makesRes, ratesRes] = await Promise.all([
-      supabase.from('mix_makes').select('mix_id, created_at').eq('user_id', user.id).order('created_at', { ascending: false }).limit(limit),
+    const empty: SmokeLog = { entries: [], smokedTotal: 0, madeTotal: 0, ratedTotal: 0, thisYear: 0 }
+    if (!user) return empty
+    // 吸った/作ってみた＝mix_experiences（本人分・RLS）／実地評価＝mix_onsite_ratings（従来どおり）
+    const [expRes, ratesRes] = await Promise.all([
+      supabase
+        .from('mix_experiences')
+        .select('mix_id, experience_type, verdict, occurred_at')
+        .eq('user_id', user.id)
+        .order('occurred_at', { ascending: false })
+        .limit(limit),
       supabase.from('mix_onsite_ratings').select('mix_id, score, shop_id, rated_at').eq('user_id', user.id).not('rated_at', 'is', null).order('rated_at', { ascending: false }).limit(limit),
     ])
-    const makes = (makesRes.data ?? []) as { mix_id: string; created_at: string }[]
+    const exps = (expRes.data ?? []) as {
+      mix_id: string
+      experience_type: 'smoked' | 'made'
+      verdict: 'again' | 'good' | 'ok' | 'not_for_me' | null
+      occurred_at: string
+    }[]
     const rates = (ratesRes.data ?? []) as { mix_id: string; score: number; shop_id: string | null; rated_at: string }[]
-    const mixIds = [...new Set([...makes.map((m) => m.mix_id), ...rates.map((r) => r.mix_id)])]
-    if (mixIds.length === 0) return { entries: [], madeTotal: 0, ratedTotal: 0, thisYear: 0 }
+    const mixIds = [...new Set([...exps.map((e) => e.mix_id), ...rates.map((r) => r.mix_id)])]
+    if (mixIds.length === 0) return empty
     const shopIds = [...new Set(rates.map((r) => r.shop_id).filter((s): s is string => !!s))]
     const [mixRows, shopRows] = await Promise.all([
       supabase.from('mixes').select('*').in('id', mixIds),
@@ -1026,9 +1045,13 @@ export async function getSmokeLog(limit = 40): Promise<SmokeLog> {
     const mixById = new Map(mixesWith.map((m) => [m.id, m]))
     const shopName = new Map(((shopRows.data ?? []) as { id: string; name: string }[]).map((s) => [s.id, s.name]))
     const entries: SmokeLogEntry[] = []
-    for (const m of makes) {
-      const mix = mixById.get(m.mix_id)
-      if (mix) entries.push({ kind: 'made', mix, at: m.created_at })
+    let smokedTotal = 0
+    let madeTotal = 0
+    for (const e of exps) {
+      if (e.experience_type === 'made') madeTotal += 1
+      else smokedTotal += 1
+      const mix = mixById.get(e.mix_id)
+      if (mix) entries.push({ kind: e.experience_type, mix, at: e.occurred_at, verdict: e.verdict })
     }
     for (const r of rates) {
       const mix = mixById.get(r.mix_id)
@@ -1037,28 +1060,40 @@ export async function getSmokeLog(limit = 40): Promise<SmokeLog> {
     entries.sort((a, b) => (a.at < b.at ? 1 : -1))
     const year = new Date().getFullYear()
     const thisYear = entries.filter((e) => new Date(e.at).getFullYear() === year).length
-    return { entries: entries.slice(0, limit), madeTotal: makes.length, ratedTotal: rates.length, thisYear }
+    return { entries: entries.slice(0, limit), smokedTotal, madeTotal, ratedTotal: rates.length, thisYear }
   } catch {
-    return { entries: [], madeTotal: 0, ratedTotal: 0, thisYear: 0 }
+    return { entries: [], smokedTotal: 0, madeTotal: 0, ratedTotal: 0, thisYear: 0 }
   }
 }
 
-/** 「作った！」の件数と、現在ユーザーが作ったか */
+/** 「作った！」の件数と、現在ユーザーが作ったか（集計RPC経由） */
 export async function getMadeStatus(mixId: string): Promise<{ count: number; made: boolean }> {
   try {
     const supabase = await createClient()
-    const {
-      data: { user },
-    } = await supabase.auth.getUser()
-    const [{ count }, mineRes] = await Promise.all([
-      supabase.from('mix_makes').select('mix_id', { count: 'exact', head: true }).eq('mix_id', mixId),
-      user
-        ? supabase.from('mix_makes').select('mix_id').eq('mix_id', mixId).eq('user_id', user.id).maybeSingle()
-        : Promise.resolve({ data: null }),
-    ])
-    return { count: count ?? 0, made: !!mineRes.data }
+    const { data } = await supabase.rpc('mix_made_status', { p_mix: mixId })
+    const row = data?.[0]
+    return { count: row?.cnt ?? 0, made: row?.made ?? false }
   } catch {
     return { count: 0, made: false }
+  }
+}
+
+/** 「吸った」の件数・自分の直近記録（id・verdict）。集計RPC経由。 */
+export async function getSmokeStatus(
+  mixId: string
+): Promise<{ count: number; mine: boolean; myId: string | null; myVerdict: 'again' | 'good' | 'ok' | 'not_for_me' | null }> {
+  try {
+    const supabase = await createClient()
+    const { data } = await supabase.rpc('mix_smoke_status', { p_mix: mixId })
+    const row = data?.[0]
+    return {
+      count: row?.cnt ?? 0,
+      mine: row?.mine ?? false,
+      myId: row?.my_id ?? null,
+      myVerdict: (row?.my_verdict as 'again' | 'good' | 'ok' | 'not_for_me' | null) ?? null,
+    }
+  } catch {
+    return { count: 0, mine: false, myId: null, myVerdict: null }
   }
 }
 
@@ -1194,14 +1229,15 @@ const _getNationalTeamCached = unstable_cache(
     if (mixes.length === 0) return []
 
     const [{ data: makesRows }, { data: onsiteRows }] = await Promise.all([
-      supabase.from('mix_makes').select('mix_id').limit(10000),
+      // 「作ってみた(made)」のユニークメイカー数（mix_experiences 集計RPC）
+      supabase.rpc('mix_made_counts'),
       // 支持シグナルは「採点済み(rated_at)かつ★4以上」の実地評価のみ
       supabase.from('mix_onsite_ratings').select('mix_id').not('rated_at', 'is', null).gte('score', 4).limit(10000),
     ])
     const makes = new Map<string, number>()
     for (const r of makesRows ?? []) {
-      const id = (r as { mix_id: string }).mix_id
-      makes.set(id, (makes.get(id) ?? 0) + 1)
+      const row = r as { mix_id: string; cnt: number }
+      makes.set(row.mix_id, row.cnt)
     }
     // 実地評価は「現地で実物を吸って評価した」検証済みの票。いいね(×1)・作った(×2)より
     // 大きく重み付けする（×5）。コアループ＝現地評価を選出の主軸にするため。
@@ -1285,11 +1321,8 @@ export async function getAuthorStats(
     const totalLikes = rows.reduce((s, r) => s + (r.like_count ?? 0), 0)
     let totalMakes = 0
     if (mixIds.length) {
-      const { count } = await supabase
-        .from('mix_makes')
-        .select('mix_id', { count: 'exact', head: true })
-        .in('mix_id', mixIds)
-      totalMakes = count ?? 0
+      const { data: madeTotal } = await supabase.rpc('author_made_total', { p_author: authorId })
+      totalMakes = (madeTotal as number | null) ?? 0
     }
     const team = await getNationalTeam()
     const repCategories = team.filter((r) => !r.sample && r.mix.author_id === authorId).map((r) => r.category)
@@ -1372,14 +1405,14 @@ const _getAreaRankingsCached = unstable_cache(
     // 3) 全ミックス・作った・実地評価
     const [{ data: mixRows }, { data: makeRows }, { data: onsiteRows }] = await Promise.all([
       supabase.from('mixes').select('*').eq('hidden', false).limit(2000),
-      supabase.from('mix_makes').select('mix_id').limit(20000),
+      supabase.rpc('mix_made_counts'),
       supabase.from('mix_onsite_ratings').select('mix_id, shop_id').not('rated_at', 'is', null).gte('score', 4).limit(20000),
     ])
     const mixes = (mixRows ?? []) as Mix[]
     const makes = new Map<string, number>()
     for (const r of makeRows ?? []) {
-      const id = (r as { mix_id: string }).mix_id
-      makes.set(id, (makes.get(id) ?? 0) + 1)
+      const row = r as { mix_id: string; cnt: number }
+      makes.set(row.mix_id, row.cnt)
     }
     const onsiteByMix = new Map<string, number>()
     const onsiteByShop = new Map<string, number>()
@@ -1559,7 +1592,7 @@ export async function getNearbyShops(): Promise<ShopRankItem[]> {
     const [{ data: memRows }, { data: mixRows }, { data: makeRows }, { data: onsiteRows }] = await Promise.all([
       supabase.from('shop_members').select('shop_id, user_id').eq('status', 'approved').in('shop_id', shopIds),
       supabase.from('mixes').select('*').eq('hidden', false).limit(2000),
-      supabase.from('mix_makes').select('mix_id').limit(20000),
+      supabase.rpc('mix_made_counts'),
       supabase.from('mix_onsite_ratings').select('mix_id, shop_id').not('rated_at', 'is', null).gte('score', 4).limit(20000),
     ])
     const members = (memRows ?? []) as { shop_id: string; user_id: string }[]
@@ -1567,8 +1600,8 @@ export async function getNearbyShops(): Promise<ShopRankItem[]> {
     const mixById = new Map(mixes.map((m) => [m.id, m]))
     const makes = new Map<string, number>()
     for (const r of makeRows ?? []) {
-      const id = (r as { mix_id: string }).mix_id
-      makes.set(id, (makes.get(id) ?? 0) + 1)
+      const row = r as { mix_id: string; cnt: number }
+      makes.set(row.mix_id, row.cnt)
     }
     const onsiteByMix = new Map<string, number>()
     const onsiteByShop = new Map<string, number>()

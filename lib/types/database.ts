@@ -115,6 +115,24 @@ export type MixMake = {
   created_at: string
 }
 
+/** 実体験ログ：吸った(smoked)/作ってみた(made)。同一ユーザーが同一 mix を何度でも記録可。 */
+export type ExperienceType = 'smoked' | 'made'
+export type VerificationType = 'self' | 'shop_qr' | 'admin'
+export type Verdict = 'again' | 'good' | 'ok' | 'not_for_me'
+export type MixExperience = {
+  id: string
+  user_id: string
+  mix_id: string
+  experience_type: ExperienceType
+  verification_type: VerificationType
+  verified_at: string | null
+  shop_id: string | null
+  verdict: Verdict | null
+  occurred_at: string
+  created_at: string
+  note: string | null
+}
+
 /** フレーバー練習ログ（「こする」＝繰り返し研究する非公開ノート） */
 export type FlavorLog = {
   id: number
@@ -481,7 +499,8 @@ export type Database = {
       mix_unlocks: Tbl<MixUnlock>
       notifications: Tbl<Notification>
       reports: Tbl<Report>
-      mix_makes: Tbl<MixMake>
+      mix_makes_legacy: Tbl<MixMake>
+      mix_experiences: Tbl<MixExperience>
       flavor_ratings: Tbl<FlavorRating>
       comment_likes: Tbl<CommentLike>
       flavor_logs: Tbl<FlavorLog>
@@ -512,6 +531,13 @@ export type Database = {
       notify: { Args: { p_recipient: string; p_type: string; p_mix?: string; p_comment?: string }; Returns: undefined }
       save_arbitration: { Args: { p_idea_id: number; p_summary: string }; Returns: undefined }
       refresh_national_reps: { Args: Record<string, never>; Returns: undefined }
+      mix_made_status: { Args: { p_mix: string }; Returns: { cnt: number; made: boolean }[] }
+      mix_smoke_status: {
+        Args: { p_mix: string }
+        Returns: { cnt: number; mine: boolean; my_id: string | null; my_verdict: string | null }[]
+      }
+      mix_made_counts: { Args: Record<string, never>; Returns: { mix_id: string; cnt: number }[] }
+      author_made_total: { Args: { p_author: string }; Returns: number }
       onsite_checkin: {
         Args: { p_mix_id: string; p_lat: number; p_lng: number }
         Returns: Record<string, unknown>
