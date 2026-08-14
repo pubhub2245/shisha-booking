@@ -15,18 +15,10 @@ import { Avatar } from '@/components/avatar'
 import { VerifiedBadge } from '@/components/verified-badge'
 import type { MixWithRelations } from '@/lib/types/database'
 import { InviteButton } from '@/components/invite-button'
-import { flavorLine } from '@/lib/mix'
-import { formatJaDate } from '@/lib/time'
+import { EndoLog } from '@/components/endo-log'
 
 export const dynamic = 'force-dynamic'
-export const metadata = { title: 'マイページ — 煙道' }
-
-const VERDICT_LABEL: Record<'again' | 'good' | 'ok' | 'not_for_me', string> = {
-  again: 'また吸いたい',
-  good: 'おいしい',
-  ok: '普通',
-  not_for_me: '好みではない',
-}
+export const metadata = { title: 'マイ煙道 — 煙道' }
 
 function MixGrid({
   mixes,
@@ -133,48 +125,49 @@ export default async function MyPage() {
         <Link href="/mypage/edit" className="btn btn-ghost text-sm">⚙️ 設定</Link>
       </div>
 
-      {/* ---------- 煙道帳：吸った履歴（再訪動機） ---------- */}
-      {(smokeLog.entries.length > 0 || smokeLog.smokedTotal > 0 || smokeLog.madeTotal > 0) && (
-        <section className="mt-8">
-          <div className="card card-wa p-5 sm:p-6">
-            <div className="flex flex-wrap items-baseline justify-between gap-2">
-              <h2 className="text-lg" style={{ fontWeight: 700 }}>
-                <span className="seal seal-stamp mr-2 text-xs">帳</span>煙道帳
-              </h2>
-              <span className="text-xs" style={{ color: 'var(--color-ash-dim)' }}>
-                今年 <b style={{ color: 'var(--color-cream)' }}>{smokeLog.thisYear}</b> 台 ・ 吸った {smokeLog.smokedTotal} ・ 作った {smokeLog.madeTotal} ・ 実地評価 {smokeLog.ratedTotal}
-              </span>
-            </div>
-            <div className="kaisen mt-3" aria-hidden><span className="seal-dot" /></div>
-            <ul className="mt-3 flex flex-col divide-y" style={{ borderColor: 'var(--line)' }}>
-              {smokeLog.entries.map((e, i) => (
-                <li key={`${e.kind}-${e.mix.id}-${i}`} className="flex items-center gap-3 py-2.5">
-                  <span className="w-16 shrink-0 text-xs" style={{ color: 'var(--color-ash-dim)' }}>{formatJaDate(e.at)}</span>
-                  <Link href={`/mix/${e.mix.id}`} className="min-w-0 flex-1 truncate text-sm brush-underline" style={{ fontWeight: 600 }}>
-                    {flavorLine(e.mix.mix_flavors)}
-                  </Link>
-                  {e.kind === 'rated' ? (
-                    <span className="shrink-0 text-xs" style={{ color: 'var(--color-ember-hot)', fontWeight: 700 }}>
-                      ★{e.score}{e.shopName ? ` ・ ${e.shopName}` : ''}
-                    </span>
-                  ) : e.kind === 'made' ? (
-                    <span className="shrink-0 text-xs" style={{ color: 'var(--color-ash-dim)' }}>作った</span>
-                  ) : (
-                    <span className="shrink-0 text-xs" style={{ color: 'var(--color-seal)', fontWeight: 600 }}>
-                      吸った{e.verdict ? ` ・ ${VERDICT_LABEL[e.verdict]}` : ''}
-                    </span>
-                  )}
-                </li>
-              ))}
-            </ul>
-            {smokeLog.entries.length === 0 && (
-              <p className="mt-3 text-sm" style={{ color: 'var(--color-ash)' }}>
-                「作った！」や📍実地評価をすると、ここに記録が残ります。
-              </p>
-            )}
+      {/* ---------- 煙道帳：自分のシーシャの記録（探す→吸う→残す の「残す」） ---------- */}
+      <section className="mt-8">
+        <div className="card card-wa p-5 sm:p-6">
+          <div className="flex flex-wrap items-baseline justify-between gap-2">
+            <h2 className="text-lg" style={{ fontWeight: 700 }}>
+              <span className="seal seal-stamp mr-2 text-xs">帳</span>煙道帳
+            </h2>
+            <span className="text-xs" style={{ color: 'var(--color-ash-dim)' }}>今月の煙道</span>
           </div>
-        </section>
-      )}
+
+          {/* 今月のサマリー（0件でも違和感なく出す） */}
+          <div className="mt-3 grid grid-cols-3 gap-2">
+            {[
+              { label: '吸った', value: smokeLog.month.smoked, unit: '回' },
+              { label: '作った', value: smokeLog.month.made, unit: '回' },
+              { label: 'また吸いたい', value: smokeLog.month.again, unit: '' },
+            ].map((s) => (
+              <div key={s.label} className="rounded-lg px-3 py-2.5 text-center" style={{ background: 'var(--accent-tint)' }}>
+                <div className="text-xl" style={{ fontWeight: 800, color: 'var(--color-cream)' }}>
+                  {s.value}
+                  {s.unit && <span className="ml-0.5 text-xs" style={{ fontWeight: 600, color: 'var(--color-ash-dim)' }}>{s.unit}</span>}
+                </div>
+                <div className="mt-0.5 text-xs" style={{ color: 'var(--color-ash)' }}>{s.label}</div>
+              </div>
+            ))}
+          </div>
+
+          <div className="kaisen mt-4" aria-hidden><span className="seal-dot" /></div>
+
+          {smokeLog.entries.length > 0 ? (
+            <>
+              <h3 className="mt-3 text-sm" style={{ fontWeight: 700, color: 'var(--color-ash)' }}>最近の煙道</h3>
+              <EndoLog entries={smokeLog.entries} />
+            </>
+          ) : (
+            <p className="mt-3 text-sm leading-relaxed" style={{ color: 'var(--color-ash)' }}>
+              まだ記録がありません。気になる一台を見つけて「吸った」を押すと、ここに自分の記録が積み上がっていきます。
+              <br />
+              <Link href="/" style={{ color: 'var(--color-ember-hot)', fontWeight: 600 }}>今日の一台を探す →</Link>
+            </p>
+          )}
+        </div>
+      </section>
 
       <section className="mt-8">
         <div className="mb-3 flex items-center justify-between">

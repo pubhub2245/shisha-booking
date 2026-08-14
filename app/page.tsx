@@ -114,6 +114,7 @@ export default async function Home({
               <Link href="/areas" className="chip">📍 地域別・近くの名店</Link>
               <Link href="/timeline" className="chip">🕒 タイムライン</Link>
               <Link href="/shop/new" className="chip">🏠 店舗を登録</Link>
+              {user && <Link href="/mypage" className="chip">帳 煙道帳</Link>}
             </>
           ) : (
             <>
@@ -121,6 +122,8 @@ export default async function Home({
               <Link href="/areas" className="chip">📍 近くの名店</Link>
               <Link href="/shelf" className="chip">🫙 あと1つで作れる</Link>
               <Link href="/guide" className="chip">📖 作り方ガイド</Link>
+              {/* 再訪導線：ログイン中だけ、主目的（今日の一台を探す）を邪魔しない大きさで */}
+              {user && <Link href="/mypage" className="chip">帳 煙道帳</Link>}
             </>
           )}
         </div>

@@ -296,3 +296,19 @@ export async function incrementView(mixId: string): Promise<void> {
     // best-effort
   }
 }
+
+/**
+ * 煙道帳の記録を1件だけ削除する（誤登録の取り消し）。
+ * 削除は experience 単位。同じミックスの他の履歴は消さない。RLS でも本人限定。
+ */
+export async function deleteExperience(formData: FormData): Promise<void> {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) return
+  const id = String(formData.get('experience_id') ?? '')
+  if (!id) return
+  await supabase.from('mix_experiences').delete().eq('id', id).eq('user_id', user.id)
+  revalidatePath('/mypage')
+}

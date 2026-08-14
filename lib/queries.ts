@@ -990,79 +990,149 @@ export async function getMixesUsingBrand(brand: string): Promise<MixWithRelation
 }
 
 export type SmokeLogEntry = {
+  /** experience の id（削除操作用）。実地評価には無い */
+  id: string | null
   kind: 'smoked' | 'made' | 'rated'
   mix: MixWithRelations
   at: string
   score?: number
   shopName?: string | null
   verdict?: 'again' | 'good' | 'ok' | 'not_for_me' | null
+  /** 同じミックスの何回目の体験か（1始まり）。実地評価は 0 */
+  nth: number
 }
+
+/** 今月のサマリー。同一 experience を二重計上しない。 */
+export type SmokeLogSummary = {
+  /** 吸った＝experience_type IN ('smoked','made') */
+  smoked: number
+  /** 作った＝experience_type = 'made' */
+  made: number
+  /** また吸いたい＝verdict = 'again' */
+  again: number
+}
+
 export type SmokeLog = {
   entries: SmokeLogEntry[]
-  smokedTotal: number
-  madeTotal: number
-  ratedTotal: number
-  thisYear: number
+  month: SmokeLogSummary
 }
 
 /**
- * 煙道帳：ログイン中ユーザーの「作った！」＋「実地評価」の履歴を時系列でまとめる。
- * 再訪動機（記録が溜まる）＋シェア（年間まとめ）の土台。データが無ければ空で返す。
+ * 煙道帳：ログイン中ユーザーの体験履歴（吸った/作ってみた）を occurred_at 降順の
+ * 一本のタイムラインにまとめる。実地評価は既存機能なのでそのまま混在表示する。
+ * 個票は本人のみ（RLS）。表示用データは一括取得して N+1 を避ける。
  */
 export async function getSmokeLog(limit = 40): Promise<SmokeLog> {
+  const empty: SmokeLog = { entries: [], month: { smoked: 0, made: 0, again: 0 } }
   try {
     const supabase = await createClient()
     const {
       data: { user },
     } = await supabase.auth.getUser()
-    const empty: SmokeLog = { entries: [], smokedTotal: 0, madeTotal: 0, ratedTotal: 0, thisYear: 0 }
     if (!user) return empty
-    // 吸った/作ってみた＝mix_experiences（本人分・RLS）／実地評価＝mix_onsite_ratings（従来どおり）
-    const [expRes, ratesRes] = await Promise.all([
+
+    // 今月の範囲（ローカル月初〜）
+    const now = new Date()
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString()
+
+    const [expRes, monthRes, ratesRes] = await Promise.all([
+      // タイムライン本体
       supabase
         .from('mix_experiences')
-        .select('mix_id, experience_type, verdict, occurred_at')
+        .select('id, mix_id, experience_type, verdict, occurred_at')
         .eq('user_id', user.id)
         .order('occurred_at', { ascending: false })
         .limit(limit),
+      // 今月のサマリー（件数だけ数えるので軽量な列のみ）
+      supabase
+        .from('mix_experiences')
+        .select('experience_type, verdict')
+        .eq('user_id', user.id)
+        .gte('occurred_at', monthStart),
       supabase.from('mix_onsite_ratings').select('mix_id, score, shop_id, rated_at').eq('user_id', user.id).not('rated_at', 'is', null).order('rated_at', { ascending: false }).limit(limit),
     ])
+
     const exps = (expRes.data ?? []) as {
+      id: string
       mix_id: string
       experience_type: 'smoked' | 'made'
       verdict: 'again' | 'good' | 'ok' | 'not_for_me' | null
       occurred_at: string
     }[]
     const rates = (ratesRes.data ?? []) as { mix_id: string; score: number; shop_id: string | null; rated_at: string }[]
+
+    // 今月サマリー：1 experience は「吸った」に1回だけ数える（made も吸ったに含む）
+    const month: SmokeLogSummary = { smoked: 0, made: 0, again: 0 }
+    for (const r of (monthRes.data ?? []) as { experience_type: 'smoked' | 'made'; verdict: string | null }[]) {
+      month.smoked += 1
+      if (r.experience_type === 'made') month.made += 1
+      if (r.verdict === 'again') month.again += 1
+    }
+
     const mixIds = [...new Set([...exps.map((e) => e.mix_id), ...rates.map((r) => r.mix_id)])]
-    if (mixIds.length === 0) return empty
+    if (mixIds.length === 0) return { entries: [], month }
+
     const shopIds = [...new Set(rates.map((r) => r.shop_id).filter((s): s is string => !!s))]
-    const [mixRows, shopRows] = await Promise.all([
+    const [mixRows, shopRows, allForMix] = await Promise.all([
       supabase.from('mixes').select('*').in('id', mixIds),
       shopIds.length ? supabase.from('shops').select('id, name').in('id', shopIds) : Promise.resolve({ data: [] as { id: string; name: string }[] }),
+      // 「この一台は N 回目」の算出用（表示中ミックスに限定した1クエリ）
+      supabase
+        .from('mix_experiences')
+        .select('id, mix_id, occurred_at')
+        .eq('user_id', user.id)
+        .in('mix_id', mixIds),
     ])
+
     const mixesWith = await attachRelations(supabase, (mixRows.data ?? []) as Mix[])
     const mixById = new Map(mixesWith.map((m) => [m.id, m]))
     const shopName = new Map(((shopRows.data ?? []) as { id: string; name: string }[]).map((s) => [s.id, s.name]))
+
+    // ミックスごとに古い順に並べ、experience id → 何回目 を作る
+    const nthById = new Map<string, number>()
+    const byMix = new Map<string, { id: string; occurred_at: string }[]>()
+    for (const r of (allForMix.data ?? []) as { id: string; mix_id: string; occurred_at: string }[]) {
+      const arr = byMix.get(r.mix_id) ?? []
+      arr.push({ id: r.id, occurred_at: r.occurred_at })
+      byMix.set(r.mix_id, arr)
+    }
+    for (const arr of byMix.values()) {
+      arr.sort((a, b) => (a.occurred_at < b.occurred_at ? -1 : 1))
+      arr.forEach((r, i) => nthById.set(r.id, i + 1))
+    }
+
     const entries: SmokeLogEntry[] = []
-    let smokedTotal = 0
-    let madeTotal = 0
     for (const e of exps) {
-      if (e.experience_type === 'made') madeTotal += 1
-      else smokedTotal += 1
       const mix = mixById.get(e.mix_id)
-      if (mix) entries.push({ kind: e.experience_type, mix, at: e.occurred_at, verdict: e.verdict })
+      if (mix) {
+        entries.push({
+          id: e.id,
+          kind: e.experience_type,
+          mix,
+          at: e.occurred_at,
+          verdict: e.verdict,
+          nth: nthById.get(e.id) ?? 1,
+        })
+      }
     }
     for (const r of rates) {
       const mix = mixById.get(r.mix_id)
-      if (mix) entries.push({ kind: 'rated', mix, at: r.rated_at, score: r.score, shopName: r.shop_id ? shopName.get(r.shop_id) ?? null : null })
+      if (mix) {
+        entries.push({
+          id: null,
+          kind: 'rated',
+          mix,
+          at: r.rated_at,
+          score: r.score,
+          shopName: r.shop_id ? shopName.get(r.shop_id) ?? null : null,
+          nth: 0,
+        })
+      }
     }
     entries.sort((a, b) => (a.at < b.at ? 1 : -1))
-    const year = new Date().getFullYear()
-    const thisYear = entries.filter((e) => new Date(e.at).getFullYear() === year).length
-    return { entries: entries.slice(0, limit), smokedTotal, madeTotal, ratedTotal: rates.length, thisYear }
+    return { entries: entries.slice(0, limit), month }
   } catch {
-    return { entries: [], smokedTotal: 0, madeTotal: 0, ratedTotal: 0, thisYear: 0 }
+    return empty
   }
 }
 
