@@ -133,6 +133,17 @@ export type MixExperience = {
   note: string | null
 }
 
+/** 味覚5軸：実際に吸った体験に紐づく味の強度（1体験1件・上書きしない） */
+export type TasteEvaluation = {
+  experience_id: string
+  sweetness: number | null
+  coolness: number | null
+  sourness: number | null
+  richness: number | null
+  heaviness: number | null
+  created_at: string
+}
+
 /** 推薦：運営・認証プロによる「この作り方を推薦する」記録（公式王道とは別概念） */
 export type MethodRecommendation = {
   id: string
@@ -531,6 +542,7 @@ export type Database = {
       reports: Tbl<Report>
       mix_makes_legacy: Tbl<MixMake>
       mix_experiences: Tbl<MixExperience>
+      taste_evaluations: Tbl<TasteEvaluation>
       method_recommendations: Tbl<MethodRecommendation>
       combo_orthodoxy: Tbl<ComboOrthodoxy>
       combo_orthodoxy_history: Tbl<ComboOrthodoxyHistory>
@@ -581,6 +593,17 @@ export type Database = {
       mix_made_counts: { Args: Record<string, never>; Returns: { mix_id: string; maker_count: number }[] }
       author_made_total: { Args: { p_author: string }; Returns: number }
       can_recommend: { Args: Record<string, never>; Returns: boolean }
+      mix_taste_summary: {
+        Args: { p_mix: string }
+        Returns: {
+          sweetness_avg: number | null; sweetness_count: number
+          coolness_avg: number | null; coolness_count: number
+          sourness_avg: number | null; sourness_count: number
+          richness_avg: number | null; richness_count: number
+          heaviness_avg: number | null; heaviness_count: number
+          rater_count: number
+        }[]
+      }
       certify_orthodoxy: { Args: { p_mix: string; p_combo_key?: string | null }; Returns: undefined }
       revoke_orthodoxy: { Args: { p_combo_key: string }; Returns: undefined }
       onsite_checkin: {

@@ -3,20 +3,21 @@
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { logSmoke, setExperienceVerdict } from '@/actions/social'
+import { TasteInput } from '@/components/taste-input'
 
 type Verdict = 'again' | 'good' | 'ok' | 'not_for_me'
 
 const VERDICTS: { key: Verdict; label: string }[] = [
   { key: 'again', label: 'また吸いたい' },
-  { key: 'good', label: 'おいしい' },
-  { key: 'ok', label: '普通' },
-  { key: 'not_for_me', label: '好みではない' },
+  { key: 'good', label: 'おいしかった' },
+  { key: 'ok', label: 'ふつう' },
+  { key: 'not_for_me', label: '好みではなかった' },
 ]
 
 /**
  * 「吸った」最小フロー。
  * 吸った → 記録（追記型・何度でも可）→「どうだった？」4択で満足度(verdict)を任意で残す。
- * 味覚5軸などの詳細は別途「詳しく残す」で（本コンポーネントの範囲外）。
+ * 味の印象（5軸）は任意の追加導線として最後に置く（最小フローは重くしない）。
  */
 export function SmokedButton({
   mixId,
@@ -120,6 +121,8 @@ export function SmokedButton({
               )
             })}
           </div>
+          {/* 味の印象（5軸）は任意。最小フローは「吸った→どうだった？」のまま重くしない */}
+          <TasteInput experienceId={expId} />
         </div>
       )}
     </div>

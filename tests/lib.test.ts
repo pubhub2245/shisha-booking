@@ -1,3 +1,4 @@
+import { tasteStage, tasteWords, canShowAverage } from '@/lib/taste'
 import { describe, it, expect } from 'vitest'
 import { flavorKey, comboKey, comboSlug, comboKeyFromSlug } from '@/lib/combo'
 import { mixCompleteness, completenessLevel, mixQuality } from '@/lib/quality'
@@ -228,5 +229,48 @@ describe('combo_key（STEP 5：投稿の組み合わせ判定）', () => {
     // combo_key はフレーバー種類のみで決まる（比率は mix_flavors 側に持つ）
     const k = comboKey([{ brand: 'A', name: 'x' }, { brand: 'B', name: 'y' }])
     expect(k).toBe(comboKey([{ brand: 'B', name: 'y' }, { brand: 'A', name: 'x' }]))
+  })
+})
+
+describe('味覚5軸（STEP 6）', () => {
+  const mk = (over: Partial<Record<string, { avg: number | null; count: number }>>, raters: number) => ({
+    sweetness: { avg: null, count: 0 },
+    coolness: { avg: null, count: 0 },
+    sourness: { avg: null, count: 0 },
+    richness: { avg: null, count: 0 },
+    heaviness: { avg: null, count: 0 },
+    ...over,
+    raterCount: raters,
+  }) as never
+
+  it('評価0人は表示しない', () => {
+    expect(tasteStage(mk({}, 0))).toBe('none')
+  })
+  it('1〜2人はデータ収集中（平均を断定しない）', () => {
+    expect(tasteStage(mk({ sweetness: { avg: 4.8, count: 1 } }, 1))).toBe('collecting')
+    expect(tasteStage(mk({ sweetness: { avg: 4.8, count: 2 } }, 2))).toBe('collecting')
+  })
+  it('3人以上で平均表示が可能になる', () => {
+    const s = mk({ sweetness: { avg: 4.2, count: 3 } }, 3)
+    expect(tasteStage(s)).toBe('ready')
+    expect(canShowAverage(s)).toBe(true)
+  })
+  it('母数が少ないうちは自然言語タグを出さない', () => {
+    expect(tasteWords(mk({ sweetness: { avg: 5, count: 1 } }, 1))).toEqual([])
+  })
+  it('平均から初心者向けの言葉を導く（甘め・爽快・軽め）', () => {
+    const s = mk(
+      {
+        sweetness: { avg: 4.2, count: 5 },
+        coolness: { avg: 4.5, count: 4 },
+        heaviness: { avg: 1.8, count: 3 },
+      },
+      5
+    )
+    expect(tasteWords(s)).toEqual(['甘め', '爽快', '軽め'])
+  })
+  it('未評価の軸は言葉に含めない', () => {
+    const s = mk({ sweetness: { avg: 4.5, count: 3 } }, 3)
+    expect(tasteWords(s)).toEqual(['甘め'])
   })
 })

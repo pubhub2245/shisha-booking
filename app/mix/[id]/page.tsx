@@ -11,6 +11,7 @@ import {
   getMadeStatus,
   getSmokeStatus,
   getOrthodoxyStatus,
+  getTasteSummary,
   getMixPhotos,
   getNationalRepCategories,
   getMixNames,
@@ -24,6 +25,7 @@ import { BookmarkButton } from '@/components/bookmark-button'
 import { MadeButton } from '@/components/made-button'
 import { SmokedButton } from '@/components/smoked-button'
 import { RecommendButton } from '@/components/recommend-button'
+import { TasteSummaryView } from '@/components/taste-summary'
 import { ShareBar } from '@/components/share-bar'
 import { ReportButton } from '@/components/report-button'
 import { VerifiedBadge } from '@/components/verified-badge'
@@ -117,11 +119,12 @@ export default async function MixDetail({
     isMixUnlocked(id),
   ])
   if (!mix) notFound()
-  const [related, madeStatus, smokeStatus, orthodoxy, photos, repCats, mixNames, onsite, regionRep] = await Promise.all([
+  const [related, madeStatus, smokeStatus, orthodoxy, tasteSummary, photos, repCats, mixNames, onsite, regionRep] = await Promise.all([
     getRelatedMixes(mix as MixWithRelations),
     getMadeStatus(id),
     getSmokeStatus(id),
     getOrthodoxyStatus(mix),
+    getTasteSummary(id),
     getMixPhotos(id),
     getNationalRepCategories(id),
     getMixNames(id),
@@ -147,6 +150,14 @@ export default async function MixDetail({
     ratioTotal > 0
       ? flavors.map((f) => Math.round(((Number(f.ratio) || 0) / ratioTotal) * 100)).join(' : ')
       : ''
+  // 配合は「割合(%)」として共通表示する。ratio には比率入力とg入力が混在しうるため、
+  // 元値に単位(g)を付けて断定しない（合計を100に正規化すればどちらでも正しい）。
+  const ratioPct = new Map<string, number>()
+  if (ratioTotal > 0) {
+    for (const f of flavors) {
+      if (f.ratio != null) ratioPct.set(f.id, Math.round((Number(f.ratio) / ratioTotal) * 100))
+    }
+  }
   const isOwner = !!user && user.id === mix.author_id
   const isSample = mix.author_id === null
 
@@ -430,9 +441,9 @@ export default async function MixDetail({
               <div className="flex-1">
                 <div className="flex items-baseline gap-2">
                   <span style={{ fontWeight: 700 }}>{f.name}</span>
-                  {f.ratio != null && (
+                  {ratioPct.has(f.id) && (
                     <span className="text-xs" style={{ color: 'var(--color-ember-hot)', fontWeight: 600 }}>
-                      {f.ratio}g
+                      {ratioPct.get(f.id)}%
                     </span>
                   )}
                 </div>
@@ -495,6 +506,10 @@ export default async function MixDetail({
           </div>
         </section>
       )}
+
+      {/* ---------- 味の印象（実際に吸った人の評価） ----------
+           段階開示：王道/まずこの作り方 → 配合・セットアップ → 味の印象（言葉）→ 詳しい味覚（数値） */}
+      <TasteSummaryView summary={tasteSummary} />
 
       {/* ---------- PHOTOS（工程・追加写真） ---------- */}
       {showPhotos && (

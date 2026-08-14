@@ -302,6 +302,16 @@ export async function createMix(_prev: MixFormState, formData: FormData): Promis
 
   if (flavors.length < 1) return { error: 'フレーバーを1つ以上追加してください。' }
 
+  // かんたん投稿は「どう混ぜたか」まで無いと method として弱いので配合を必須にする。
+  // 1フレーバーは自明なので 100% を自動補完。合計100は強制しない（比率でよい）。
+  if (formData.get('form_kind') === 'simple') {
+    if (flavors.length === 1) {
+      if (!(Number(flavors[0].ratio) > 0)) flavors[0].ratio = 100
+    } else if (flavors.some((f) => !(Number(f.ratio) > 0))) {
+      return { error: '2つ以上のフレーバーを使う場合は、配合を入力してください。' }
+    }
+  }
+
   await growFlavorMaster(supabase, flavors, user.id)
   const premiumFields = await parsePremium(supabase, user.id, formData)
   // 購入リンクは管理者のみ設定可
@@ -385,6 +395,16 @@ export async function updateMix(_prev: MixFormState, formData: FormData): Promis
   const heatEvents = parseHeatEvents(formData)
   const heatSetup = parseHeatSetup(formData)
   if (flavors.length < 1) return { error: 'フレーバーを1つ以上追加してください。' }
+
+  // かんたん投稿は「どう混ぜたか」まで無いと method として弱いので配合を必須にする。
+  // 1フレーバーは自明なので 100% を自動補完。合計100は強制しない（比率でよい）。
+  if (formData.get('form_kind') === 'simple') {
+    if (flavors.length === 1) {
+      if (!(Number(flavors[0].ratio) > 0)) flavors[0].ratio = 100
+    } else if (flavors.some((f) => !(Number(f.ratio) > 0))) {
+      return { error: '2つ以上のフレーバーを使う場合は、配合を入力してください。' }
+    }
+  }
 
   await growFlavorMaster(supabase, flavors, user.id)
   const premiumFields = await parsePremium(supabase, user.id, formData)

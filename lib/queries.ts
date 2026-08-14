@@ -9,7 +9,9 @@ import { REGIONS, regionOf, REGION_EMOJI, type RegionKey } from '@/lib/regions'
 import { mixSupportScore, shopSupportScore, openRankValue } from '@/lib/score'
 import { isActivelyLocked, isFullyOpen } from '@/lib/lock'
 import { jstMonthStartIso } from '@/lib/time'
+import type { TasteSummary } from '@/lib/taste'
 import type {
+  TasteEvaluation,
   MixWithRelations,
   Mix,
   MixFlavor,
@@ -1001,6 +1003,8 @@ export type SmokeLogEntry = {
   verdict?: 'again' | 'good' | 'ok' | 'not_for_me' | null
   /** 同じミックスの何回目の体験か（1始まり）。実地評価は 0 */
   nth: number
+  /** 自分が付けた味覚評価（本人のみ・無ければ null） */
+  taste?: { sweetness: number | null; coolness: number | null; sourness: number | null; richness: number | null; heaviness: number | null } | null
 }
 
 /** 今月のサマリー。同一 experience を二重計上しない。 */
@@ -1073,7 +1077,8 @@ export async function getSmokeLog(limit = 40): Promise<SmokeLog> {
     if (mixIds.length === 0) return { entries: [], month }
 
     const shopIds = [...new Set(rates.map((r) => r.shop_id).filter((s): s is string => !!s))]
-    const [mixRows, shopRows, allForMix] = await Promise.all([
+    const expIds = exps.map((e) => e.id)
+    const [mixRows, shopRows, allForMix, tasteRows] = await Promise.all([
       supabase.from('mixes').select('*').in('id', mixIds),
       shopIds.length ? supabase.from('shops').select('id, name').in('id', shopIds) : Promise.resolve({ data: [] as { id: string; name: string }[] }),
       // 「この一台は N 回目」の算出用（表示中ミックスに限定した1クエリ）
@@ -1082,6 +1087,13 @@ export async function getSmokeLog(limit = 40): Promise<SmokeLog> {
         .select('id, mix_id, occurred_at')
         .eq('user_id', user.id)
         .in('mix_id', mixIds),
+      // 自分が付けた味覚評価（RLSで本人分のみ）。1クエリでまとめて引く
+      expIds.length
+        ? supabase
+            .from('taste_evaluations')
+            .select('experience_id, sweetness, coolness, sourness, richness, heaviness')
+            .in('experience_id', expIds)
+        : Promise.resolve({ data: [] }),
     ])
 
     const mixesWith = await attachRelations(supabase, (mixRows.data ?? []) as Mix[])
@@ -1101,6 +1113,17 @@ export async function getSmokeLog(limit = 40): Promise<SmokeLog> {
       arr.forEach((r, i) => nthById.set(r.id, i + 1))
     }
 
+    const tasteByExp = new Map<string, SmokeLogEntry['taste']>()
+    for (const t of tasteRows.data ?? []) {
+      tasteByExp.set(t.experience_id, {
+        sweetness: t.sweetness ?? null,
+        coolness: t.coolness ?? null,
+        sourness: t.sourness ?? null,
+        richness: t.richness ?? null,
+        heaviness: t.heaviness ?? null,
+      })
+    }
+
     const entries: SmokeLogEntry[] = []
     for (const e of exps) {
       const mix = mixById.get(e.mix_id)
@@ -1112,6 +1135,7 @@ export async function getSmokeLog(limit = 40): Promise<SmokeLog> {
           at: e.occurred_at,
           verdict: e.verdict,
           nth: nthById.get(e.id) ?? 1,
+          taste: tasteByExp.get(e.id) ?? null,
         })
       }
     }
@@ -2353,5 +2377,54 @@ export async function getRecommendedMethods(): Promise<RecommendedMethod[]> {
       .sort((a, b) => b.recommendCount - a.recommendCount)
   } catch {
     return []
+  }
+}
+
+// ---------------------------------------------------------------
+// 味覚5軸（STEP 6）。公開表示は集計値のみ（個票・user_id は返さない）。
+// ---------------------------------------------------------------
+
+const EMPTY_TASTE: TasteSummary = {
+  sweetness: { avg: null, count: 0 },
+  coolness: { avg: null, count: 0 },
+  sourness: { avg: null, count: 0 },
+  richness: { avg: null, count: 0 },
+  heaviness: { avg: null, count: 0 },
+  raterCount: 0,
+}
+
+/** mix(method)単位の味覚平均と軸ごとの母数。combo単位では集計しない。 */
+export async function getTasteSummary(mixId: string): Promise<TasteSummary> {
+  try {
+    const supabase = await createClient()
+    const { data } = await supabase.rpc('mix_taste_summary', { p_mix: mixId })
+    const r = data?.[0]
+    if (!r) return EMPTY_TASTE
+    const n = (v: number | null) => (v == null ? null : Number(v))
+    return {
+      sweetness: { avg: n(r.sweetness_avg), count: r.sweetness_count ?? 0 },
+      coolness: { avg: n(r.coolness_avg), count: r.coolness_count ?? 0 },
+      sourness: { avg: n(r.sourness_avg), count: r.sourness_count ?? 0 },
+      richness: { avg: n(r.richness_avg), count: r.richness_count ?? 0 },
+      heaviness: { avg: n(r.heaviness_avg), count: r.heaviness_count ?? 0 },
+      raterCount: r.rater_count ?? 0,
+    }
+  } catch {
+    return EMPTY_TASTE
+  }
+}
+
+/** ある体験に自分が付けた味覚評価（本人のみ・RLS） */
+export async function getMyTasteEvaluation(experienceId: string): Promise<TasteEvaluation | null> {
+  try {
+    const supabase = await createClient()
+    const { data } = await supabase
+      .from('taste_evaluations')
+      .select('*')
+      .eq('experience_id', experienceId)
+      .maybeSingle()
+    return (data as TasteEvaluation | null) ?? null
+  } catch {
+    return null
   }
 }

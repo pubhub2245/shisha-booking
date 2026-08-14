@@ -3,6 +3,9 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { deleteExperience } from '@/actions/social'
+import { deleteTasteEvaluation } from '@/actions/taste'
+import { TasteInput } from '@/components/taste-input'
+import { TASTE_AXES } from '@/lib/taste'
 import { flavorLine } from '@/lib/mix'
 import { formatJaDate } from '@/lib/time'
 import type { SmokeLogEntry } from '@/lib/queries'
@@ -42,6 +45,7 @@ function KindLabel({ entry }: { entry: SmokeLogEntry }) {
 export function EndoLog({ entries }: { entries: SmokeLogEntry[] }) {
   const [filter, setFilter] = useState<Filter>('all')
   const [confirmId, setConfirmId] = useState<string | null>(null)
+  const [editTasteId, setEditTasteId] = useState<string | null>(null)
 
   const shown = entries.filter((e) => {
     if (filter === 'all') return true
@@ -109,6 +113,41 @@ export function EndoLog({ entries }: { entries: SmokeLogEntry[] }) {
                       </span>
                     )}
                   </div>
+
+                  {/* 自分が付けた味覚評価（本人のみ表示） */}
+                  {e.id && e.taste && (
+                    <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1">
+                      <span className="text-xs" style={{ color: 'var(--color-ash-dim)' }}>
+                        {TASTE_AXES.filter((a) => e.taste?.[a.key] != null)
+                          .map((a) => `${a.label} ${e.taste?.[a.key]}`)
+                          .join(' / ')}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setEditTasteId(editTasteId === e.id ? null : e.id)}
+                        className="text-xs underline underline-offset-2"
+                        style={{ color: 'var(--color-ash-dim)' }}
+                      >
+                        編集
+                      </button>
+                      <form action={deleteTasteEvaluation}>
+                        <input type="hidden" name="experience_id" value={e.id} />
+                        <button type="submit" className="text-xs underline underline-offset-2" style={{ color: 'var(--color-ash-dim)' }}>
+                          味覚を削除
+                        </button>
+                      </form>
+                    </div>
+                  )}
+                  {e.id && !e.taste && e.kind !== 'rated' && (
+                    <button
+                      type="button"
+                      onClick={() => setEditTasteId(editTasteId === e.id ? null : e.id)}
+                      className="mt-1 text-xs underline underline-offset-2"
+                      style={{ color: 'var(--color-ash-dim)' }}
+                    >
+                      味の印象を残す
+                    </button>
+                  )}
                 </div>
                 {e.id && (
                   <button
@@ -122,6 +161,17 @@ export function EndoLog({ entries }: { entries: SmokeLogEntry[] }) {
                   </button>
                 )}
               </div>
+
+              {e.id && editTasteId === e.id && (
+                <div className="ml-16">
+                  <TasteInput
+                    experienceId={e.id}
+                    initial={Object.fromEntries(
+                      TASTE_AXES.filter((a) => e.taste?.[a.key] != null).map((a) => [a.key, e.taste![a.key]!])
+                    )}
+                  />
+                </div>
+              )}
 
               {/* 誤タップで消えないよう、確認を挟んでから削除する */}
               {e.id && confirmId === e.id && (
