@@ -94,7 +94,7 @@ export async function SiteHeader() {
               <Link
                 href="/mypage"
                 className="hidden max-w-[9rem] truncate text-sm transition-colors hover:text-[var(--color-ember-hot)] md:inline-block"
-                title={displayName}
+                title={`マイ煙道（${displayName}）`}
               >
                 {user.profile?.username ? `@${user.profile.username}` : displayName}
               </Link>

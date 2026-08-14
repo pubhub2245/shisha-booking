@@ -2464,3 +2464,34 @@ export async function getAuthorEndoStats(authorId: string): Promise<AuthorEndoSt
     return empty
   }
 }
+
+/** 公式王道の一覧（combo_orthodoxy が source of truth）。認定順に新しいものから。 */
+export type OrthodoxEntry = { mix: MixWithRelations; comboKey: string; certifiedAt: string }
+
+export async function getOrthodoxList(limit = 60): Promise<OrthodoxEntry[]> {
+  try {
+    const supabase = await createClient()
+    const { data } = await supabase
+      .from('combo_orthodoxy')
+      .select('combo_key, mix_id, certified_at')
+      .order('certified_at', { ascending: false })
+      .limit(limit)
+    const rows = (data ?? []) as { combo_key: string; mix_id: string; certified_at: string }[]
+    if (rows.length === 0) return []
+    const { data: mixRows } = await supabase
+      .from('mixes')
+      .select('*')
+      .in('id', rows.map((r) => r.mix_id))
+      .eq('hidden', false)
+    const withRel = await attachRelations(supabase, (mixRows ?? []) as Mix[])
+    const byId = new Map(withRel.map((m) => [m.id, m]))
+    return rows
+      .map((r) => {
+        const mix = byId.get(r.mix_id)
+        return mix ? { mix, comboKey: r.combo_key, certifiedAt: r.certified_at } : null
+      })
+      .filter((x): x is OrthodoxEntry => !!x)
+  } catch {
+    return []
+  }
+}
