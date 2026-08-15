@@ -4,8 +4,7 @@ import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { logSmoke, setExperienceVerdict } from '@/actions/social'
 import { TasteInput } from '@/components/taste-input'
-
-type Verdict = 'again' | 'good' | 'ok' | 'not_for_me'
+import { trackEvent, type Verdict } from '@/lib/analytics'
 
 const VERDICTS: { key: Verdict; label: string }[] = [
   { key: 'again', label: 'また吸いたい' },
@@ -59,6 +58,8 @@ export function SmokedButton({
         setExpId(res.id)
         setCount(res.count)
         setVerdict(null)
+        // nth はこのユーザー×この mix の「吸った」通算（作ったとは別勘定）
+        trackEvent('smoked', { mix_id: mixId, nth: res.nth })
       }
     })
   }
@@ -72,6 +73,7 @@ export function SmokedButton({
       const res = await setExperienceVerdict(expId, v)
       setSavingVerdict(null)
       if ('error' in res) setVerdict(prev)
+      else trackEvent('verdict_set', { mix_id: mixId, verdict: v })
     })
   }
 
@@ -123,7 +125,7 @@ export function SmokedButton({
             })}
           </div>
           {/* 味の印象（5軸）は任意。最小フローは「吸った→どうだった？」のまま重くしない */}
-          <TasteInput experienceId={expId} />
+          <TasteInput experienceId={expId} mixId={mixId} />
         </div>
       )}
     </div>

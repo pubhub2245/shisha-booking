@@ -3,6 +3,7 @@
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { toggleBookmark } from '@/actions/social'
+import { trackEvent } from '@/lib/analytics'
 
 export function BookmarkButton({
   mixId,
@@ -26,8 +27,13 @@ export function BookmarkButton({
     setSaved(next)
     startTransition(async () => {
       const res = await toggleBookmark(mixId)
-      if ('error' in res) setSaved(!next)
-      else setSaved(res.saved)
+      if ('error' in res) {
+        setSaved(!next)
+        return
+      }
+      setSaved(res.saved)
+      // 書き込みが成功したときだけ計測する（保存＝save / 解除＝unsave）
+      trackEvent(res.saved ? 'save' : 'unsave', { mix_id: mixId })
     })
   }
 

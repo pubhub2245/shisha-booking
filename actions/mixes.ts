@@ -9,6 +9,7 @@ import { normalizePrice, LOCKABLE_SECTIONS } from '@/lib/premium'
 import { MIX_DISPLAY_SECTION_KEYS } from '@/lib/mix-sections'
 import { ALL_TASTE_TAGS } from '@/lib/tags'
 import { isValidMixPhotoUrl } from '@/lib/storage'
+import { trackServerEvent } from '@/lib/analytics-server'
 
 /** 味わいタグ（選択式）をマスタに照合してパース */
 function parseTasteTags(formData: FormData): string[] {
@@ -362,6 +363,11 @@ export async function createMix(_prev: MixFormState, formData: FormData): Promis
   }
 
   revalidatePath('/')
+  // 計測（PIIなし：フォーム種別とフレーバー数のみ）。redirect は throw するので手前で送る。
+  await trackServerEvent('method_posted', {
+    mode: formData.get('form_kind') === 'simple' ? 'simple' : 'detailed',
+    flavor_count: flavors.length,
+  })
   // 投稿直後は「図鑑に追加された」ことが伝わる状態で詳細へ送る
   redirect(`/mix/${mix.id}?posted=1`)
 }

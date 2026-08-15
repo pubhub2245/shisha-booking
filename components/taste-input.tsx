@@ -3,6 +3,7 @@
 import { useState, useTransition } from 'react'
 import { saveTasteEvaluation } from '@/actions/taste'
 import { TASTE_AXES, type TasteAxis } from '@/lib/taste'
+import { trackEvent } from '@/lib/analytics'
 
 type Values = Partial<Record<TasteAxis, number>>
 
@@ -12,10 +13,13 @@ type Values = Partial<Record<TasteAxis, number>>
  */
 export function TasteInput({
   experienceId,
+  mixId,
   initial,
   onSaved,
 }: {
   experienceId: string
+  /** 計測用。味覚の実値は送らず、入力された軸数だけを送る */
+  mixId: string
   initial?: Values
   onSaved?: () => void
 }) {
@@ -40,6 +44,11 @@ export function TasteInput({
       if ('error' in res) setError(res.error)
       else {
         setSaved(true)
+        // 味の実値は Analytics へ送らない。入力された軸数(1〜5)だけを送る。
+        trackEvent('taste_submitted', {
+          mix_id: mixId,
+          axes: Object.values(values).filter((v) => v != null).length,
+        })
         onSaved?.()
       }
     })
