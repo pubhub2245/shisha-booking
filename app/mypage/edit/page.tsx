@@ -1,8 +1,6 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { getCurrentUser } from '@/lib/auth'
-import { resolveMode } from '@/lib/mode'
-import { ModeToggle } from '@/components/mode-toggle'
 import { signOut } from '@/actions/auth'
 import { getMyProApplication, getMyShops } from '@/lib/queries'
 import { ProfileForm } from '../profile-form'
@@ -16,7 +14,6 @@ export default async function ProfileEditPage() {
   if (!user) redirect('/login?next=/mypage/edit')
 
   const [proApp, myShops] = await Promise.all([getMyProApplication(), getMyShops()])
-  const mode = resolveMode(user.profile)
 
   return (
     <div className="wrap max-w-2xl py-10">
@@ -27,29 +24,6 @@ export default async function ProfileEditPage() {
       <section className="mt-8">
         <h2 className="text-sm" style={{ fontWeight: 700, color: 'var(--color-ash)' }}>プロフィール</h2>
         <ProfileForm profile={user.profile} />
-      </section>
-
-      {/* 表示モード */}
-      <section className="mt-10">
-        <h2 className="text-sm" style={{ fontWeight: 700, color: 'var(--color-ash)' }}>表示の詳しさ</h2>
-        <div className="card mt-2 flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <p className="text-sm" style={{ fontWeight: 700 }}>
-              {mode === 'pro' ? '詳細表示' : 'シンプル表示'}
-            </p>
-            <p className="mt-1 text-xs" style={{ color: 'var(--color-ash-dim)' }}>
-              {mode === 'pro'
-                ? '熱管理・器具・蒸らし・ランキングまで最初から全部表示します。'
-                : 'まずは王道と味わい中心。詳しい作り方は各ページで「詳しく見る」から開けます。'}
-              <br />※腕前ではなく<b>見せる情報量</b>の設定です。
-            </p>
-          </div>
-          {mode === 'pro' ? (
-            <ModeToggle target="simple" label="シンプル表示にする" className="btn btn-ghost shrink-0 text-sm" />
-          ) : (
-            <ModeToggle target="pro" label="詳細表示にする" className="btn btn-ember shrink-0 text-sm" />
-          )}
-        </div>
       </section>
 
       {/* プロ認証 */}

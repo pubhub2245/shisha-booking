@@ -1,8 +1,6 @@
 import Link from 'next/link'
 import { getCurrentUser } from '@/lib/auth'
 import { getUnreadNotificationCount } from '@/lib/queries'
-import { resolveMode } from '@/lib/mode'
-import { ModeSwitch } from '@/components/mode-switch'
 import { signOut } from '@/actions/auth'
 import { BRAND } from '@/lib/site'
 
@@ -10,8 +8,6 @@ export async function SiteHeader() {
   const user = await getCurrentUser()
   const displayName = user?.profile?.display_name || user?.profile?.username || user?.email?.split('@')[0]
   const unread = user ? await getUnreadNotificationCount() : 0
-  const mode = resolveMode(user?.profile)
-  const isPro = mode === 'pro'
 
   return (
     <header
@@ -52,16 +48,11 @@ export async function SiteHeader() {
           {/* ランキング系（王道/地域別/人気）は王道ページ上部のタブで束ねる */}
           <Link href="/national" className="brush-underline transition-colors hover:text-[var(--color-cream)]" style={{ fontWeight: 700 }}>王道</Link>
           <Link href="/flavors" className="brush-underline transition-colors hover:text-[var(--color-cream)]">フレーバー</Link>
-          {/* プロは深掘り導線、初心者は学習導線 */}
-          {isPro ? (
-            user && <Link href="/shelf" className="brush-underline transition-colors hover:text-[var(--color-cream)]">マイフレーバー</Link>
-          ) : (
-            <Link href="/guide" className="brush-underline transition-colors hover:text-[var(--color-cream)]">作り方</Link>
-          )}
+          <Link href="/guide" className="brush-underline transition-colors hover:text-[var(--color-cream)]">作り方</Link>
+          {user && <Link href="/shelf" className="brush-underline transition-colors hover:text-[var(--color-cream)]">マイフレーバー</Link>}
         </nav>
 
         <div className="flex items-center gap-3">
-          {user && <ModeSwitch mode={mode} />}
           <Link
             href="/search"
             aria-label="検索"

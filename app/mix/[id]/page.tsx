@@ -47,7 +47,6 @@ import { PinButton } from '@/components/pin-button'
 import { MixNaming } from '@/components/mix-naming'
 import { OnsiteRating } from '@/components/onsite-rating'
 import { SectionTabs, type SectionTab } from '@/components/section-tabs'
-import { resolveMode } from '@/lib/mode'
 import { unlockPassed, isActivelyLocked } from '@/lib/lock'
 import { SITE_URL, BRAND } from '@/lib/site'
 import { goHref } from '@/lib/go'
@@ -141,8 +140,6 @@ export default async function MixDetail({
   const repLabel = repCats.join('・')
   // 公募ネーミングの現愛称（最多得票・1票以上）
   const nickname = mixNames.length > 0 && mixNames[0].votes > 0 ? mixNames[0].name : null
-  // 初心者モードでは作り方ノート（熱管理・器具）を折りたたむ
-  const mode = resolveMode(user?.profile)
 
   const flavors = mix.mix_flavors ?? []
   // 配合を「60 : 40」の形に正規化（比率入力でもグラム入力でも同じ結果）
@@ -542,12 +539,12 @@ export default async function MixDetail({
       {/* ---------- BREW NOTES ---------- */}
       {showBrew && (
         <section className="mt-8">
-          <details open={mode !== 'simple'}>
+          {/* 段階開示：結論（まずこの作り方）を見たあと、知りたい人だけが深く潜る。
+              ユーザーの属性や設定で出し分けない——同じ一台を、知りたい深さで掘れるようにする。 */}
+          <details>
             <summary className="mb-3 cursor-pointer list-none text-sm eyebrow" style={{ color: 'var(--color-ash-dim)' }}>
               How to make — 作り方ノート
-              {mode === 'simple' && (
-                <span style={{ color: 'var(--color-ember-hot)', fontWeight: 700 }}>　▼ 熱管理・器具など詳しい設定を見る</span>
-              )}
+              <span style={{ color: 'var(--color-ember-hot)', fontWeight: 700 }}>　▼ 熱管理・器具など詳しい設定を見る</span>
             </summary>
 
           {hasSetup &&
