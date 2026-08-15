@@ -108,12 +108,15 @@ export async function toggleBookmark(mixId: string): Promise<{ saved: boolean } 
     .eq('user_id', user.id)
     .maybeSingle()
 
+  // 計測（save / unsave）が「成功時のみ」発火できるよう、書き込み結果を確認して返す。
   let saved: boolean
   if (existing) {
-    await supabase.from('bookmarks').delete().eq('mix_id', mixId).eq('user_id', user.id)
+    const { error } = await supabase.from('bookmarks').delete().eq('mix_id', mixId).eq('user_id', user.id)
+    if (error) return { error: '保存の解除に失敗しました。' }
     saved = false
   } else {
-    await supabase.from('bookmarks').insert({ mix_id: mixId, user_id: user.id })
+    const { error } = await supabase.from('bookmarks').insert({ mix_id: mixId, user_id: user.id })
+    if (error) return { error: '保存に失敗しました。' }
     saved = true
   }
   revalidatePath('/mypage')
@@ -154,7 +157,9 @@ export async function toggleFollow(targetId: string): Promise<{ following: boole
  * made も履歴なので、再実行しても過去の made 記録は削除しない（取り消しは煙道帳からの明示削除のみ）。
  * 通知は初回のみ（連投で作者に通知が飛び続けないように）。
  */
-export async function logMadeExperience(mixId: string): Promise<{ made: boolean; count: number } | { error: string }> {
+export async function logMadeExperience(
+  mixId: string
+): Promise<{ made: boolean; count: number; nth: number } | { error: string }> {
   const supabase = await createClient()
   const {
     data: { user },
@@ -187,8 +192,15 @@ export async function logMadeExperience(mixId: string): Promise<{ made: boolean;
 
   const { data: status } = await supabase.rpc('mix_made_status', { p_mix: mixId })
   const count = status?.[0]?.maker_count ?? 0
+  // nth＝そのユーザー×mix の「作った」通算（今回の1件を含む）。吸ったとは別に数える。
+  const { count: madeCount } = await supabase
+    .from('mix_experiences')
+    .select('id', { count: 'exact', head: true })
+    .eq('mix_id', mixId)
+    .eq('user_id', user.id)
+    .eq('experience_type', 'made')
   revalidatePath(`/mix/${mixId}`)
-  return { made: true, count }
+  return { made: true, count, nth: madeCount ?? 1 }
 }
 
 
@@ -199,7 +211,7 @@ export async function logMadeExperience(mixId: string): Promise<{ made: boolean;
 export async function logSmoke(
   mixId: string,
   verdict?: 'again' | 'good' | 'ok' | 'not_for_me'
-): Promise<{ id: string; count: number } | { error: string }> {
+): Promise<{ id: string; count: number; nth: number } | { error: string }> {
   const supabase = await createClient()
   const {
     data: { user },
@@ -220,8 +232,15 @@ export async function logSmoke(
 
   const { data: status } = await supabase.rpc('mix_smoke_status', { p_mix: mixId })
   const count = status?.[0]?.smoke_count ?? 0
+  // nth＝そのユーザー×mix の「吸った」通算（今回の1件を含む）。作ったとは別に数える。
+  const { count: smokedCount } = await supabase
+    .from('mix_experiences')
+    .select('id', { count: 'exact', head: true })
+    .eq('mix_id', mixId)
+    .eq('user_id', user.id)
+    .eq('experience_type', 'smoked')
   revalidatePath(`/mix/${mixId}`)
-  return { id: row.id as string, count }
+  return { id: row.id as string, count, nth: smokedCount ?? 1 }
 }
 
 /** 「どうだった？」——直近の吸った記録に満足度(verdict)を付ける（本人のみ）。 */

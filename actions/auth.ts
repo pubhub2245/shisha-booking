@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { headers } from 'next/headers'
+import { trackServerEvent } from '@/lib/analytics-server'
 
 export type AuthState = { error: string } | { notice: string } | null
 
@@ -59,6 +60,9 @@ export async function signUp(_prev: AuthState, formData: FormData): Promise<Auth
   if (data.user && (data.user.identities?.length ?? 0) === 0) {
     return { error: 'このメールアドレスは既に登録済みです。ログインしてください（パスワードをお忘れの場合は再設定できます）。' }
   }
+
+  // 計測（PIIなし）。email / username / display_name は一切送らない。
+  await trackServerEvent('signup', {})
 
   // メール確認が必須の場合、session は発行されない → 確認を促す
   if (!data.session) {

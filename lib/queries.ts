@@ -9,6 +9,7 @@ import { REGIONS, regionOf, REGION_EMOJI, type RegionKey } from '@/lib/regions'
 import { mixSupportScore, shopSupportScore, openRankValue } from '@/lib/score'
 import { isActivelyLocked, isFullyOpen } from '@/lib/lock'
 import { jstMonthStartIso } from '@/lib/time'
+import { buildNthMap, type ExperienceRow } from '@/lib/endo-log'
 import type { TasteSummary } from '@/lib/taste'
 import type {
   TasteEvaluation,
@@ -1001,7 +1002,12 @@ export type SmokeLogEntry = {
   score?: number
   shopName?: string | null
   verdict?: 'again' | 'good' | 'ok' | 'not_for_me' | null
-  /** 同じミックスの何回目の体験か（1始まり）。実地評価は 0 */
+  /**
+   * 同じミックスを「その種別で」何回目に記録したか（1始まり）。実地評価は 0。
+   * smoked は smoked のみ、made は made のみで通算する（吸った2回＋作った1回 →
+   * 2回目の smoked は「吸った 2回目」、made は「作った 1回目」）。
+   * ※ 今月サマリーの「吸った」は仕様どおり smoked + made のまま（下の SmokeLogSummary）。
+   */
   nth: number
   /** 自分が付けた味覚評価（本人のみ・無ければ null） */
   taste?: { sweetness: number | null; coolness: number | null; sourness: number | null; richness: number | null; heaviness: number | null } | null
@@ -1081,10 +1087,11 @@ export async function getSmokeLog(limit = 40): Promise<SmokeLog> {
     const [mixRows, shopRows, allForMix, tasteRows] = await Promise.all([
       supabase.from('mixes').select('*').in('id', mixIds),
       shopIds.length ? supabase.from('shops').select('id, name').in('id', shopIds) : Promise.resolve({ data: [] as { id: string; name: string }[] }),
-      // 「この一台は N 回目」の算出用（表示中ミックスに限定した1クエリ）
+      // 「この一台は N 回目」の算出用（表示中ミックスに限定した1クエリ）。
+      // 種別ごとに通算するので experience_type も取る。
       supabase
         .from('mix_experiences')
-        .select('id, mix_id, occurred_at')
+        .select('id, mix_id, experience_type, occurred_at')
         .eq('user_id', user.id)
         .in('mix_id', mixIds),
       // 自分が付けた味覚評価（RLSで本人分のみ）。1クエリでまとめて引く
@@ -1100,18 +1107,9 @@ export async function getSmokeLog(limit = 40): Promise<SmokeLog> {
     const mixById = new Map(mixesWith.map((m) => [m.id, m]))
     const shopName = new Map(((shopRows.data ?? []) as { id: string; name: string }[]).map((s) => [s.id, s.name]))
 
-    // ミックスごとに古い順に並べ、experience id → 何回目 を作る
-    const nthById = new Map<string, number>()
-    const byMix = new Map<string, { id: string; occurred_at: string }[]>()
-    for (const r of (allForMix.data ?? []) as { id: string; mix_id: string; occurred_at: string }[]) {
-      const arr = byMix.get(r.mix_id) ?? []
-      arr.push({ id: r.id, occurred_at: r.occurred_at })
-      byMix.set(r.mix_id, arr)
-    }
-    for (const arr of byMix.values()) {
-      arr.sort((a, b) => (a.occurred_at < b.occurred_at ? -1 : 1))
-      arr.forEach((r, i) => nthById.set(r.id, i + 1))
-    }
+    // ミックス×種別ごとに古い順に並べ、experience id → その種別で何回目 を作る。
+    // 「吸った」と「作った」は別々に数える（吸った2回・作った1回 → 作ったは「1回目」）。
+    const nthById = buildNthMap((allForMix.data ?? []) as ExperienceRow[])
 
     const tasteByExp = new Map<string, SmokeLogEntry['taste']>()
     for (const t of tasteRows.data ?? []) {
@@ -1391,15 +1389,8 @@ export async function getNationalTeam(): Promise<NationalRep[]> {
   }
 }
 
-/** 代表スナップショットを再計算し、変化があれば投稿者へ通知する（best-effort）。 */
-export async function refreshNationalReps(): Promise<void> {
-  try {
-    const supabase = await createClient()
-    await supabase.rpc('refresh_national_reps')
-  } catch {
-    // best-effort（表示は getNationalTeam が常に最新を計算するため影響なし）
-  }
-}
+// refresh_national_reps() は運営（service_role）専用の内部運用 RPC になったため、
+// アプリ側のラッパは削除した（呼び出し箇所は元々0件。表示は getNationalTeam が都度計算する）。
 
 /** 作り手の実績サマリー（プロフィールの"作品集"表示用）。 */
 export async function getAuthorStats(

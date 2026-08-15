@@ -216,7 +216,7 @@ export default async function MixDetail({
             .replace(/&/g, '\\u0026')
         }}
       />
-      <ViewTracker mixId={mix.id} />
+      <ViewTracker mixId={mix.id} comboKey={mix.combo_key} />
       <div className="flex items-center justify-between">
         <Link href="/" className="text-sm" style={{ color: 'var(--color-ash-dim)' }}>
           ← 図鑑にもどる

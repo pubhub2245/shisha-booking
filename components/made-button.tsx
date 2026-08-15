@@ -3,6 +3,7 @@
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { logMadeExperience } from '@/actions/social'
+import { trackEvent } from '@/lib/analytics'
 
 /**
  * 「作った」ボタン（experience_type='made'＝この作り方を再現した履歴）。
@@ -42,6 +43,8 @@ export function MadeButton({
       } else {
         setMade(res.made)
         setCount(res.count)
+        // nth はこのユーザー×この mix の「作った」通算（吸ったとは別勘定）
+        trackEvent('made', { mix_id: mixId, nth: res.nth })
       }
     })
   }

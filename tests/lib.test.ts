@@ -15,6 +15,7 @@ import {
 import { withAffiliateTag, AFFILIATE_TAG } from '@/lib/affiliate'
 import { goHref } from '@/lib/go'
 import { relativeTime, formatJaDate, jstMonthStartIso } from '@/lib/time'
+import { buildNthMap, type ExperienceRow } from '@/lib/endo-log'
 
 describe('combo', () => {
   it('flavorKey normalizes brand/name (trim + lowercase)', () => {
@@ -272,5 +273,38 @@ describe('味覚5軸（STEP 6）', () => {
   it('未評価の軸は言葉に含めない', () => {
     const s = mk({ sweetness: { avg: 4.5, count: 3 } }, 3)
     expect(tasteWords(s)).toEqual(['甘め'])
+  })
+})
+
+describe('煙道帳のN回目（種別ごとに通算）', () => {
+  const rows: ExperienceRow[] = [
+    { id: 's1', mix_id: 'A', experience_type: 'smoked', occurred_at: '2026-08-01T00:00:00Z' },
+    { id: 'm1', mix_id: 'A', experience_type: 'made', occurred_at: '2026-08-02T00:00:00Z' },
+    { id: 's2', mix_id: 'A', experience_type: 'smoked', occurred_at: '2026-08-03T00:00:00Z' },
+  ]
+
+  it('smokedはsmokedのみ、madeはmadeのみで数える', () => {
+    const nth = buildNthMap(rows)
+    expect(nth.get('s1')).toBe(1)
+    expect(nth.get('s2')).toBe(2) // 間に made が挟まっても「吸った 2回目」
+    expect(nth.get('m1')).toBe(1) // made は「作った 1回目」
+  })
+
+  it('mixが違えば別カウント', () => {
+    const nth = buildNthMap([
+      ...rows,
+      { id: 's3', mix_id: 'B', experience_type: 'smoked', occurred_at: '2026-08-04T00:00:00Z' },
+    ])
+    expect(nth.get('s3')).toBe(1)
+  })
+
+  it('occurred_atが同時刻でも順序が安定する', () => {
+    const same: ExperienceRow[] = [
+      { id: 'b', mix_id: 'A', experience_type: 'smoked', occurred_at: '2026-08-01T00:00:00Z' },
+      { id: 'a', mix_id: 'A', experience_type: 'smoked', occurred_at: '2026-08-01T00:00:00Z' },
+    ]
+    const nth = buildNthMap(same)
+    expect(nth.get('a')).toBe(1)
+    expect(nth.get('b')).toBe(2)
   })
 })

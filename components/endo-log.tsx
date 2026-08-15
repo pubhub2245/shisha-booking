@@ -106,8 +106,12 @@ export function EndoLog({ entries }: { entries: SmokeLogEntry[] }) {
                         {VERDICT_LABEL[e.verdict]}
                       </span>
                     )}
-                    {/* 同じ一台を繰り返し吸うのは「重複」ではなく好み・習慣として見せる */}
-                    {e.nth > 1 && (
+                    {/*
+                      同じ一台を繰り返すのは「重複」ではなく好み・習慣として見せる。
+                      通算は種別ごと（吸った＝smokedのみ／作った＝madeのみ）。
+                      例）吸った2回・作った1回 → 2回目の吸ったは「吸った 2回目」、作ったは「作った 1回目」
+                    */}
+                    {e.kind !== 'rated' && e.nth >= 1 && (
                       <span className="text-xs" style={{ color: 'var(--color-ash-dim)' }}>
                         {e.nth}回目
                       </span>
@@ -166,6 +170,7 @@ export function EndoLog({ entries }: { entries: SmokeLogEntry[] }) {
                 <div className="ml-16">
                   <TasteInput
                     experienceId={e.id}
+                    mixId={e.mix.id}
                     initial={Object.fromEntries(
                       TASTE_AXES.filter((a) => e.taste?.[a.key] != null).map((a) => [a.key, e.taste![a.key]!])
                     )}
