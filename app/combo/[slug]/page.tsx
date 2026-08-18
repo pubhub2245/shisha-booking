@@ -7,6 +7,7 @@ import { MixCard } from '@/components/mix-card'
 import { HeatCurveChart, type CurveSeries } from '@/components/heat-curve-chart'
 import { CURVE_COLORS } from '@/lib/heat'
 import { THEME_PATH, isThemeCombo } from '@/lib/theme'
+import { isSectionLocked } from '@/lib/lock'
 
 export const dynamic = 'force-dynamic'
 
@@ -46,9 +47,8 @@ export default async function ComboPage({ params }: { params: Promise<{ slug: st
 
   // 有料ノートで熱カーブがロックされている作り方は、権利のない閲覧者には比較に含めない（漏洩防止）
   const canSeeCurve = (m: (typeof combo.methods)[number]) => {
-    const locked = m.premium && (m.locked_sections ?? []).includes('heat_curve')
-    if (!locked) return true
-    return m.author_id === user?.id || !!user?.profile?.is_admin || unlockedIds.has(m.id)
+    const entitled = m.author_id === user?.id || !!user?.profile?.is_admin || unlockedIds.has(m.id)
+    return !isSectionLocked(m, 'heat_curve', entitled)
   }
 
   // 熱カーブ比較（2件以上に曲線があるとき）

@@ -6,6 +6,7 @@ import { redirect } from 'next/navigation'
 import type { HeatPoint, HeatEvent } from '@/lib/types/database'
 import { comboKey } from '@/lib/combo'
 import { normalizePrice, LOCKABLE_SECTIONS } from '@/lib/premium'
+import { LOCK_FEATURE_ENABLED } from '@/lib/lock'
 import { MIX_DISPLAY_SECTION_KEYS } from '@/lib/mix-sections'
 import { ALL_TASTE_TAGS } from '@/lib/tags'
 import { isValidMixPhotoUrl } from '@/lib/storage'
@@ -233,6 +234,8 @@ async function parsePremium(
   userId: string,
   formData: FormData
 ): Promise<{ premium: boolean; price: number | null; locked_sections: string[] }> {
+  // ロック機能を非表示にしている間は、フォームから何が来ても有料にしない（lib/lock.ts）
+  if (!LOCK_FEATURE_ENABLED) return { premium: false, price: null, locked_sections: [] }
   const validSections = LOCKABLE_SECTIONS.map((s) => s.v) as string[]
   const requested = formData.get('premium') === 'on'
   const locked = formData.getAll('locked_sections').map(String).filter((v) => validSections.includes(v))

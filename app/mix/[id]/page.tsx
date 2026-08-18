@@ -51,7 +51,7 @@ import { PinButton } from '@/components/pin-button'
 import { MixNaming } from '@/components/mix-naming'
 import { OnsiteRating } from '@/components/onsite-rating'
 import { SectionTabs, type SectionTab } from '@/components/section-tabs'
-import { unlockPassed, isActivelyLocked } from '@/lib/lock'
+import { unlockPassed, isActivelyLocked, isSectionLocked, LOCK_FEATURE_ENABLED } from '@/lib/lock'
 import { SITE_URL, BRAND } from '@/lib/site'
 import { goHref } from '@/lib/go'
 import { comboKey, comboSlug } from '@/lib/combo'
@@ -199,10 +199,11 @@ export default async function MixDetail({
   const isSample = mix.author_id === null
 
   // 有料ノート：閲覧権があるか（投稿者本人／管理者／解錠済み／時限公開の解禁後）
+  // ロック機能を非表示にしている間は isSectionLocked / isActivelyLocked が常に false を返すので、
+  // すべての項目が公開として描画される（lib/lock.ts の LOCK_FEATURE_ENABLED）。
   const timeReleased = unlockPassed(mix)
   const entitled = isOwner || !!user?.profile?.is_admin || unlocked || timeReleased
-  const locked = (section: string) =>
-    mix.premium && (mix.locked_sections ?? []).includes(section) && !entitled
+  const locked = (section: string) => isSectionLocked(mix, section, entitled)
   const activelyLocked = isActivelyLocked(mix)
 
   // 投稿者が「載せる項目」で非表示にしたセクション
@@ -353,8 +354,9 @@ export default async function MixDetail({
               🏅 {regionRep}で人気
             </Link>
           )}
-          {/* 完全公開の充実レシピを称える（詳しい中身があり、ロックが効いていない） */}
-          {!isSample && !activelyLocked && showBrew && (
+          {/* 完全公開の充実レシピを称える（詳しい中身があり、ロックが効いていない）。
+              ロック機能を非表示にしている間は全部が「フル公開」になり対比が成り立たないので出さない。 */}
+          {LOCK_FEATURE_ENABLED && !isSample && !activelyLocked && showBrew && (
             <span
               className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs"
               style={{ background: 'rgb(31 138 118 / 0.12)', color: 'var(--color-coal)', fontWeight: 800, border: '1px solid rgb(31 138 118 / 0.4)' }}
@@ -370,13 +372,13 @@ export default async function MixDetail({
             <span style={{ color: 'var(--color-ash-dim)', fontWeight: 400 }}>・一部ロック中（王道の選出対象外）</span>
           </div>
         )}
-        {mix.unlock_at && !timeReleased && (
+        {LOCK_FEATURE_ENABLED && mix.unlock_at && !timeReleased && (
           <div className="mt-2 inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs"
             style={{ background: 'var(--color-smoke-850)', color: 'var(--color-ash)', border: '1px solid var(--line-strong)' }}>
             ⏳ {formatJaDate(mix.unlock_at)} に全公開予定
           </div>
         )}
-        {mix.premium && (mix.locked_sections ?? []).length > 0 && timeReleased && (
+        {LOCK_FEATURE_ENABLED && mix.premium && (mix.locked_sections ?? []).length > 0 && timeReleased && (
           <div className="mt-2 inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs"
             style={{ background: 'rgb(31 138 118 / 0.12)', color: 'var(--color-coal)', fontWeight: 700 }}>
             🔓 時限公開で全公開済み

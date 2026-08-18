@@ -6,6 +6,7 @@ import type { Flavor, HeatPoint, HeatEvent } from '@/lib/types/database'
 import { HeatCurveEditor } from '@/components/heat-curve-editor'
 import { CHARCOAL_OPTIONS, CHARCOAL_ORIENTATION_OPTIONS } from '@/lib/heat'
 import { LOCKABLE_SECTIONS } from '@/lib/premium'
+import { LOCK_FEATURE_ENABLED } from '@/lib/lock'
 import { MIX_DISPLAY_SECTIONS } from '@/lib/mix-sections'
 import { formatJaDate } from '@/lib/time'
 import { HmsPicker } from '@/components/hms-picker'
@@ -71,7 +72,7 @@ export function MixForm({
   initial,
   flavors,
   canAddFlavor = false,
-  canSell = false,
+  canSell: canSellProp = false,
 }: {
   mode: 'create' | 'edit'
   mixId?: string
@@ -82,6 +83,9 @@ export function MixForm({
   /** プロ認証者（＋管理者）のみ、一部を有料ノートにできる */
   canSell?: boolean
 }) {
+  // ロック機能は一時的に非表示（lib/lock.ts）。ここを false にすると 🔒 のチップ・価格・
+  // 時限公開の入力がまとめて消え、送信される premium も常に空になる。
+  const canSell = LOCK_FEATURE_ENABLED && canSellProp
   const action0 = mode === 'edit' ? updateMix : createMix
   const [state, action, pending] = useActionState<MixFormState, FormData>(action0, null)
   const [charcoalType, setCharcoalType] = useState(initial?.charcoalType ?? '')
@@ -598,9 +602,13 @@ export function MixForm({
 
       {/* こだわり・核心（ロック対象になりうる） */}
       <div className="mt-3 rounded-xl border p-4" style={{ borderColor: 'var(--line)' }}>
-        <div className="text-sm" style={{ fontWeight: 700 }}>🔒 こだわり・核心</div>
+        <div className="text-sm" style={{ fontWeight: 700 }}>💡 こだわり・核心</div>
         <p className="mt-0.5 text-xs" style={{ color: 'var(--color-ash-dim)' }}>
-          あなたの「秘密」になる部分。上のチップの <b>🔒</b> で<b>この項目だけロック（有料）</b>にできます。
+          {canSell ? (
+            <>あなたの「秘密」になる部分。上のチップの <b>🔒</b> で<b>この項目だけロック（有料）</b>にできます。</>
+          ) : (
+            <>なぜその作り方なのか。試した人が同じ一台を再現できるかは、ここで決まります。</>
+          )}
         </p>
         <div className="mt-3 flex flex-col gap-3">
           <div className="field"><label>下処理（タバコの手入れ・シロップ切り等）</label><textarea name="prep_note" defaultValue={initial?.prepNote} placeholder="例：開封後に軽くほぐし、余分なシロップを切る。○分置く、など。" maxLength={800} /></div>
