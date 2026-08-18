@@ -7,6 +7,7 @@ import { IconOrb } from '@/components/icon-orb'
 import { Kamon } from '@/components/kamon'
 import { OnboardingCard } from '@/components/onboarding-card'
 import { flavorLine } from '@/lib/mix'
+import { FIRST_THEME, THEME_PATH } from '@/lib/theme'
 
 export const dynamic = 'force-dynamic'
 
@@ -143,7 +144,27 @@ export default async function Home({
         </div>
       </section>
 
-      {/* ---------- モード選択（初回・未設定ユーザー向け） ---------- */}
+      {/* ---------- 今月の煙道検証（特別エリア。無視できる置き方にする） ----------
+          煙道を「ダブルアップルだけのサイト」にしない。表側は通常の図鑑のまま、
+          その中に1ブロックだけテーマへの入口を置く（docs/第一テーマ_設計再構成.md §0）。 */}
+      <section className="mx-auto mt-6 max-w-2xl">
+        <Link href={THEME_PATH} className="card block p-5 transition-colors sm:p-6">
+          <p className="eyebrow">今月の煙道検証</p>
+          <p className="mt-1.5 text-xl leading-tight" style={{ fontWeight: 800 }}>
+            {FIRST_THEME.brand} {FIRST_THEME.flavor} 100%
+          </p>
+          <p className="mt-1 text-sm" style={{ color: 'var(--color-ember-hot)', fontWeight: 700 }}>
+            {FIRST_THEME.lead}
+          </p>
+          <p className="mt-2 text-xs leading-relaxed" style={{ color: 'var(--color-ash-dim)' }}>
+            同じフレーバーでも、ボウル・詰め方・炭・火入れで一台は変わります。
+            いつもの一台を、誰かのやり方に置き換えてみませんか。
+          </p>
+          <span className="mt-3 inline-block text-sm brush-underline" style={{ fontWeight: 600 }}>
+            見てみる →
+          </span>
+        </Link>
+      </section>
 
       {/* ---------- オンボーディング（初回ユーザー向け） ---------- */}
       {user && (

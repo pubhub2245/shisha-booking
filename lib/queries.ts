@@ -2486,3 +2486,113 @@ export async function getOrthodoxList(limit = 60): Promise<OrthodoxEntry[]> {
     return []
   }
 }
+
+/* ---------------------------------------------------------------------------
+ * 第一テーマ（今月の煙道検証）
+ *
+ * テーマは combo を1つ指名しただけのもので、専用テーブルを持たない（lib/theme.ts）。
+ * ここでの集計は「他人を含む」ため、RLS が本人限定の mix_experiences は
+ * SECURITY DEFINER の RPC 経由で読む。
+ * ------------------------------------------------------------------------- */
+
+export type ThemeMethodStat = { makerCount: number; madeTotal: number; repeatMakers: number }
+
+export type ThemeOverview = {
+  comboKey: string
+  methods: MixWithRelations[]
+  stats: Map<string, ThemeMethodStat>
+  progress: {
+    methodCount: number
+    participants: number
+    repeaters: number
+    multiMethod: number
+    comparers: number
+    comparisons: number
+    madeTotal: number
+  }
+}
+
+const EMPTY_PROGRESS = {
+  methodCount: 0,
+  participants: 0,
+  repeaters: 0,
+  multiMethod: 0,
+  comparers: 0,
+  comparisons: 0,
+  madeTotal: 0,
+}
+
+/** テーマの全体像：作り方一覧＋作り方ごとの実績＋段階指標。作り方0件でも例外にしない。 */
+export async function getThemeOverview(comboKey: string): Promise<ThemeOverview> {
+  try {
+    const supabase = await createClient()
+    const [{ data: mixRows }, { data: statRows }, { data: progressRows }] = await Promise.all([
+      supabase.from('mixes').select('*').eq('combo_key', comboKey).eq('hidden', false),
+      supabase.rpc('theme_method_stats', { p_combo_key: comboKey }),
+      supabase.rpc('theme_progress', { p_combo_key: comboKey }),
+    ])
+    const methods = await attachRelations(supabase, (mixRows ?? []) as Mix[])
+    const stats = new Map<string, ThemeMethodStat>()
+    for (const r of statRows ?? []) {
+      stats.set(r.mix_id, {
+        makerCount: r.maker_count ?? 0,
+        madeTotal: r.made_total ?? 0,
+        repeatMakers: r.repeat_makers ?? 0,
+      })
+    }
+    // 実際に作られている順ではなく、詳しさ順に並べる。
+    // 人気順にすると、まだ誰も試していない作り方が永久に選ばれなくなる。
+    methods.sort((a, b) => mixQuality(b) - mixQuality(a) || (a.created_at < b.created_at ? 1 : -1))
+    const p = progressRows?.[0]
+    return {
+      comboKey,
+      methods,
+      stats,
+      progress: p
+        ? {
+            methodCount: p.method_count ?? 0,
+            participants: p.participants ?? 0,
+            repeaters: p.repeaters ?? 0,
+            multiMethod: p.multi_method ?? 0,
+            comparers: p.comparers ?? 0,
+            comparisons: p.comparisons ?? 0,
+            madeTotal: p.made_total ?? 0,
+          }
+        : { ...EMPTY_PROGRESS, methodCount: methods.length },
+    }
+  } catch {
+    return { comboKey, methods: [], stats: new Map(), progress: { ...EMPTY_PROGRESS } }
+  }
+}
+
+/** テーマ内で自分が「作った」作り方（新しい順・重複なし）。比較の基準点に使う。 */
+export type MyThemeMade = { mixId: string; at: string; count: number }
+
+export async function getMyThemeMade(comboKey: string): Promise<MyThemeMade[]> {
+  try {
+    const supabase = await createClient()
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+    if (!user) return []
+    const { data: mixRows } = await supabase.from('mixes').select('id').eq('combo_key', comboKey)
+    const ids = (mixRows ?? []).map((m) => m.id as string)
+    if (ids.length === 0) return []
+    const { data } = await supabase
+      .from('mix_experiences')
+      .select('mix_id, occurred_at')
+      .eq('user_id', user.id)
+      .eq('experience_type', 'made')
+      .in('mix_id', ids)
+      .order('occurred_at', { ascending: false })
+    const byMix = new Map<string, MyThemeMade>()
+    for (const r of (data ?? []) as { mix_id: string; occurred_at: string }[]) {
+      const cur = byMix.get(r.mix_id)
+      if (cur) cur.count += 1
+      else byMix.set(r.mix_id, { mixId: r.mix_id, at: r.occurred_at, count: 1 })
+    }
+    return [...byMix.values()].sort((a, b) => (a.at < b.at ? 1 : -1))
+  } catch {
+    return []
+  }
+}

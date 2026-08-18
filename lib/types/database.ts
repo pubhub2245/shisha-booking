@@ -133,7 +133,14 @@ export type MixExperience = {
   occurred_at: string
   created_at: string
   note: string | null
+  /** 直接比較：この一台を、自分が過去に作った別の作り方と比べた結果 */
+  compared_to_mix_id: string | null
+  comparison: ComparisonResult | null
+  comparison_axes: string[]
 }
+
+/** 直接比較の結果。絶対評価の引き算ではなく相対評価で聞く（前より良い/同じ/前の方が良い） */
+export type ComparisonResult = 'better' | 'same' | 'worse'
 
 /** 味覚5軸：実際に吸った体験に紐づく味の強度（1体験1件・上書きしない） */
 export type TasteEvaluation = {
@@ -612,6 +619,22 @@ export type Database = {
           richness_avg: number | null; richness_count: number
           heaviness_avg: number | null; heaviness_count: number
           rater_count: number
+        }[]
+      }
+      theme_method_stats: {
+        Args: { p_combo_key: string }
+        Returns: { mix_id: string; maker_count: number; made_total: number; repeat_makers: number }[]
+      }
+      theme_progress: {
+        Args: { p_combo_key: string }
+        Returns: {
+          method_count: number
+          participants: number
+          repeaters: number
+          multi_method: number
+          comparers: number
+          comparisons: number
+          made_total: number
         }[]
       }
       certify_orthodoxy: { Args: { p_mix: string; p_combo_key?: string | null }; Returns: undefined }

@@ -6,6 +6,7 @@ import { getCurrentUser } from '@/lib/auth'
 import { MixCard } from '@/components/mix-card'
 import { HeatCurveChart, type CurveSeries } from '@/components/heat-curve-chart'
 import { CURVE_COLORS } from '@/lib/heat'
+import { THEME_PATH, isThemeCombo } from '@/lib/theme'
 
 export const dynamic = 'force-dynamic'
 
@@ -33,6 +34,9 @@ export default async function ComboPage({ params }: { params: Promise<{ slug: st
     getMyUnlockedMixIds(),
   ])
   if (!combo) notFound()
+  // 第一テーマの combo は専用ページを正とする。作り方が1件でもテーマには到達できる必要がある
+  // （検証は「同じ combo に複数の作り方が並ぶ」ことから始まるので、ここで弾いてはいけない）。
+  if (isThemeCombo(combo.key)) redirect(THEME_PATH)
   // 作り方が1件だけなら比較する対象が無い。中間ページを挟まずミックス詳細へ送る
   // （カード側の comboHref と同じ規則。直リンク・ブックマーク経由でも1ホップ削減）。
   if (combo.methods.length === 1) redirect(`/mix/${combo.methods[0].id}`)

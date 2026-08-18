@@ -16,6 +16,7 @@ import { withAffiliateTag, AFFILIATE_TAG } from '@/lib/affiliate'
 import { goHref } from '@/lib/go'
 import { relativeTime, formatJaDate, jstMonthStartIso } from '@/lib/time'
 import { buildNthMap, type ExperienceRow } from '@/lib/endo-log'
+import { diffMethods, describeDiff, diffMeaning, rankNextCandidates, buildDesignSpace, designSpaceIsFlat } from '@/lib/method-diff'
 
 describe('combo', () => {
   it('flavorKey normalizes brand/name (trim + lowercase)', () => {
@@ -306,5 +307,70 @@ describe('煙道帳のN回目（種別ごとに通算）', () => {
     const nth = buildNthMap(same)
     expect(nth.get('a')).toBe(1)
     expect(nth.get('b')).toBe(2)
+  })
+})
+
+// ---------------------------------------------------------------------------
+// 作り方の差分（M2「差分の名指し」）と、次の1台の並べ方
+// ---------------------------------------------------------------------------
+describe('method-diff', () => {
+  const base = {
+    id: 'base',
+    bowl_type: 'funnel',
+    pack_style: 'fluff',
+    hms_type: 'lotus',
+    charcoal_count: 3,
+    steep_minutes: 7,
+  }
+  const oneAxisCheap = { ...base, id: 'cheap', charcoal_count: 2 }
+  const oneAxisPricey = { ...base, id: 'pricey', bowl_type: 'clay' }
+  const twoAxis = { ...base, id: 'two', charcoal_count: 2, pack_style: 'dense' }
+  const threeAxis = { ...base, id: 'three', charcoal_count: 2, pack_style: 'dense', bowl_type: 'clay' }
+  const identical = { ...base, id: 'same' }
+
+  it('値が入っている軸の差だけを差分にする', () => {
+    const d = diffMethods(base, oneAxisCheap)
+    expect(d).toHaveLength(1)
+    expect(describeDiff(d[0])).toBe('炭の数 3個 → 2個')
+  })
+
+  it('片方が未記入の軸は差分にしない（違うと言い切れない）', () => {
+    const missing = { ...base, id: 'missing', charcoal_count: null }
+    expect(diffMethods(base, missing)).toHaveLength(0)
+  })
+
+  it('差分0軸と3軸以上は次の1台の候補から外す', () => {
+    const ranked = rankNextCandidates(base, [identical, threeAxis, oneAxisCheap])
+    expect(ranked.map((r) => r.method.id)).toEqual(['cheap'])
+  })
+
+  it('1軸を2軸より優先し、同じ軸数なら変更コストが低い方を先に出す', () => {
+    const ranked = rankNextCandidates(base, [twoAxis, oneAxisPricey, oneAxisCheap])
+    expect(ranked.map((r) => r.method.id)).toEqual(['cheap', 'pricey', 'two'])
+  })
+
+  it('すでに作った作り方は後ろに回す', () => {
+    const ranked = rankNextCandidates(base, [oneAxisCheap, oneAxisPricey], {
+      madeIds: new Set(['cheap']),
+    })
+    expect(ranked[0].method.id).toBe('pricey')
+  })
+
+  it('炭を減らす差分には「熱量が下がる」という意味を添える', () => {
+    expect(diffMeaning(diffMethods(base, oneAxisCheap)[0])).toBe('熱量が下がります')
+    expect(diffMeaning(diffMethods(oneAxisCheap, base)[0])).toBe('熱量が上がります')
+  })
+
+  it('設計空間の地図は他人の体験データを使わずに作れる', () => {
+    const axes = buildDesignSpace([base, oneAxisCheap, oneAxisPricey], base)
+    const charcoal = axes.find((a) => a.key === 'charcoal_count')
+    expect(charcoal).toMatchObject({ kind: 'number', min: 2, max: 3, mine: 3 })
+    const bowl = axes.find((a) => a.key === 'bowl_type')
+    expect(bowl).toMatchObject({ kind: 'choice', mine: 'funnel' })
+  })
+
+  it('全件が同じ値なら地図は潰れる（比較の前提が成立しない）', () => {
+    expect(designSpaceIsFlat([base, identical])).toBe(true)
+    expect(designSpaceIsFlat([base, oneAxisCheap])).toBe(false)
   })
 })

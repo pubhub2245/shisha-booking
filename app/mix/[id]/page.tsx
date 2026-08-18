@@ -10,6 +10,8 @@ import {
   isMixUnlocked,
   getMadeStatus,
   getSmokeStatus,
+  getThemeOverview,
+  getMyThemeMade,
   getOrthodoxyStatus,
   getTasteSummary,
   getMixPhotos,
@@ -22,7 +24,9 @@ import {
 import { getCurrentUser } from '@/lib/auth'
 import { LikeButton } from '@/components/like-button'
 import { BookmarkButton } from '@/components/bookmark-button'
-import { MadeButton } from '@/components/made-button'
+import { MadeButton, type MadeThemeContext } from '@/components/made-button'
+import { FIRST_THEME, THEME_PATH, isThemeCombo } from '@/lib/theme'
+import { rankNextCandidates, describeDiff, diffMeaning } from '@/lib/method-diff'
 import { SmokedButton } from '@/components/smoked-button'
 import { RecommendButton } from '@/components/recommend-button'
 import { TasteSummaryView } from '@/components/taste-summary'
@@ -134,6 +138,41 @@ export default async function MixDetail({
   // combo 側が mix へ redirect して同じページに戻る（自己ループ）ため、件数で出し分ける。
   const siblingCount =
     (await getComboBySlug(comboSlug(mix.combo_key || comboKey(mix.mix_flavors ?? []))))?.methods.length ?? 1
+
+  // ---- 第一テーマ（今月の煙道検証）の文脈 ----
+  // テーマ内の作り方を開いているときだけ、「前に作った別の作り方」と「次に試すと差が分かる作り方」を用意する。
+  // どちらも記録したあとに返すために使う（記録して何も返らないなら2台目は起きない）。
+  const inTheme = isThemeCombo(mix.combo_key)
+  const [themeOverview, myThemeMade] = inTheme
+    ? await Promise.all([getThemeOverview(FIRST_THEME.comboKey), getMyThemeMade(FIRST_THEME.comboKey)])
+    : [null, []]
+
+  let themeContext: MadeThemeContext | undefined
+  if (inTheme && themeOverview) {
+    const label = (m: { id: string; title: string | null }) => m.title?.trim() || `作り方 ${m.id.slice(0, 4)}`
+    const madeIds = new Set(myThemeMade.map((r) => r.mixId))
+    // 基準点＝直近に作った「別の」作り方。これが無いうちは比較を聞かない（1台目は比較できない）
+    const baselineRow = myThemeMade.find((r) => r.mixId !== mix.id)
+    const baselineMix = baselineRow ? themeOverview.methods.find((m) => m.id === baselineRow.mixId) : null
+    const [top] = rankNextCandidates(mix, themeOverview.methods, {
+      madeIds,
+      makerCount: (mixId) => themeOverview.stats.get(mixId)?.makerCount ?? 0,
+    })
+    themeContext = {
+      baseline: baselineMix ? { mixId: baselineMix.id, label: label(baselineMix) } : null,
+      next: top
+        ? {
+            id: top.method.id,
+            label: label(top.method),
+            diff: top.diffs.map(describeDiff).join('／'),
+            meaning: diffMeaning(top.diffs[0]),
+          }
+        : null,
+      themePath: THEME_PATH,
+      themeTitle: '今月の煙道検証',
+    }
+  }
+  const mixLabel = mix.title?.trim() || 'この作り方'
 
   const commentTotal = comments.reduce((n, c) => n + 1 + c.replies.length, 0)
   const isRep = repCats.length > 0
@@ -383,7 +422,14 @@ export default async function MixDetail({
               initialMyId={smokeStatus.myId}
               initialVerdict={smokeStatus.myVerdict}
             />
-            <MadeButton mixId={mix.id} initialCount={madeStatus.count} initialMade={madeStatus.made} isAuthed={!!user} />
+            <MadeButton
+              mixId={mix.id}
+              mixLabel={mixLabel}
+              initialCount={madeStatus.count}
+              initialMade={madeStatus.made}
+              isAuthed={!!user}
+              theme={themeContext}
+            />
           </div>
 
           {/* Tertiary：保存・いいね・共有。体験より弱く見せる（新しいUIは足さない） */}

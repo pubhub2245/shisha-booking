@@ -32,6 +32,8 @@ export type EndoEvent =
   | ['verdict_set', { mix_id: string; verdict: Verdict }]
   /** 味覚評価の保存成功。axes は入力された軸数(1〜5)。実値は送らない */
   | ['taste_submitted', { mix_id: string; axes: number }]
+  /** 直接比較の保存成功。比較相手の mix_id は送らない（何が起きたかだけ測る） */
+  | ['comparison_set', { mix_id: string; comparison: 'better' | 'same' | 'worse'; axes: number }]
 
 /** イベントを1件送る。計測は best-effort（失敗してもユーザー操作は止めない）。 */
 export function trackEvent(...event: EndoEvent): void {
