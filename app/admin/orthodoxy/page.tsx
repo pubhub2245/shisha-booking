@@ -49,7 +49,7 @@ export default async function AdminOrthodoxyPage() {
                     className="text-sm underline underline-offset-2"
                     style={{ color: 'var(--color-ember-hot)', fontWeight: 700 }}
                   >
-                    {flavorLine(mix.mix_flavors) || mix.title || 'ミックス'}
+                    {flavorLine(mix.mix_flavors) || mix.title || '作り方'}
                   </Link>
                   <p className="mt-1 text-xs" style={{ color: 'var(--color-ash-dim)' }}>
                     推薦 {recommendCount} ・ 組み合わせ: {mix.combo_key} ・ {relativeTime(mix.created_at)}

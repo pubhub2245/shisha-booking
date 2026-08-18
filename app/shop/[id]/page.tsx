@@ -11,7 +11,6 @@ import {
 } from '@/lib/queries'
 import { getCurrentUser } from '@/lib/auth'
 import { relativeTime, isOlderThanDays } from '@/lib/time'
-import { ComboCard } from '@/components/combo-card'
 import { VerifiedBadge } from '@/components/verified-badge'
 import { Avatar } from '@/components/avatar'
 import { ShopJoinButton } from '@/components/shop-join-button'
@@ -177,12 +176,24 @@ export default async function ShopPage({ params }: { params: Promise<{ id: strin
 
           {combos.length > 0 && (
             <section className="mt-12">
-              <div className="mb-3 flex items-baseline justify-between">
-                <h2 className="text-lg" style={{ fontWeight: 700 }}>🔥 このお店で作れるミックス（{combos.length}）</h2>
-              </div>
-              <div className="grid gap-5 sm:grid-cols-2">
+              <h2 className="mb-3 text-lg" style={{ fontWeight: 700 }}>
+                🔥 この店の在庫で試せる作り方（{combos.length}）
+              </h2>
+              <div className="grid gap-2 sm:grid-cols-2">
                 {combos.slice(0, 12).map((combo) => (
-                  <ComboCard key={combo.key} combo={combo} />
+                  <Link
+                    key={combo.key}
+                    href={`/mix/${combo.top.id}`}
+                    className="flex flex-col gap-0.5 rounded-lg border px-3 py-2.5"
+                    style={{ borderColor: 'var(--line)' }}
+                  >
+                    <span className="truncate text-sm" style={{ fontWeight: 700 }}>
+                      {combo.flavorNames.join(' × ')}
+                    </span>
+                    <span className="text-xs" style={{ color: 'var(--color-ember-hot)', fontWeight: 600 }}>
+                      {combo.methodCount} 通りの作り方
+                    </span>
+                  </Link>
                 ))}
               </div>
             </section>

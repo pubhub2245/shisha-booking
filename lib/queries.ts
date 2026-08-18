@@ -24,7 +24,6 @@ import type {
   ProApplication,
   ProApplicationWithUser,
   ComboSummary,
-  NearMakeable,
   Shop,
   ShopMember,
   ShopMemberRole,
@@ -464,81 +463,6 @@ export async function getCombos(opts: FeedOptions = {}): Promise<ComboSummary[]>
   // 「作れるものだけ」指定時は所持フレーバー集合を取得
   const owned = opts.makeableOnly ? await getOwnedFlavorKeys() : null
   return buildCombos(mixes, opts, owned)
-}
-
-/** 所持フレーバーで「あと1つ」だけ足りないコンボ（不足フレーバーを提示） */
-export async function getNearMakeableForKeys(ownedKeys: Set<string>): Promise<NearMakeable[]> {
-  if (ownedKeys.size === 0) return []
-  const [mixes, flavorsMaster] = await Promise.all([getMixes({}), getFlavors()])
-  const combos = buildCombos(mixes, { sort: 'detailed' }, null)
-  const idByKey = new Map(flavorsMaster.map((f) => [flavorKey(f.brand, f.name), f.id]))
-  const near: NearMakeable[] = []
-  for (const c of combos) {
-    const setFlavors = c.top.mix_flavors ?? []
-    if (setFlavors.length < 2) continue // 単一フレーバーは「あと1つ」の対象外
-    const missing = setFlavors.filter((f) => !ownedKeys.has(flavorKey(f.brand, f.name)))
-    if (missing.length !== 1) continue
-    const mf = missing[0]
-    near.push({
-      combo: c,
-      missing: {
-        brand: mf.brand,
-        name: mf.name,
-        flavorId: mf.flavor_id ?? idByKey.get(flavorKey(mf.brand, mf.name)) ?? null,
-      },
-    })
-  }
-  return near.slice(0, 12)
-}
-
-/** ログイン中ユーザーの「あと1つで作れる」コンボ */
-export async function getMyNearMakeable(): Promise<NearMakeable[]> {
-  const owned = await getOwnedFlavorKeys()
-  return getNearMakeableForKeys(owned)
-}
-
-export type MakeableReps = {
-  ready: NationalRep[]
-  almost: { rep: NationalRep; missing: { brand: string | null; name: string; flavorId: string | null } }[]
-}
-
-/**
- * ログイン中ユーザーの棚（マイフレーバー）で「今作れる王道」「あと1種で作れる王道」を算出。
- * 王道(getNationalTeam)は公開データ・キャッシュ済み、棚はユーザー個別。
- * "あと1種"の不足フレーバーは購入導線（アフィリエイト）に自然につながる。
- */
-export async function getMakeableReps(): Promise<MakeableReps> {
-  try {
-    const [team, ownedKeys, flavorsMaster] = await Promise.all([
-      getNationalTeam(),
-      getOwnedFlavorKeys(),
-      getFlavors(),
-    ])
-    if (ownedKeys.size === 0 || team.length === 0) return { ready: [], almost: [] }
-    const idByKey = new Map(flavorsMaster.map((f) => [flavorKey(f.brand, f.name), f.id]))
-    const ready: NationalRep[] = []
-    const almost: MakeableReps['almost'] = []
-    for (const rep of team) {
-      const fl = rep.mix.mix_flavors ?? []
-      if (fl.length === 0) continue
-      const missing = fl.filter((f) => !ownedKeys.has(flavorKey(f.brand, f.name)))
-      if (missing.length === 0) ready.push(rep)
-      else if (missing.length === 1) {
-        const mf = missing[0]
-        almost.push({
-          rep,
-          missing: {
-            brand: mf.brand,
-            name: mf.name,
-            flavorId: mf.flavor_id ?? idByKey.get(flavorKey(mf.brand, mf.name)) ?? null,
-          },
-        })
-      }
-    }
-    return { ready, almost }
-  } catch {
-    return { ready: [], almost: [] }
-  }
 }
 
 /** Combo 詳細：その組み合わせの全ての作り方（Method） */

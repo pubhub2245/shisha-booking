@@ -35,7 +35,7 @@ export default async function AdminReportsPage() {
                 <div className="min-w-0">
                   {r.mix_id ? (
                     <Link href={`/mix/${r.mix_id}`} className="text-sm underline underline-offset-2" style={{ color: 'var(--color-ember-hot)', fontWeight: 700 }}>
-                      {r.mixTitle ?? '（削除済み/不明なミックス）'}
+                      {r.mixTitle ?? '（削除済み/不明な作り方）'}
                     </Link>
                   ) : (
                     <span className="text-sm" style={{ fontWeight: 700 }}>コメントへの通報</span>

@@ -8,7 +8,7 @@ const benefits: { icon: string; preset: OrbPreset; title: string; body: string }
     icon: '🎯',
     preset: 'green',
     title: '指名で選ばれる',
-    body: '「このお店のミックスが吸いたい」を作る。お店のレシピが図鑑に載り、ファンが増えます。',
+    body: '「このお店の作り方で吸いたい」を作る。お店の作り方が載り、試す人が増えます。',
   },
   {
     icon: '📈',
@@ -44,7 +44,7 @@ export default function ForShops() {
         あなたのお店の一台を、<span className="ember-text">指名される味に。</span>
       </h1>
       <p className="mt-4 text-base" style={{ color: 'var(--color-ash)' }}>
-        煙道 は「王道シーシャ図鑑」。店舗として登録すると、あなたのお店のミックスがファンに届き、
+        煙道は「1つのフレーバーを、どう作るか」を集める場所。店舗として登録すると、あなたのお店の作り方が届き、
         来店のきっかけになります。実際に吸われ、再現された作り方の中から煙道が確認・認定した「王道」が、
         店舗への指名や来店のきっかけになります。
       </p>

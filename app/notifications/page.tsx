@@ -14,10 +14,10 @@ function actorName(a: MixAuthor | null): string {
 }
 
 const VERB: Record<string, string> = {
-  like: 'があなたのミックスにいいねしました',
-  comment: 'があなたのミックスにコメントしました',
+  like: 'があなたの作り方にいいねしました',
+  comment: 'があなたの作り方にコメントしました',
   follow: 'があなたをフォローしました',
-  make: 'があなたのミックスを「作った」しました',
+  make: 'があなたの作り方を「作った」しました',
   reply: 'があなたのコメントに返信しました',
   mention: 'がコメントであなたに言及しました',
   comment_like: 'があなたのコメントにいいねしました',
