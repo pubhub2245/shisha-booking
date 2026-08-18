@@ -17,6 +17,7 @@ import { goHref } from '@/lib/go'
 import { relativeTime, formatJaDate, jstMonthStartIso } from '@/lib/time'
 import { buildNthMap, type ExperienceRow } from '@/lib/endo-log'
 import { diffMethods, describeDiff, diffMeaning, rankNextCandidates, buildDesignSpace, designSpaceIsFlat } from '@/lib/method-diff'
+import { charcoalAmountLabel } from '@/lib/heat'
 
 describe('combo', () => {
   it('flavorKey normalizes brand/name (trim + lowercase)', () => {
@@ -372,5 +373,32 @@ describe('method-diff', () => {
   it('全件が同じ値なら地図は潰れる（比較の前提が成立しない）', () => {
     expect(designSpaceIsFlat([base, identical])).toBe(true)
     expect(designSpaceIsFlat([base, oneAxisCheap])).toBe(false)
+  })
+})
+
+describe('炭の量', () => {
+  it('サイズと個数を対で見せる（個数だけでは熱量が決まらない）', () => {
+    expect(charcoalAmountLabel(26, 3)).toBe('26mm × 3個')
+    expect(charcoalAmountLabel(null, 3)).toBe('3個')
+    expect(charcoalAmountLabel(26, null)).toBe('26mm')
+    expect(charcoalAmountLabel(null, null)).toBeNull()
+  })
+
+  it('同じ個数でもサイズが違えば差分になる', () => {
+    const base = { id: 'a', charcoal_count: 3, charcoal_size_mm: 26 }
+    const smaller = { id: 'b', charcoal_count: 3, charcoal_size_mm: 22 }
+    const d = diffMethods(base, smaller)
+    expect(d).toHaveLength(1)
+    expect(describeDiff(d[0])).toBe('炭のサイズ 26mm → 22mm')
+    expect(diffMeaning(d[0])).toBe('同じ個数でも熱量が下がります')
+  })
+
+  it('炭のサイズは買い直しが要るので、2台目には炭の数の方を先に出す', () => {
+    const base = { id: 'a', charcoal_count: 3, charcoal_size_mm: 26 }
+    const ranked = rankNextCandidates(base, [
+      { id: 'size', charcoal_count: 3, charcoal_size_mm: 22 },
+      { id: 'count', charcoal_count: 2, charcoal_size_mm: 26 },
+    ])
+    expect(ranked.map((r) => r.method.id)).toEqual(['count', 'size'])
   })
 })

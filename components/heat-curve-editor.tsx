@@ -2,7 +2,7 @@
 
 import { useRef, useState } from 'react'
 import type { HeatPoint, HeatEvent } from '@/lib/types/database'
-import { HEAT_EVENT_OPTIONS, heatEventMeta } from '@/lib/heat'
+import { HEAT_EVENT_OPTIONS, heatEventMeta, COAL_STATE_OPTIONS } from '@/lib/heat'
 
 const W = 340
 const H = 190
@@ -167,7 +167,7 @@ export function HeatCurveEditor({
           ))}
         </svg>
         <p className="mt-1 text-xs" style={{ color: 'var(--color-ash-dim)' }}>
-          点をドラッグで火力・時間を調整／グラフ内をタップで点を追加／各時点の「🔥炭」にキューブ炭の個数を記録できます（任意）
+          点をドラッグで火力・時間を調整／グラフ内をタップで点を追加／各時点の「🔥炭」に個数と燃え具合（新・半・終）を記録できます（任意）
         </p>
         <p className="mt-1 text-[0.68rem] leading-relaxed" style={{ color: 'var(--color-ash-dim)' }}>
           ※ 火力は「弱(0-33)／中(33-66)／強(66-100)」の目安。炭の種類・個数・ボウル・部屋の気温で体感は変わるため、
@@ -241,8 +241,45 @@ export function HeatCurveEditor({
                       return { ...q, coals: Math.max(0, Math.min(20, Number(raw) || 0)) }
                     }))
                   }}
-                  className="w-12" style={{ padding: '8px 6px' }} aria-label="キューブ炭の個数"
+                  className="w-12" style={{ padding: '8px 6px' }} aria-label="この時点の炭の個数"
                 />
+              </div>
+              {/* その時点の炭の燃え具合。同じ3個でも熾したてと終盤では温度が違う。 */}
+              <div className="flex items-center gap-1" title="この時点の炭の燃え具合（任意）">
+                {COAL_STATE_OPTIONS.map((o) => {
+                  const active = p.coalState === o.v
+                  return (
+                    <button
+                      key={o.v}
+                      type="button"
+                      aria-pressed={active}
+                      title={o.l}
+                      onClick={() =>
+                        setPoints((ps) =>
+                          ps.map((q, i) => {
+                            if (i !== idx) return q
+                            if (active) {
+                              // もう一度押したら未入力に戻す
+                              const rest: HeatPoint = { t: q.t, v: q.v }
+                              if (q.coals != null) rest.coals = q.coals
+                              return rest
+                            }
+                            return { ...q, coalState: o.v }
+                          })
+                        )
+                      }
+                      className="rounded border px-1.5 py-1 text-[0.68rem]"
+                      style={{
+                        borderColor: active ? 'var(--color-ember)' : 'var(--line)',
+                        background: active ? 'var(--accent-tint)' : 'transparent',
+                        color: active ? 'var(--color-ember-hot)' : 'var(--color-ash-dim)',
+                        fontWeight: active ? 700 : 500,
+                      }}
+                    >
+                      {o.short}
+                    </button>
+                  )
+                })}
               </div>
               <button type="button" onClick={() => setPoints((ps) => (ps.length > 2 ? ps.filter((_, i) => i !== idx) : ps))} className="text-xs" style={{ color: 'var(--color-ash-dim)' }}>削除</button>
             </div>

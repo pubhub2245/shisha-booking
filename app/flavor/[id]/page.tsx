@@ -12,7 +12,7 @@ import { getCurrentUser } from '@/lib/auth'
 import { ShelfButton } from '@/components/shelf-button'
 import { DesignSpaceMap } from '@/components/design-space-map'
 import { HeatCurveChart, type CurveSeries } from '@/components/heat-curve-chart'
-import { CURVE_COLORS, bowlLabel, packLabel, hmsLabel } from '@/lib/heat'
+import { CURVE_COLORS, bowlLabel, packLabel, hmsLabel, charcoalAmountLabel } from '@/lib/heat'
 import { buildDesignSpace, diffMethods, describeDiff, rankNextCandidates } from '@/lib/method-diff'
 import { goHref } from '@/lib/go'
 
@@ -40,7 +40,7 @@ function MethodLine({ m }: { m: Parameters<typeof diffMethods>[0] }) {
     bowlLabel(m.bowl_type),
     packLabel(m.pack_style),
     hmsLabel(m.hms_type),
-    m.charcoal_count != null ? `炭${m.charcoal_count}` : null,
+    charcoalAmountLabel(m.charcoal_size_mm, m.charcoal_count) ? `炭 ${charcoalAmountLabel(m.charcoal_size_mm, m.charcoal_count)}` : null,
     m.steep_minutes != null ? `蒸らし${m.steep_minutes}分` : null,
   ].filter(Boolean)
   if (parts.length === 0) return null
