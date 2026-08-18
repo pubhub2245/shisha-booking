@@ -22,6 +22,7 @@ function parseTasteTags(formData: FormData): string[] {
 }
 
 const HEAT_EVENT_TYPES = ['add', 'remove', 'ash', 'rotate', 'other']
+const COAL_STATE_VALUES = ['fresh', 'half', 'late']
 
 export type MixFormState = { error: string } | null
 
@@ -72,10 +73,14 @@ function parseHeatCurve(formData: FormData): HeatPoint[] | null {
           t: Math.max(0, Math.min(180, Math.round(p.t * 2) / 2)),
           v: Math.max(1, Math.min(100, Math.round(p.v))),
         }
-        // キューブ炭の個数（任意・玄人向け）。0-20 の整数のみ。未指定は省略。
+        // その時点の炭の個数（任意）。0-20 の整数のみ。未指定は省略。
         if (typeof p.coals === 'number' && Number.isFinite(p.coals)) {
           const c = Math.max(0, Math.min(20, Math.round(p.coals)))
           if (c > 0) pt.coals = c
+        }
+        // その時点の炭の燃え具合。同じ3個でも熾したてと終盤では温度が違う。
+        if (typeof p.coalState === 'string' && COAL_STATE_VALUES.includes(p.coalState)) {
+          pt.coalState = p.coalState as HeatPoint['coalState']
         }
         return pt
       })
@@ -105,6 +110,15 @@ function parseHeatEvents(formData: FormData): HeatEvent[] | null {
   } catch {
     return null
   }
+}
+
+/** 数値入力を範囲内の整数に丸める。範囲外・未入力は null。 */
+function intOrNull(raw: FormDataEntryValue | null, min: number, max: number): number | null {
+  const v = String(raw ?? '').trim()
+  if (!v) return null
+  const n = Number(v)
+  if (!Number.isFinite(n)) return null
+  return Math.max(min, Math.min(max, Math.round(n)))
 }
 
 const HMS_VALUES = ['lotus', 'provost', 'turkish', 'steamulation', 'nagrani', 'aot', 'foil', 'other', 'kaloud']
@@ -141,6 +155,7 @@ function parseHeatSetup(formData: FormData) {
     charcoal_type,
     // 縦置き/横置きはフラット炭のときだけ有効
     charcoal_orientation: charcoal_type === 'flat' && ORIENTATION_VALUES.includes(orientRaw) ? orientRaw : null,
+    charcoal_size_mm: intOrNull(formData.get('charcoal_size_mm'), 5, 100),
     charcoal_count: count,
     steep_minutes,
     steep_heat,

@@ -3,7 +3,13 @@
 export type Strength = 'light' | 'medium' | 'strong'
 
 /** 熱管理カーブの1点: t=経過分, v=火力(1-100), coals=その時点のキューブ炭の個数(任意・玄人向け) */
-export type HeatPoint = { t: number; v: number; coals?: number }
+/**
+ * 熱管理カーブの1点。
+ * coals＝その時点で乗っている炭の個数、coalState＝その炭がどれだけ燃えているか。
+ * 同じ3個でも熾したてと終盤では温度がまるで違うので、個数と対で見る。
+ */
+export type CoalState = 'fresh' | 'half' | 'late'
+export type HeatPoint = { t: number; v: number; coals?: number; coalState?: CoalState }
 
 /** 炭イベント: t=経過分, type=種別, note=任意メモ */
 export type HeatEvent = { t: number; type: string; note?: string }
@@ -72,6 +78,8 @@ export type Mix = {
   charcoal_type: string | null
   charcoal_orientation: string | null
   charcoal_count: number | null
+  /** 立ち上げ時の炭のサイズ（mm）。キューブは一辺、フラットは長辺の目安 */
+  charcoal_size_mm: number | null
   steep_minutes: number | null
   steep_heat: number | null
   wind_cover: boolean | null

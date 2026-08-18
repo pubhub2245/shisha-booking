@@ -32,7 +32,7 @@ import { ShareBar } from '@/components/share-bar'
 import { ReportButton } from '@/components/report-button'
 import { VerifiedBadge } from '@/components/verified-badge'
 import { HeatCurveChart } from '@/components/heat-curve-chart'
-import { hmsOption, charcoalLabel, windCoverLabel, bowlOption, packOption, orientationLabel } from '@/lib/heat'
+import { hmsOption, charcoalLabel, windCoverLabel, bowlOption, packOption, orientationLabel, charcoalAmountLabel } from '@/lib/heat'
 import { HmsIcon } from '@/components/hms-icon'
 import { BowlIcon } from '@/components/bowl-icon'
 import { PackIcon } from '@/components/pack-icon'
@@ -522,7 +522,10 @@ export default async function MixDetail({
                 <span className="chip"><b style={{ color: 'var(--color-ash)' }}>ボウル</b>&nbsp;{bowlOption(mix.bowl_type)!.l}</span>
               )}
               {mix.charcoal_count != null && (
-                <span className="chip"><b style={{ color: 'var(--color-ash)' }}>立ち上げの炭</b>&nbsp;{mix.charcoal_count}個</span>
+                <span className="chip">
+                  <b style={{ color: 'var(--color-ash)' }}>立ち上げの炭</b>&nbsp;
+                  {charcoalAmountLabel(mix.charcoal_size_mm, mix.charcoal_count)}
+                </span>
               )}
               {mix.steep_minutes != null && (
                 <span className="chip"><b style={{ color: 'var(--color-ash)' }}>蒸らし</b>&nbsp;{mix.steep_minutes}分</span>
@@ -657,7 +660,8 @@ export default async function MixDetail({
                 {[
                   { k: '炭の種類', v: charcoalLabel(mix.charcoal_type) },
                   { k: '置き方', v: orientationLabel(mix.charcoal_orientation) },
-                  { k: '立ち上げ時の個数', v: mix.charcoal_count != null ? `${mix.charcoal_count}個` : null },
+                  { k: '立ち上げ時の炭の個数', v: mix.charcoal_count != null ? `${mix.charcoal_count}個` : null },
+                  { k: '炭のサイズ', v: mix.charcoal_size_mm != null ? `${mix.charcoal_size_mm}mm` : null },
                   { k: '蒸らし', v: mix.steep_minutes != null ? `${mix.steep_minutes}分` : null },
                   { k: '蒸らし到達火力', v: mix.steep_heat != null ? `${mix.steep_heat}` : null },
                   { k: '風防', v: windCoverLabel(mix.wind_cover) },
@@ -689,7 +693,7 @@ export default async function MixDetail({
             <div className="card mb-4 p-5">
               <div className="mb-1 text-sm" style={{ fontWeight: 700 }}>🔥 熱管理カーブ</div>
               <p className="mb-3 text-xs" style={{ color: 'var(--color-ash-dim)' }}>
-                横軸＝経過時間（分）、縦軸＝火力（0〜100）／点線＝炭イベント
+                横軸＝経過時間（分）、縦軸＝火力（0〜100）／点線＝炭イベント／🔥＝その時点の炭の個数と燃え具合（新・半・終）
               </p>
               <HeatCurveChart points={mix.heat_curve ?? undefined} events={mix.heat_events ?? undefined} steepMinutes={mix.steep_minutes ?? undefined} steepHeat={mix.steep_heat ?? undefined} />
             </div>

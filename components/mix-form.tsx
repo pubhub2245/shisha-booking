@@ -28,6 +28,7 @@ export type MixFormInitial = {
   charcoalType: string
   charcoalOrientation: string
   charcoalCount: string
+  charcoalSizeMm: string
   steepMinutes: string
   steepHeat: string
   windCover: string
@@ -417,6 +418,12 @@ export function MixForm({
                 比較できるのは立ち上げ時点の数だけ。 */}
             <label>立ち上げ時の炭の個数</label>
             <input name="charcoal_count" defaultValue={initial?.charcoalCount} inputMode="numeric" placeholder="例：3" />
+          </div>
+          <div className="field">
+            {/* 個数だけでは熱量が決まらない。26mm 3個と 22mm 3個ではまるで違う。
+                キューブは一辺、フラットは長辺の目安。 */}
+            <label>炭のサイズ（mm）</label>
+            <input name="charcoal_size_mm" defaultValue={initial?.charcoalSizeMm} inputMode="numeric" placeholder="例：26" />
           </div>
           <div className="field">
             <label>風防を被せる</label>

@@ -9,10 +9,17 @@
 
 import { bowlLabel, packLabel, hmsLabel } from '@/lib/heat'
 
-export type DiffAxisKey = 'charcoal_count' | 'steep_minutes' | 'pack_style' | 'hms_type' | 'bowl_type'
+export type DiffAxisKey =
+  | 'charcoal_count'
+  | 'charcoal_size_mm'
+  | 'steep_minutes'
+  | 'pack_style'
+  | 'hms_type'
+  | 'bowl_type'
 
 type MethodLike = {
   charcoal_count?: number | null
+  charcoal_size_mm?: number | null
   steep_minutes?: number | string | null
   pack_style?: string | null
   hms_type?: string | null
@@ -44,6 +51,16 @@ export const DIFF_AXES: readonly AxisDef[] = [
     kind: 'number',
     value: (m) => num(m.charcoal_count),
     format: (m) => (num(m.charcoal_count) == null ? null : `${num(m.charcoal_count)}個`),
+  },
+  {
+    // 「炭3個」だけでは熱量が決まらない。26mm と 22mm では与える熱が違う。
+    // ただし他サイズの炭を買い直すことになるので、変更コストは器材と同じ扱いにする。
+    key: 'charcoal_size_mm',
+    label: '炭のサイズ',
+    changeCost: 2,
+    kind: 'number',
+    value: (m) => num(m.charcoal_size_mm),
+    format: (m) => (num(m.charcoal_size_mm) == null ? null : `${num(m.charcoal_size_mm)}mm`),
   },
   {
     key: 'steep_minutes',
@@ -124,6 +141,12 @@ export function diffMeaning(d: Diff): string | null {
     const to = Number(d.to.replace('個', ''))
     if (!Number.isFinite(from) || !Number.isFinite(to) || from === 0) return null
     return to < from ? '熱量が下がります' : '熱量が上がります'
+  }
+  if (d.key === 'charcoal_size_mm') {
+    const from = Number(d.from.replace('mm', ''))
+    const to = Number(d.to.replace('mm', ''))
+    if (!Number.isFinite(from) || !Number.isFinite(to)) return null
+    return to < from ? '同じ個数でも熱量が下がります' : '同じ個数でも熱量が上がります'
   }
   if (d.key === 'steep_minutes') {
     const from = Number(d.from.replace('分', ''))

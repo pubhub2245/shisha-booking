@@ -1,5 +1,5 @@
 import type { HeatPoint, HeatEvent } from '@/lib/types/database'
-import { heatEventMeta } from '@/lib/heat'
+import { heatEventMeta, coalStateShort } from '@/lib/heat'
 
 export type CurveSeries = { label: string; color: string; points: HeatPoint[] }
 
@@ -126,7 +126,8 @@ export function HeatCurveChart({
               {s.points.map((p, i) => (
                 <circle key={i} cx={x(p.t)} cy={y(p.v)} r="3" fill={s.color} stroke="#fff" strokeWidth="1.3" />
               ))}
-              {/* キューブ炭の個数（単一カーブ表示のときのみ、玄人向け） */}
+              {/* その時点の炭：個数と燃え具合（単一カーブ表示のときのみ）。
+                  同じ3個でも熾したてか終盤かで温度が変わるので、対で見せる。 */}
               {allSeries.length === 1 &&
                 s.points.map((p, i) =>
                   typeof p.coals === 'number' && p.coals > 0 ? (
@@ -140,6 +141,7 @@ export function HeatCurveChart({
                       style={{ fontWeight: 700 }}
                     >
                       🔥{p.coals}
+                      {coalStateShort(p.coalState) ? ` ${coalStateShort(p.coalState)}` : ''}
                     </text>
                   ) : null
                 )}

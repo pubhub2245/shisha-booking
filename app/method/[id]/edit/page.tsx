@@ -26,6 +26,7 @@ export default async function EditMixPage({ params }: { params: Promise<{ id: st
     charcoalType: mix.charcoal_type ?? '',
     charcoalOrientation: mix.charcoal_orientation ?? '',
     charcoalCount: mix.charcoal_count != null ? String(mix.charcoal_count) : '',
+    charcoalSizeMm: mix.charcoal_size_mm != null ? String(mix.charcoal_size_mm) : '',
     steepMinutes: mix.steep_minutes != null ? String(mix.steep_minutes) : '',
     steepHeat: mix.steep_heat != null ? String(mix.steep_heat) : '',
     windCover: mix.wind_cover === true ? 'true' : mix.wind_cover === false ? 'false' : '',

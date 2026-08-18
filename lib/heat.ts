@@ -102,6 +102,31 @@ export const CHARCOAL_OPTIONS = [
 ] as const
 
 // フラット炭の置き方（縦置き/横置きで味が変わる）
+/**
+ * カーブ上の炭の燃え具合。写真ほど正確ではないが、1タップで残せて意味が通る粒度にしている。
+ * 「炭3個」と書いてあっても、熾したての3個と終盤の3個では与える熱が違う。
+ */
+export const COAL_STATE_OPTIONS = [
+  { v: 'fresh', l: '熾したて', short: '新' },
+  { v: 'half', l: '半分', short: '半' },
+  { v: 'late', l: '終盤', short: '終' },
+] as const
+
+export function coalStateLabel(v: string | null | undefined): string | null {
+  return COAL_STATE_OPTIONS.find((o) => o.v === v)?.l ?? null
+}
+export function coalStateShort(v: string | null | undefined): string | null {
+  return COAL_STATE_OPTIONS.find((o) => o.v === v)?.short ?? null
+}
+
+/** 「26mm × 3個」。サイズが未入力なら個数だけ。 */
+export function charcoalAmountLabel(sizeMm: number | null | undefined, count: number | null | undefined): string | null {
+  if (count == null && sizeMm == null) return null
+  if (sizeMm == null) return `${count}個`
+  if (count == null) return `${sizeMm}mm`
+  return `${sizeMm}mm × ${count}個`
+}
+
 export const CHARCOAL_ORIENTATION_OPTIONS = [
   { v: 'vertical', l: '縦置き' },
   { v: 'horizontal', l: '横置き' },
