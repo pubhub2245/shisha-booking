@@ -89,9 +89,9 @@ export default async function BowlTypePage({ params }: { params: Promise<{ type:
           <div className="card flex flex-col items-center gap-3 p-8 text-center">
             <span className="text-3xl" aria-hidden>📷</span>
             <p className="text-sm" style={{ color: 'var(--color-ash)' }}>
-              まだ{bowl.l}の盛り方写真がありません。<br />あなたの投稿が最初の実例になるかも。
+              まだ{bowl.l}の盛り方写真がありません。<br />あなたの作り方が最初の実例になるかも。
             </p>
-            <Link href="/post" className="btn btn-ember text-sm">盛り方を投稿する</Link>
+            <Link href="/post" className="btn btn-ember text-sm">作り方を登録する</Link>
           </div>
         )}
       </section>

@@ -16,7 +16,18 @@ import { withAffiliateTag, AFFILIATE_TAG } from '@/lib/affiliate'
 import { goHref } from '@/lib/go'
 import { relativeTime, formatJaDate, jstMonthStartIso } from '@/lib/time'
 import { buildNthMap, type ExperienceRow } from '@/lib/endo-log'
-import { diffMethods, describeDiff, diffMeaning, rankNextCandidates, buildDesignSpace, designSpaceIsFlat } from '@/lib/method-diff'
+import {
+  diffMethods,
+  describeDiff,
+  diffMeaning,
+  rankNextCandidates,
+  buildDesignSpace,
+  designSpaceIsFlat,
+  sameAxes,
+  compareMethods,
+  explainExperiment,
+  nextExperimentPolicy,
+} from '@/lib/method-diff'
 import { charcoalAmountLabel } from '@/lib/heat'
 
 describe('combo', () => {
@@ -373,6 +384,68 @@ describe('method-diff', () => {
   it('全件が同じ値なら地図は潰れる（比較の前提が成立しない）', () => {
     expect(designSpaceIsFlat([base, identical])).toBe(true)
     expect(designSpaceIsFlat([base, oneAxisCheap])).toBe(false)
+  })
+
+  it('揃っている軸だけを「同じ」と言う（未記入は同じ扱いにしない）', () => {
+    const missing = { ...base, id: 'missing', bowl_type: null }
+    const same = sameAxes(base, missing).map((s) => s.key)
+    expect(same).toContain('pack_style')
+    expect(same).not.toContain('bowl_type')
+  })
+
+  it('1軸だけ違い他が揃っていれば、その軸の差だけを見られると言える', () => {
+    const c = compareMethods(base, oneAxisCheap)
+    expect(c.diffs).toHaveLength(1)
+    expect(c.sames.map((s) => s.key)).toEqual(['steep_minutes', 'pack_style', 'hms_type', 'bowl_type'])
+    expect(explainExperiment(c)).toContain('立ち上げの炭だけの差が見られます')
+  })
+
+  it('2軸違うときは、切り分けられないと正直に言う', () => {
+    expect(explainExperiment(compareMethods(base, twoAxis))).toContain('切り分けられません')
+  })
+
+  it('差分が無ければ実験の説明も出さない', () => {
+    expect(explainExperiment(compareMethods(base, identical))).toBeNull()
+  })
+})
+
+describe('比較から次の実験へ', () => {
+  const base = { id: 'base', bowl_type: 'funnel', pack_style: 'fluff', charcoal_count: 3, steep_minutes: 7 }
+  const fewerCoals = { ...base, id: 'coal2', charcoal_count: 2 }
+  const otherAxis = { ...base, id: 'steep', steep_minutes: 4 }
+  const changed = diffMethods(base, fewerCoals)
+
+  it('差が出なかったら、その軸はいったん置く（同じ実験を繰り返させない）', () => {
+    const p = nextExperimentPolicy('same', changed)!
+    expect(p.avoidAxes).toEqual(['charcoal_count'])
+    expect(p.preferAxes).toEqual([])
+    expect(p.finding).toContain('差が出ませんでした')
+  })
+
+  it('差が出たら、同じ軸をもう一段振る', () => {
+    for (const answer of ['better', 'worse'] as const) {
+      const p = nextExperimentPolicy(answer, changed)!
+      expect(p.preferAxes).toEqual(['charcoal_count'])
+      expect(p.avoidAxes).toEqual([])
+    }
+  })
+
+  it('何を変えたか分からないときは方針を出さない', () => {
+    expect(nextExperimentPolicy('same', [])).toBeNull()
+  })
+
+  it('差が出なかった軸しか違わない候補は後ろに回る', () => {
+    const ranked = rankNextCandidates(fewerCoals, [{ ...base, id: 'coal4', charcoal_count: 4 }, otherAxis], {
+      avoidAxes: ['charcoal_count'],
+    })
+    expect(ranked[0].method.id).toBe('steep')
+  })
+
+  it('差が出た軸を含む候補は前に出る（1軸優先より強い）', () => {
+    const ranked = rankNextCandidates(fewerCoals, [otherAxis, { ...base, id: 'coal4', charcoal_count: 4 }], {
+      preferAxes: ['charcoal_count'],
+    })
+    expect(ranked[0].method.id).toBe('coal4')
   })
 })
 

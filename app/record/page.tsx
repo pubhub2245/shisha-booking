@@ -2,9 +2,15 @@ import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import type { Metadata } from 'next'
 import { getCurrentUser } from '@/lib/auth'
-import { getSmokeLog, getBookmarkedMixes, getThemeOverview, getMyThemeMade } from '@/lib/queries'
+import {
+  getSmokeLog,
+  getBookmarkedMixes,
+  getThemeOverview,
+  getMyThemeMade,
+  getMyThemeComparisons,
+} from '@/lib/queries'
 import { FIRST_THEME, THEME_PATH } from '@/lib/theme'
-import { rankNextCandidates, describeDiff } from '@/lib/method-diff'
+import { rankNextCandidates, describeDiff, diffMethods, nextExperimentPolicy } from '@/lib/method-diff'
 import { flavorLine } from '@/lib/mix'
 import { formatJaDate } from '@/lib/time'
 import type { MixWithRelations } from '@/lib/types/database'
@@ -52,20 +58,32 @@ export default async function RecordPage() {
   const user = await getCurrentUser()
   if (!user) redirect('/login?next=/record')
 
-  const [log, bookmarked, themeOverview, themeMade] = await Promise.all([
+  const [log, bookmarked, themeOverview, themeMade, themeComparisons] = await Promise.all([
     getSmokeLog(20),
     getBookmarkedMixes(),
     getThemeOverview(FIRST_THEME.comboKey),
     getMyThemeMade(FIRST_THEME.comboKey),
+    getMyThemeComparisons(FIRST_THEME.comboKey),
   ])
 
-  // 今月の検証：最後に作った一台から差が小さい「次の1台」
+  // 今月の検証：最後に作った一台から差が小さい「次の1台」。
+  // 比較まで進んでいるなら、その結論（差が出た／出なかった）を次の候補に効かせる。
   const madeIds = new Set(themeMade.map((r) => r.mixId))
   const latest = themeMade[0] ? themeOverview.methods.find((m) => m.id === themeMade[0].mixId) ?? null : null
-  const next = latest
-    ? rankNextCandidates(latest, themeOverview.methods, {
+  const lastCmp = themeComparisons[0] ?? null
+  const lastSubject = lastCmp ? themeOverview.methods.find((m) => m.id === lastCmp.mixId) ?? null : null
+  const lastObject = lastCmp ? themeOverview.methods.find((m) => m.id === lastCmp.comparedToMixId) ?? null : null
+  const policy =
+    lastCmp && lastSubject && lastObject
+      ? nextExperimentPolicy(lastCmp.comparison === 'same' ? 'same' : 'better', diffMethods(lastObject, lastSubject))
+      : null
+  const base = policy ? lastSubject : latest
+  const next = base
+    ? rankNextCandidates(base, themeOverview.methods, {
         madeIds,
         makerCount: (id) => themeOverview.stats.get(id)?.makerCount ?? 0,
+        preferAxes: policy?.preferAxes,
+        avoidAxes: policy?.avoidAxes,
       }).find((c) => !madeIds.has(c.method.id))
     : undefined
   // まだテーマに参加していない人には、検証対象の入口だけ出す
@@ -91,33 +109,45 @@ export default async function RecordPage() {
       </p>
 
       {/* ---------- 今月の検証：次の1台 ---------- */}
-      {(next || themeStart) && (
-        <section className="card mt-6 p-5">
-          <p className="eyebrow">今月の煙道検証</p>
-          {next ? (
-            <>
+      <section className="card mt-6 p-5">
+        <p className="eyebrow">今月の煙道検証</p>
+        {next ? (
+          <>
+            {policy ? (
+              <p className="mt-1 text-sm leading-relaxed" style={{ color: 'var(--color-ash)' }}>
+                <span style={{ fontWeight: 700 }}>{policy.finding}</span>
+                {policy.suggestion}
+              </p>
+            ) : (
               <p className="mt-1 text-sm" style={{ color: 'var(--color-ash)' }}>
                 あなたはこのテーマで {themeMade.length} 通り試しています。
               </p>
-              <div className="mt-3">
-                <MethodRow mix={next.method} note={next.diffs.map(describeDiff).join('／')} accent />
-              </div>
-            </>
-          ) : (
-            <>
-              <p className="mt-1 text-sm" style={{ color: 'var(--color-ash)' }}>
-                {FIRST_THEME.title}。いつもの一台を、誰かのやり方に置き換えてみる。
-              </p>
-              <div className="mt-3">
-                <MethodRow mix={themeStart!} note="この作り方から始められます" accent />
-              </div>
-            </>
-          )}
-          <Link href={THEME_PATH} className="mt-2 inline-block text-xs" style={{ color: 'var(--color-ash-dim)' }}>
-            検証のページへ →
-          </Link>
-        </section>
-      )}
+            )}
+            <div className="mt-3">
+              <MethodRow mix={next.method} note={next.diffs.map(describeDiff).join('／')} accent />
+            </div>
+          </>
+        ) : themeStart ? (
+          <>
+            <p className="mt-1 text-sm" style={{ color: 'var(--color-ash)' }}>
+              {FIRST_THEME.title}。いつもの一台を、誰かのやり方に置き換えてみる。
+            </p>
+            <div className="mt-3">
+              <MethodRow mix={themeStart} note="この作り方から始められます" accent />
+            </div>
+          </>
+        ) : (
+          // 検証テーマにまだ作り方が1つも無い状態。ここを空欄で消すと「記録する場所」が無くなる
+          <p className="mt-1 text-sm leading-relaxed" style={{ color: 'var(--color-ash)' }}>
+            {FIRST_THEME.title} には、まだ作り方が1つもありません。
+            <br />
+            比べるには2通り以上が要ります。まずは、いつも作っている作り方をそのまま残してください。
+          </p>
+        )}
+        <Link href={THEME_PATH} className="mt-2 inline-block text-xs" style={{ color: 'var(--color-ash-dim)' }}>
+          検証のページへ →
+        </Link>
+      </section>
 
       {/* ---------- 直近に作った・吸った ---------- */}
       <section className="mt-8">

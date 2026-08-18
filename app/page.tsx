@@ -4,12 +4,13 @@ import {
   getFlavorsWithMethods,
   getThemeOverview,
   getMyThemeMade,
+  getMyThemeComparisons,
   getSmokeLog,
 } from '@/lib/queries'
 import { getCurrentUser } from '@/lib/auth'
 import { flavorKey } from '@/lib/combo'
 import { FIRST_THEME } from '@/lib/theme'
-import { rankNextCandidates, describeDiff } from '@/lib/method-diff'
+import { rankNextCandidates, describeDiff, diffMethods, nextExperimentPolicy } from '@/lib/method-diff'
 import { formatJaDate } from '@/lib/time'
 
 export const dynamic = 'force-dynamic'
@@ -31,10 +32,11 @@ const methodLabel = (m: { id: string; title: string | null }) => m.title?.trim()
 export default async function Home() {
   const user = await getCurrentUser()
 
-  const [flavors, themeOverview, themeMade, log] = await Promise.all([
+  const [flavors, themeOverview, themeMade, themeComparisons, log] = await Promise.all([
     getFlavorsWithMethods(),
     getThemeOverview(FIRST_THEME.comboKey),
     user ? getMyThemeMade(FIRST_THEME.comboKey) : Promise.resolve([]),
+    user ? getMyThemeComparisons(FIRST_THEME.comboKey) : Promise.resolve([]),
     user ? getSmokeLog(10) : Promise.resolve({ entries: [], month: null }),
   ])
 
@@ -43,10 +45,23 @@ export default async function Home() {
 
   const madeIds = new Set(themeMade.map((r) => r.mixId))
   const themeLatest = themeMade[0] ? themeOverview.methods.find((m) => m.id === themeMade[0].mixId) ?? null : null
-  const themeNext = themeLatest
-    ? rankNextCandidates(themeLatest, themeOverview.methods, {
+
+  // 直近の比較で分かったことを、トップの「次の一台」にそのまま効かせる。
+  // 開いた瞬間に「今日は何を試すか」が出ている状態にしたい（比較→次の実験）。
+  const lastCmp = themeComparisons[0] ?? null
+  const lastSubject = lastCmp ? themeOverview.methods.find((m) => m.id === lastCmp.mixId) ?? null : null
+  const lastObject = lastCmp ? themeOverview.methods.find((m) => m.id === lastCmp.comparedToMixId) ?? null : null
+  const themePolicy =
+    lastCmp && lastSubject && lastObject
+      ? nextExperimentPolicy(lastCmp.comparison === 'same' ? 'same' : 'better', diffMethods(lastObject, lastSubject))
+      : null
+  const themeBase = themePolicy ? lastSubject : themeLatest
+  const themeNext = themeBase
+    ? rankNextCandidates(themeBase, themeOverview.methods, {
         madeIds,
         makerCount: (id) => themeOverview.stats.get(id)?.makerCount ?? 0,
+        preferAxes: themePolicy?.preferAxes,
+        avoidAxes: themePolicy?.avoidAxes,
       }).find((c) => !madeIds.has(c.method.id))
     : undefined
 
@@ -77,15 +92,25 @@ export default async function Home() {
             <p className="eyebrow">今月の煙道検証</p>
             {themeNext ? (
               <>
-                <p className="mt-1.5 text-sm" style={{ color: 'var(--color-ash)' }}>
-                  あなたはこのフレーバーを {themeMade.length} 通りで作っています。次の一台はこれです。
-                </p>
+                {themePolicy ? (
+                  <p className="mt-1.5 text-sm leading-relaxed" style={{ color: 'var(--color-ash)' }}>
+                    <span style={{ fontWeight: 700 }}>{themePolicy.finding}</span>
+                    {themePolicy.suggestion}
+                  </p>
+                ) : (
+                  <p className="mt-1.5 text-sm" style={{ color: 'var(--color-ash)' }}>
+                    あなたはこのフレーバーを {themeMade.length} 通りで作っています。次の一台はこれです。
+                  </p>
+                )}
                 <p className="mt-2 text-lg leading-tight" style={{ fontWeight: 800 }}>
                   {methodLabel(themeNext.method)}
                 </p>
                 <p className="mt-1 text-sm" style={{ color: 'var(--color-ember-hot)', fontWeight: 700 }}>
                   {themeNext.diffs.map(describeDiff).join('／')}
                 </p>
+                <span className="mt-2 inline-block text-sm brush-underline" style={{ fontWeight: 700 }}>
+                  この作り方を試す →
+                </span>
                 <p className="mt-2 text-[0.7rem]" style={{ color: 'var(--color-ash-dim)' }}>
                   次にシーシャを作るときで大丈夫です。
                 </p>
@@ -98,13 +123,28 @@ export default async function Home() {
                 <p className="mt-1 text-sm" style={{ color: 'var(--color-ember-hot)', fontWeight: 700 }}>
                   {FIRST_THEME.lead}
                 </p>
-                <p className="mt-2 text-xs leading-relaxed" style={{ color: 'var(--color-ash-dim)' }}>
-                  いつもの一台を、誰かのやり方に置き換えてみませんか。
-                  {themeFlavor.methodCount > 0 && <> いま {themeFlavor.methodCount} 通りの作り方があります。</>}
-                </p>
-                <span className="mt-3 inline-block text-sm brush-underline" style={{ fontWeight: 600 }}>
-                  見てみる →
-                </span>
+                {/* 作り方が0通りのうちに「誰かのやり方に置き換えて」と言うと、開いた先に何も無い。
+                    テーマは実データに追いつくまで、最初の一台を残す場所として案内する */}
+                {themeFlavor.methodCount > 0 ? (
+                  <>
+                    <p className="mt-2 text-xs leading-relaxed" style={{ color: 'var(--color-ash-dim)' }}>
+                      いつもの一台を、誰かのやり方に置き換えてみませんか。いま {themeFlavor.methodCount} 通りの作り方があります。
+                    </p>
+                    <span className="mt-3 inline-block text-sm brush-underline" style={{ fontWeight: 600 }}>
+                      この作り方を見る →
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    <p className="mt-2 text-xs leading-relaxed" style={{ color: 'var(--color-ash-dim)' }}>
+                      作り方はまだ1つもありません。比べるには2通り以上が要ります。
+                      まずは、いつも作っている作り方をそのまま残すところから。
+                    </p>
+                    <span className="mt-3 inline-block text-sm brush-underline" style={{ fontWeight: 600 }}>
+                      最初の一台を残す →
+                    </span>
+                  </>
+                )}
               </>
             )}
           </Link>

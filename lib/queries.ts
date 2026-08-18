@@ -13,6 +13,7 @@ import { buildNthMap, type ExperienceRow } from '@/lib/endo-log'
 import type { TasteSummary } from '@/lib/taste'
 import type {
   TasteEvaluation,
+  ComparisonResult,
   MixWithRelations,
   Mix,
   MixFlavor,
@@ -2419,7 +2420,19 @@ export async function getOrthodoxList(limit = 60): Promise<OrthodoxEntry[]> {
  * SECURITY DEFINER の RPC 経由で読む。
  * ------------------------------------------------------------------------- */
 
-export type ThemeMethodStat = { makerCount: number; madeTotal: number; repeatMakers: number }
+export type ThemeMethodStat = {
+  makerCount: number
+  madeTotal: number
+  repeatMakers: number
+  /** この作り方が直接比較に関わった回数（比べた側・比べられた側の両方） */
+  compared: number
+  /** そのうち差が出た回数 */
+  differed: number
+  /** そのうち「同じくらい」だった回数。差が無かったことも結果なので別に持つ */
+  sameCount: number
+  /** どちらが好まれたか。運営用（/admin/theme）にだけ出す */
+  preferred: number
+}
 
 export type ThemeOverview = {
   comboKey: string
@@ -2450,10 +2463,11 @@ const EMPTY_PROGRESS = {
 export async function getThemeOverview(comboKey: string): Promise<ThemeOverview> {
   try {
     const supabase = await createClient()
-    const [{ data: mixRows }, { data: statRows }, { data: progressRows }] = await Promise.all([
+    const [{ data: mixRows }, { data: statRows }, { data: progressRows }, { data: cmpRows }] = await Promise.all([
       supabase.from('mixes').select('*').eq('combo_key', comboKey).eq('hidden', false),
       supabase.rpc('theme_method_stats', { p_combo_key: comboKey }),
       supabase.rpc('theme_progress', { p_combo_key: comboKey }),
+      supabase.rpc('theme_comparison_stats', { p_combo_key: comboKey }),
     ])
     const methods = await attachRelations(supabase, (mixRows ?? []) as Mix[])
     const stats = new Map<string, ThemeMethodStat>()
@@ -2462,7 +2476,19 @@ export async function getThemeOverview(comboKey: string): Promise<ThemeOverview>
         makerCount: r.maker_count ?? 0,
         madeTotal: r.made_total ?? 0,
         repeatMakers: r.repeat_makers ?? 0,
+        compared: 0,
+        differed: 0,
+        sameCount: 0,
+        preferred: 0,
       })
+    }
+    for (const r of cmpRows ?? []) {
+      const cur = stats.get(r.mix_id)
+      if (!cur) continue
+      cur.compared = r.compared ?? 0
+      cur.differed = r.differed ?? 0
+      cur.sameCount = r.same_count ?? 0
+      cur.preferred = r.preferred ?? 0
     }
     // 実際に作られている順ではなく、詳しさ順に並べる。
     // 人気順にすると、まだ誰も試していない作り方が永久に選ばれなくなる。
@@ -2516,6 +2542,71 @@ export async function getMyThemeMade(comboKey: string): Promise<MyThemeMade[]> {
       else byMix.set(r.mix_id, { mixId: r.mix_id, at: r.occurred_at, count: 1 })
     }
     return [...byMix.values()].sort((a, b) => (a.at < b.at ? 1 : -1))
+  } catch {
+    return []
+  }
+}
+
+/**
+ * 自分がこのフレーバーで残した直接比較（新しい順）。
+ *
+ * これを読まないと、比較の結果は「記録した直後の画面」にしか存在しないことになる。
+ * 煙道の目的は比較そのものではなく比較から次の実験が生まれることなので、
+ * 数日後に戻ってきたときにも「前回何が分かったか」から次の1台を出せるようにする。
+ * 自分の行だけなので RLS のまま読める（他人を含む集計は theme_comparison_stats）。
+ */
+export type MyComparison = {
+  mixId: string
+  comparedToMixId: string
+  comparison: ComparisonResult
+  axes: string[]
+  at: string
+}
+
+export async function getMyThemeComparisons(comboKey: string): Promise<MyComparison[]> {
+  try {
+    const supabase = await createClient()
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+    if (!user) return []
+    const { data: mixRows } = await supabase.from('mixes').select('id').eq('combo_key', comboKey)
+    const ids = (mixRows ?? []).map((m) => m.id as string)
+    if (ids.length === 0) return []
+    const { data } = await supabase
+      .from('mix_experiences')
+      .select('mix_id, compared_to_mix_id, comparison, comparison_axes, occurred_at')
+      .eq('user_id', user.id)
+      .eq('experience_type', 'made')
+      .not('comparison', 'is', null)
+      .in('mix_id', ids)
+      .order('occurred_at', { ascending: false })
+    return ((data ?? []) as {
+      mix_id: string
+      compared_to_mix_id: string | null
+      comparison: ComparisonResult | null
+      comparison_axes: string[] | null
+      occurred_at: string
+    }[])
+      .filter((r) => r.compared_to_mix_id && r.comparison)
+      .map((r) => ({
+        mixId: r.mix_id,
+        comparedToMixId: r.compared_to_mix_id!,
+        comparison: r.comparison!,
+        axes: r.comparison_axes ?? [],
+        at: r.occurred_at,
+      }))
+  } catch {
+    return []
+  }
+}
+
+/** テーマ全体で、差がどんな言葉で語られたか。母数が少ないうちは運営だけが見る。 */
+export async function getThemeComparisonAxes(comboKey: string): Promise<{ axis: string; count: number }[]> {
+  try {
+    const supabase = await createClient()
+    const { data } = await supabase.rpc('theme_comparison_axes', { p_combo_key: comboKey })
+    return (data ?? []).map((r) => ({ axis: r.axis, count: r.count ?? 0 }))
   } catch {
     return []
   }

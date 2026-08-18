@@ -96,7 +96,7 @@ export default function FoundersPage() {
       </div>
 
       <p className="mt-8 text-center text-xs" style={{ color: 'var(--color-ash-dim)' }}>
-        ※「創設メンバー」バッジは、初期に参加し実際にレシピを投稿してくださった作り手に運営から付与します。
+        ※「創設メンバー」バッジは、初期に参加し実際に作り方を残してくださった作り手に運営から付与します。
       </p>
     </div>
   )

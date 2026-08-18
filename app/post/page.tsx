@@ -75,7 +75,8 @@ export default async function PostPage({
     const base = await getMixById(from)
     if (base) {
       heading = 'この作り方をベースに登録'
-      lead = 'ベースから変えたところだけ直してください。何を変えたかが、そのまま比較の材料になります。'
+      lead =
+        'ベースから変えたところだけ直してください。変えるのは1つだけにすると、何が効いたのかを切り分けられます。'
       initial = {
         ...EMPTY,
         title: base.title,

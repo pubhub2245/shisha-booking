@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { getCurrentUser } from '@/lib/auth'
-import { getThemeOverview } from '@/lib/queries'
+import { getThemeOverview, getThemeComparisonAxes } from '@/lib/queries'
 import { FIRST_THEME } from '@/lib/theme'
 import { buildDesignSpace, DIFF_AXES } from '@/lib/method-diff'
 
@@ -17,7 +17,10 @@ export default async function AdminThemePage() {
   const user = await getCurrentUser()
   if (!user?.profile?.is_admin) notFound()
 
-  const { methods, stats, progress } = await getThemeOverview(FIRST_THEME.comboKey)
+  const [{ methods, stats, progress }, cmpAxes] = await Promise.all([
+    getThemeOverview(FIRST_THEME.comboKey),
+    getThemeComparisonAxes(FIRST_THEME.comboKey),
+  ])
   const space = buildDesignSpace(methods)
   const flatAxes = DIFF_AXES.filter((a) => !space.some((s) => s.key === a.key))
 
@@ -105,12 +108,36 @@ export default async function AdminThemePage() {
                   <Link href={`/method/${m.id}`} className="min-w-0 truncate text-sm brush-underline">
                     {m.title?.trim() || `作り方 ${m.id.slice(0, 4)}`}
                   </Link>
-                  <span className="shrink-0 text-xs" style={{ color: 'var(--color-ash)' }}>
+                  <span className="shrink-0 text-right text-xs" style={{ color: 'var(--color-ash)' }}>
                     再現 {s?.makerCount ?? 0}人 ／ 計 {s?.madeTotal ?? 0} ／ 反復 {s?.repeatMakers ?? 0}人
+                    <br />
+                    {/* 王道を認定するときに「なぜこれなのか」を説明できる材料。
+                        preferred（好まれた回数）はこの運営画面にだけ出す */}
+                    <span style={{ color: 'var(--color-ash-dim)' }}>
+                      比較 {s?.compared ?? 0}（差あり {s?.differed ?? 0} ／ 同じ {s?.sameCount ?? 0} ／ 好まれた {s?.preferred ?? 0}）
+                    </span>
                   </span>
                 </li>
               )
             })}
+          </ul>
+        )}
+      </section>
+
+      <section className="card mt-6 p-5">
+        <h2 className="text-sm eyebrow">差はどんな言葉で語られたか</h2>
+        <p className="mt-1 text-xs" style={{ color: 'var(--color-ash-dim)' }}>
+          比較時に選ばれた語の集計。「分からない」が多いなら、その差は人が知覚できていない可能性がある。
+        </p>
+        {cmpAxes.length === 0 ? (
+          <p className="mt-3 text-sm" style={{ color: 'var(--color-ash-dim)' }}>まだ比較がありません。</p>
+        ) : (
+          <ul className="mt-3 flex flex-wrap gap-2">
+            {cmpAxes.map((a) => (
+              <li key={a.axis} className="chip">
+                {a.axis} {a.count}
+              </li>
+            ))}
           </ul>
         )}
       </section>

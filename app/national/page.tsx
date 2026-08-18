@@ -38,7 +38,7 @@ export default async function NationalTeamPage() {
           <b className="bouten">「まずこれ」</b>と言える作り方。
         </p>
         <p className="mx-auto mt-2 max-w-xl text-xs leading-relaxed" style={{ color: 'var(--color-ash-dim)' }}>
-          投稿数やいいねだけでは決まりません。実際に吸われた記録や再現実績などを参考に、煙道が確認して認定します。
+          作り方の数やいいねだけでは決まりません。実際に吸われた記録や再現実績などを参考に、煙道が確認して認定します。
         </p>
         <div className="smoke-line mx-auto mt-3 w-6" aria-hidden />
       </div>

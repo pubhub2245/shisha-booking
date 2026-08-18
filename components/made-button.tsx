@@ -22,12 +22,29 @@ const COMPARISONS: { key: 'better' | 'same' | 'worse'; label: (a: string, b: str
   { key: 'worse', label: (_a, b) => `${b} の方が好き` },
 ]
 
+/** 次に試すと差が分かりやすい作り方。宿題ではなく招待として出す */
+export type NextInvite = {
+  id: string
+  label: string
+  diff: string
+  meaning: string | null
+  /** この一台を試すと何が分かるか（同条件が揃っているか） */
+  learn: string | null
+}
+
+/**
+ * 比較の答えから生まれる次の実験。
+ * 「違いました」で終わらせないために、答えごとの分岐をサーバーで先に用意しておく。
+ */
+export type FollowUp = { finding: string; suggestion: string; invite: NextInvite | null }
+
 /** 同じフレーバーの中での文脈。作り方のページから渡す */
 export type MethodContext = {
   /** 自分が前に作った別の作り方。これがあると直接比較を聞ける */
-  baseline: { mixId: string; label: string } | null
-  /** 次に試すと差が分かりやすい作り方。宿題ではなく招待として出す */
-  next: { id: string; label: string; diff: string; meaning: string | null } | null
+  baseline: { mixId: string; label: string; changed: string[] } | null
+  next: NextInvite | null
+  /** 差が出なかったとき／出たときの、それぞれの次の一手 */
+  followUp: { same: FollowUp | null; differed: FollowUp | null }
   /** そのフレーバーのページ */
   flavorPath: string
   flavorTitle: string
@@ -68,7 +85,13 @@ export function MadeButton({
   const [verdict, setVerdict] = useState<Verdict | null>(null)
   const [comparison, setComparison] = useState<'better' | 'same' | 'worse' | null>(null)
   const [axes, setAxes] = useState<string[]>([])
+  const [tasteDone, setTasteDone] = useState(false)
   const [pending, startTransition] = useTransition()
+
+  // 比較の答えから、その場で次の実験を出す。better / worse はどちらも「差が出た」側。
+  const followUp = comparison ? (comparison === 'same' ? context?.followUp.same : context?.followUp.differed) : null
+  // 比較まで進んだときは、比較から生まれた候補を優先する（比較はゴールではない）
+  const invite = followUp?.invite ?? context?.next ?? null
 
   function onClick() {
     if (!isAuthed) {
@@ -160,6 +183,29 @@ export function MadeButton({
             </p>
           )}
 
+          {/* いまどこまで残したか。抜けを責めない——全部任意であることが分かればよい */}
+          <div className="flex flex-wrap gap-1">
+            {[
+              { label: '作った', done: true },
+              { label: 'どうだった', done: verdict != null },
+              { label: '味の印象', done: tasteDone },
+              ...(context?.baseline ? [{ label: '前の一台と比較', done: comparison != null }] : []),
+            ].map((s) => (
+              <span
+                key={s.label}
+                className="rounded-full px-2 py-0.5 text-[0.65rem]"
+                style={{
+                  border: '1px solid var(--line)',
+                  color: s.done ? 'var(--color-ember-hot)' : 'var(--color-ash-dim)',
+                  fontWeight: s.done ? 700 : 400,
+                }}
+              >
+                {s.done ? '✓ ' : ''}
+                {s.label}
+              </span>
+            ))}
+          </div>
+
           <div className="flex flex-col gap-1.5">
             <span className="text-xs" style={{ color: 'var(--color-ash-dim)' }}>どうだった？（任意）</span>
             <div className="flex flex-wrap gap-1.5">
@@ -192,6 +238,12 @@ export function MadeButton({
               <span className="text-xs" style={{ color: 'var(--color-ash)', fontWeight: 700 }}>
                 前に作った「{context.baseline.label}」と比べて、どうでしたか？
               </span>
+              {context.baseline.changed.length > 0 && (
+                // 何を変えた比較なのかを先に見せる。これが無いと「なんとなく違う」で終わる
+                <span className="text-[0.7rem]" style={{ color: 'var(--color-ash-dim)' }}>
+                  変えたのは {context.baseline.changed.join('／')}
+                </span>
+              )}
               <div className="flex flex-wrap gap-1.5">
                 {COMPARISONS.map((c) => {
                   const active = comparison === c.key
@@ -242,10 +294,12 @@ export function MadeButton({
                       )
                     })}
                   </div>
-                  {comparison === 'same' && (
-                    // 差が出なかったことを失敗として返さない。ここで体験を終わらせない。
-                    <p className="mt-1 text-xs" style={{ color: 'var(--color-ash)' }}>
-                      違いが分からなかったことも、立派な記録です。この差では、あなたには差が出ないと分かりました。
+                  {/* 比較の答えを「分かったこと」として返す。差が出なかったのも結果であって失敗ではない */}
+                  {followUp && (
+                    <p className="mt-1 text-xs leading-relaxed" style={{ color: 'var(--color-ash)' }}>
+                      {comparison === 'same' && <>違いが分からなかったことも、立派な記録です。<br /></>}
+                      <span style={{ fontWeight: 700 }}>{followUp.finding}</span>
+                      {followUp.suggestion}
                     </p>
                   )}
                 </>
@@ -254,23 +308,30 @@ export function MadeButton({
           )}
 
           {/* 味の印象（5軸）は任意。比較の成立条件にはしない */}
-          <TasteInput experienceId={expId} mixId={mixId} />
+          <TasteInput experienceId={expId} mixId={mixId} onSaved={() => setTasteDone(true)} />
 
           {/* ---- 次の1台。作れとは言わない ---- */}
-          {context?.next && (
+          {invite && (
             <div className="flex flex-col gap-1 border-t pt-3" style={{ borderColor: 'var(--line)' }}>
-              <span className="text-xs" style={{ color: 'var(--color-ash-dim)' }}>気が向いたときに</span>
+              <span className="text-xs" style={{ color: 'var(--color-ash-dim)' }}>
+                {followUp ? '次に試すと、もう一歩分かること' : '気が向いたときに'}
+              </span>
               <p className="text-sm" style={{ color: 'var(--color-ash)' }}>
-                <span style={{ fontWeight: 700 }}>{context.next.label}</span> は、いま作った一台と
-                <span style={{ color: 'var(--color-ember-hot)', fontWeight: 700 }}> {context.next.diff}</span>
-                {context.next.meaning ? `。${context.next.meaning}。` : '。'}
+                <span style={{ fontWeight: 700 }}>{invite.label}</span> は、いま作った一台と
+                <span style={{ color: 'var(--color-ember-hot)', fontWeight: 700 }}> {invite.diff}</span>
+                {invite.meaning ? `。${invite.meaning}。` : '。'}
               </p>
+              {invite.learn && (
+                <p className="text-[0.7rem] leading-relaxed" style={{ color: 'var(--color-ash-dim)' }}>
+                  {invite.learn}
+                </p>
+              )}
               <div className="mt-1 flex flex-wrap items-center gap-3">
-                <Link href={`/method/${context.next.id}`} className="text-sm brush-underline" style={{ fontWeight: 700 }}>
-                  見てみる
+                <Link href={`/method/${invite.id}`} className="text-sm brush-underline" style={{ fontWeight: 700 }}>
+                  この作り方を試す
                 </Link>
-                <Link href={context.flavorPath} className="text-xs" style={{ color: 'var(--color-ash-dim)' }}>
-                  {context.flavorTitle}へ
+                <Link href={context!.flavorPath} className="text-xs" style={{ color: 'var(--color-ash-dim)' }}>
+                  {context!.flavorTitle}へ
                 </Link>
               </div>
               <p className="text-[0.7rem]" style={{ color: 'var(--color-ash-dim)' }}>

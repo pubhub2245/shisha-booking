@@ -23,8 +23,16 @@ import {
 import { getCurrentUser } from '@/lib/auth'
 import { LikeButton } from '@/components/like-button'
 import { BookmarkButton } from '@/components/bookmark-button'
-import { MadeButton, type MethodContext } from '@/components/made-button'
-import { rankNextCandidates, describeDiff, diffMeaning } from '@/lib/method-diff'
+import { MadeButton, type MethodContext, type NextInvite, type FollowUp } from '@/components/made-button'
+import {
+  rankNextCandidates,
+  describeDiff,
+  diffMeaning,
+  compareMethods,
+  explainExperiment,
+  nextExperimentPolicy,
+  type Diff,
+} from '@/lib/method-diff'
 import { SmokedButton } from '@/components/smoked-button'
 import { RecommendButton } from '@/components/recommend-button'
 import { TasteSummaryView } from '@/components/taste-summary'
@@ -149,24 +157,58 @@ export default async function MixDetail({
   // 基準点＝直近に作った「別の」作り方。これが無いうちは比較を聞かない（1台目は比較できない）
   const baselineRow = myMade.find((r) => r.mixId !== mix.id)
   const baselineMix = baselineRow ? hub.methods.find((m) => m.id === baselineRow.mixId) : null
-  const [topNext] = rankNextCandidates(mix, hub.methods, {
-    madeIds,
-    makerCount: (mid) => hub.stats.get(mid)?.makerCount ?? 0,
+  // この一台と基準の一台のあいだで、実際に何が違うのか。比較の質問にも、次の実験にも使う
+  const baselineCmp = baselineMix ? compareMethods(baselineMix, mix) : null
+  const makerCount = (mid: string) => hub.stats.get(mid)?.makerCount ?? 0
+
+  const toInvite = (c: { method: MixWithRelations; diffs: Diff[] }): NextInvite => ({
+    id: c.method.id,
+    label: methodName(c.method),
+    diff: c.diffs.map(describeDiff).join('／'),
+    meaning: diffMeaning(c.diffs[0]),
+    learn: explainExperiment(compareMethods(mix, c.method)),
   })
+
+  const [topNext] = rankNextCandidates(mix, hub.methods, { madeIds, makerCount })
+
+  /**
+   * 比較の答えごとの次の一手を、先に両方作っておく。
+   * 差が出なかった → その軸はいったん置いて別の軸へ。差が出た → 同じ軸をもっと振る。
+   * 「違いました」で終わらせないための分岐（docs 指示 §21）。
+   */
+  const buildFollowUp = (answer: 'same' | 'better'): FollowUp | null => {
+    if (!baselineCmp) return null
+    const policy = nextExperimentPolicy(answer, baselineCmp.diffs)
+    if (!policy) return null
+    const [best] = rankNextCandidates(mix, hub.methods, {
+      madeIds,
+      makerCount,
+      preferAxes: policy.preferAxes,
+      avoidAxes: policy.avoidAxes,
+    })
+    return {
+      finding: policy.finding,
+      suggestion: policy.suggestion,
+      invite: best ? toInvite(best) : null,
+    }
+  }
+
   const methodContext: MethodContext = {
-    baseline: baselineMix ? { mixId: baselineMix.id, label: methodName(baselineMix) } : null,
-    next: topNext
+    baseline: baselineMix
       ? {
-          id: topNext.method.id,
-          label: methodName(topNext.method),
-          diff: topNext.diffs.map(describeDiff).join('／'),
-          meaning: diffMeaning(topNext.diffs[0]),
+          mixId: baselineMix.id,
+          label: methodName(baselineMix),
+          changed: (baselineCmp?.diffs ?? []).map(describeDiff),
         }
       : null,
+    next: topNext ? toInvite(topNext) : null,
+    followUp: { same: buildFollowUp('same'), differed: buildFollowUp('better') },
     flavorPath: flavorId ? `/flavor/${flavorId}` : '/',
     flavorTitle: `${flavorName}のページ`,
   }
   const mixLabel = mix.title?.trim() || 'この作り方'
+  // 試す前に「前の一台と何が違うか／何が同じか」を見せる。押した後にしか出ないと、試す判断に使えない
+  const baselineHeadline = baselineCmp ? explainExperiment(baselineCmp) : null
 
   const commentTotal = comments.reduce((n, c) => n + 1 + c.replies.length, 0)
   const isRep = repCats.length > 0
@@ -390,6 +432,42 @@ export default async function MixDetail({
               <ShareBar url={mixUrl} text={shareText} />
             </div>
           </div>
+        )}
+
+        {/* ---------- 実験としての位置づけ ----------
+            この一台を「レシピ」ではなく「前の一台に対する1回の実験」として見せる。
+            試したあとではなく試す前に出す——何が分かるかが、試す理由そのものだから。 */}
+        {baselineCmp && baselineCmp.diffs.length > 0 && (
+          <section
+            className="mt-5 rounded-xl border p-4"
+            style={{ borderColor: 'var(--color-ember)', background: 'var(--accent-tint)' }}
+          >
+            <p className="text-xs" style={{ color: 'var(--color-ash-dim)' }}>
+              あなたが前に作った「{methodName(baselineMix!)}」との違い
+            </p>
+            <ul className="mt-2 flex flex-col gap-0.5">
+              {baselineCmp.diffs.map((d) => (
+                <li key={d.key} className="text-sm" style={{ fontWeight: 700, color: 'var(--color-ember-hot)' }}>
+                  {d.label}：{d.from} → {d.to}
+                </li>
+              ))}
+              {baselineCmp.sames.map((s) => (
+                <li key={s.key} className="text-xs" style={{ color: 'var(--color-ash)' }}>
+                  {s.label}：同じ（{s.value}）
+                </li>
+              ))}
+            </ul>
+            {baselineCmp.unknown.length > 0 && (
+              <p className="mt-1.5 text-[0.7rem]" style={{ color: 'var(--color-ash-dim)' }}>
+                {baselineCmp.unknown.map((u) => u.label).join('・')}は、どちらかが未記入のため比べられません。
+              </p>
+            )}
+            {baselineHeadline && (
+              <p className="mt-2 text-xs leading-relaxed" style={{ color: 'var(--color-cream)' }}>
+                {baselineHeadline}
+              </p>
+            )}
+          </section>
         )}
 
         {/* Primary：体験を残す（コアループ）。吸った→どうだった？→味の印象 まで一続き */}
@@ -653,7 +731,7 @@ export default async function MixDetail({
                     className="w-full rounded-xl border object-cover"
                     style={{ maxHeight: 360, borderColor: 'var(--line)' }}
                   />
-                  <p className="mt-1 text-xs" style={{ color: 'var(--color-ash-dim)' }}>📷 投稿者による盛り方の写真</p>
+                  <p className="mt-1 text-xs" style={{ color: 'var(--color-ash-dim)' }}>📷 作り手による盛り方の写真</p>
                 </div>
               )}
               <dl className="grid grid-cols-2 gap-x-4 gap-y-3 text-sm sm:grid-cols-3">
@@ -822,9 +900,16 @@ export default async function MixDetail({
         </section>
       )}
 
-      <div className="mt-12 flex flex-wrap justify-center gap-3">
-        <Link href={`/post?from=${mix.id}`} className="btn btn-ember">この作り方をベースに投稿</Link>
-        <Link href="/post" className="btn btn-ghost">ゼロから投稿する</Link>
+      {/* 自分で次の一台を作る導線。他人の作り方が並んでいない段階では、これが唯一の
+          「2台目」の作り方になる。1軸だけ変えるという実験の作法をここで示す。 */}
+      <div className="mt-12 flex flex-col items-center gap-2">
+        <p className="text-sm" style={{ color: 'var(--color-ash)' }}>
+          ここから1つだけ変えた作り方を残すと、その差を比べられます。
+        </p>
+        <div className="flex flex-wrap justify-center gap-3">
+          <Link href={`/post?from=${mix.id}`} className="btn btn-ember">この作り方をベースに登録</Link>
+          <Link href="/post" className="btn btn-ghost">ゼロから登録する</Link>
+        </div>
       </div>
 
       {/* ---------- この情報について（誠実さは保つが、意思決定の直下では不安を訴求しない） ---------- */}
@@ -836,7 +921,7 @@ export default async function MixDetail({
             </summary>
             <p className="mt-3 leading-relaxed">
               これは <b>煙道 編集部の見本</b>です。作り方は一般的な目安で、専門家の監修はされていません。
-              実際の「美味しい作り方」は、これから皆さんの投稿と実際に吸った評価で育てていきます。
+              実際の「美味しい作り方」は、これから皆さんの作り方と実際に吸った評価で育てていきます。
             </p>
           </details>
         </section>

@@ -11,9 +11,10 @@ import {
   getSmokeLog,
   getThemeOverview,
   getMyThemeMade,
+  getMyThemeComparisons,
 } from '@/lib/queries'
 import { FIRST_THEME } from '@/lib/theme'
-import { rankNextCandidates, describeDiff } from '@/lib/method-diff'
+import { rankNextCandidates, describeDiff, diffMethods, nextExperimentPolicy } from '@/lib/method-diff'
 import { MixCard } from '@/components/mix-card'
 import { Avatar } from '@/components/avatar'
 import { VerifiedBadge } from '@/components/verified-badge'
@@ -64,17 +65,29 @@ export default async function MyPage() {
   ])
 
   // 今月の煙道検証：自分が最後に作った一台と、そこから差が小さい「次の1台」
-  const [themeOverview, themeMade] = await Promise.all([
+  const [themeOverview, themeMade, themeComparisons] = await Promise.all([
     getThemeOverview(FIRST_THEME.comboKey),
     getMyThemeMade(FIRST_THEME.comboKey),
+    getMyThemeComparisons(FIRST_THEME.comboKey),
   ])
   const themeMadeCount = themeMade.length
   const themeLatest = themeMade[0] ? themeOverview.methods.find((m) => m.id === themeMade[0].mixId) ?? null : null
   const themeMadeIds = new Set(themeMade.map((r) => r.mixId))
-  const themeTop = themeLatest
-    ? rankNextCandidates(themeLatest, themeOverview.methods, {
+  // 比較まで進んでいれば、その結論から次の一台を決める（比較を記録直後の画面で終わらせない）
+  const lastCmp = themeComparisons[0] ?? null
+  const lastSubject = lastCmp ? themeOverview.methods.find((m) => m.id === lastCmp.mixId) ?? null : null
+  const lastObject = lastCmp ? themeOverview.methods.find((m) => m.id === lastCmp.comparedToMixId) ?? null : null
+  const themePolicy =
+    lastCmp && lastSubject && lastObject
+      ? nextExperimentPolicy(lastCmp.comparison === 'same' ? 'same' : 'better', diffMethods(lastObject, lastSubject))
+      : null
+  const themeBase = themePolicy ? lastSubject : themeLatest
+  const themeTop = themeBase
+    ? rankNextCandidates(themeBase, themeOverview.methods, {
         madeIds: themeMadeIds,
         makerCount: (id) => themeOverview.stats.get(id)?.makerCount ?? 0,
+        preferAxes: themePolicy?.preferAxes,
+        avoidAxes: themePolicy?.avoidAxes,
       }).find((c) => !themeMadeIds.has(c.method.id))
     : undefined
   const themeNext = themeTop
@@ -137,7 +150,7 @@ export default async function MyPage() {
 
           {/* 実績 */}
           <div className="mt-4 flex gap-5 text-sm">
-            <span><b>{myMixes.length}</b> <span style={{ color: 'var(--color-ash-dim)' }}>投稿</span></span>
+            <span><b>{myMixes.length}</b> <span style={{ color: 'var(--color-ash-dim)' }}>作り方</span></span>
             <span><b>{counts.followers}</b> <span style={{ color: 'var(--color-ash-dim)' }}>フォロワー</span></span>
             <span><b>{counts.following}</b> <span style={{ color: 'var(--color-ash-dim)' }}>フォロー中</span></span>
           </div>
@@ -159,9 +172,16 @@ export default async function MyPage() {
         <section className="mt-8">
           <div className="card p-5">
             <p className="eyebrow">今月の煙道検証</p>
-            <p className="mt-1 text-sm" style={{ color: 'var(--color-ash)' }}>
-              あなたはこのテーマで {themeMadeCount} 通り試しています。
-            </p>
+            {themePolicy ? (
+              <p className="mt-1 text-sm leading-relaxed" style={{ color: 'var(--color-ash)' }}>
+                <span style={{ fontWeight: 700 }}>{themePolicy.finding}</span>
+                {themePolicy.suggestion}
+              </p>
+            ) : (
+              <p className="mt-1 text-sm" style={{ color: 'var(--color-ash)' }}>
+                あなたはこのテーマで {themeMadeCount} 通り試しています。
+              </p>
+            )}
             <Link
               href={`/method/${themeNext.id}`}
               className="mt-3 flex flex-col gap-1 rounded-lg border px-3 py-2.5"
@@ -256,7 +276,7 @@ export default async function MyPage() {
       <section>
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-lg" style={{ fontWeight: 700 }}>登録した作り方（{myMixes.length}）</h2>
-          <Link href="/post" className="btn btn-ghost text-sm">＋ 新しく投稿</Link>
+          <Link href="/post" className="btn btn-ghost text-sm">＋ 作り方を登録</Link>
         </div>
         <MixGrid mixes={myMixes} likedIds={likedIds} emptyText="まだ登録がありません。最初の作り方を残しましょう。" />
       </section>

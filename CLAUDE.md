@@ -114,8 +114,13 @@ guest mode/anonymous auth/AI作り方提案/ゲーミフィケーション/段�
 - 「同じものを擦る」は運営の目的であってユーザーに見せる言葉ではない。ユーザーには「次はこの作り方を試してみよう」
 
 ## 実装済み(2026-08-18)
-第一テーマの体験はアプリに入っている。`lib/theme.ts`(テーマ定義) / `lib/method-diff.ts`(差分の名指し・次の1台・設計空間の地図) /
-`mix_experiences.comparison`(直接比較) / `theme_progress`・`theme_method_stats`(段階指標) / `/admin/theme`(進捗)。
+第一テーマの体験はアプリに入っている。`lib/theme.ts`(テーマ定義) / `lib/method-diff.ts`(差分の名指し・同条件・次の1台・設計空間の地図) /
+`mix_experiences.comparison`(直接比較) / `theme_progress`・`theme_method_stats`・`theme_comparison_stats`(段階指標と比較実績) / `/admin/theme`(進捗)。
+**比較は「次の実験」に接続済み**(2026-08-18)。`nextExperimentPolicy()` が比較の答えから方針を出す
+——差が出た→同じ軸をもう一段振る / 差が出なかった→その軸を置いて別の軸へ。
+これをトップ・`/record`・マイ煙道・フレーバーページが `getMyThemeComparisons()` から読み直すので、
+比較の結論は記録直後の画面を離れても残る。**比較はゴールではなく次の実験の材料**という原則の実装。
+比較の勝敗(`preferred`)は `/admin/theme` にだけ出す(公開画面に出すと王道が人気投票になる)。
 **予想機能・自動推薦の作り込み・店舗導線・王道の門・通知は意図的に未実装。**
 ロック(有料ノート)は `lib/lock.ts` の `LOCK_FEATURE_ENABLED=false` で非表示中。
 

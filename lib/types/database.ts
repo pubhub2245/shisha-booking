@@ -645,6 +645,21 @@ export type Database = {
           made_total: number
         }[]
       }
+      theme_comparison_stats: {
+        Args: { p_combo_key: string }
+        Returns: {
+          mix_id: string
+          compared: number
+          differed: number
+          same_count: number
+          /** どちらが好まれたか。公開画面には出さない（勝敗表にすると王道が人気投票になる） */
+          preferred: number
+        }[]
+      }
+      theme_comparison_axes: {
+        Args: { p_combo_key: string }
+        Returns: { axis: string; count: number }[]
+      }
       certify_orthodoxy: { Args: { p_mix: string; p_combo_key?: string | null }; Returns: undefined }
       revoke_orthodoxy: { Args: { p_combo_key: string }; Returns: undefined }
       onsite_checkin: {

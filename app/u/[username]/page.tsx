@@ -141,12 +141,12 @@ export default async function ProfilePage({ params }: { params: Promise<{ userna
           </div>
         ) : (
           <div className="mt-4 rounded-xl border px-4 py-3 text-sm" style={{ borderColor: 'var(--line)', color: 'var(--color-ash)' }}>
-            まだ作り方の投稿はありません。
+            まだ作り方はありません。
             {isSelf && (
               <>
                 {' '}
                 <Link href="/post" style={{ color: 'var(--color-ember-hot)', fontWeight: 600 }}>
-                  最初の作り方を投稿する →
+                  最初の作り方を残す →
                 </Link>
               </>
             )}
