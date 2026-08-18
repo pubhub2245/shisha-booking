@@ -5,13 +5,24 @@ import { usePathname } from 'next/navigation'
 
 type Item = { href: string; icon: string; label: string }
 
-/** 下部ナビの本体（現在地ハイライト付き）。isAuthed はサーバー側から渡す。 */
+/** 中央の丸ボタン。煙道の主行動＝「今日の一台を記録する」 */
+const CENTER = '/record'
+
+/**
+ * 下部ナビの本体（現在地ハイライト付き）。isAuthed はサーバー側から渡す。
+ *
+ * 枠は5つしかないので、いま最も強く押したい行動だけを置く。
+ *  - 中央は「投稿」ではなく「記録」。煙道の主行動は自分の作り方を出すことではなく、
+ *    他人の作り方を試して残すこと。投稿は /record・/theme・マイ煙道から到達できる
+ *  - 「王道」は現時点で0件なので枠を持たせない（空のタブを常設しない）。
+ *    代わりに「検証」＝いま実際に進んでいる場所を置く
+ */
 export function MobileNavBar({ isAuthed }: { isAuthed: boolean }) {
   const pathname = usePathname()
   const items: Item[] = [
     { href: '/', icon: '📖', label: '図鑑' },
-    { href: '/national', icon: '王', label: '王道' },
-    { href: '/post', icon: '➕', label: '投稿' },
+    { href: '/theme', icon: '検', label: '検証' },
+    { href: CENTER, icon: '＋', label: '記録' },
     { href: '/search', icon: '🔍', label: '検索' },
     isAuthed ? { href: '/mypage', icon: '👤', label: 'マイ煙道' } : { href: '/login', icon: '👤', label: 'ログイン' },
   ]
@@ -27,13 +38,13 @@ export function MobileNavBar({ isAuthed }: { isAuthed: boolean }) {
         {items.map((it) => {
           const active = isActive(it.href)
 
-          // 中央の「投稿」は浮き出た丸ボタンで強調（SNSアプリ風）
-          if (it.href === '/post') {
+          // 中央は浮き出た丸ボタンで強調する
+          if (it.href === CENTER) {
             return (
               <Link
                 key={it.href}
                 href={it.href}
-                aria-label="ミックスを投稿"
+                aria-label="今日の一台を記録する"
                 aria-current={active ? 'page' : undefined}
                 className="flex flex-1 flex-col items-center justify-start"
               >
@@ -49,7 +60,7 @@ export function MobileNavBar({ isAuthed }: { isAuthed: boolean }) {
                   ＋
                 </span>
                 <span className="mt-0.5 text-[0.68rem]" style={{ color: active ? 'var(--color-ember-hot)' : 'var(--color-ash)', fontWeight: active ? 700 : 400 }}>
-                  投稿
+                  {it.label}
                 </span>
               </Link>
             )

@@ -8,6 +8,8 @@ import { Kamon } from '@/components/kamon'
 import { OnboardingCard } from '@/components/onboarding-card'
 import { flavorLine } from '@/lib/mix'
 import { FIRST_THEME, THEME_PATH } from '@/lib/theme'
+import { getThemeOverview, getMyThemeMade } from '@/lib/queries'
+import { rankNextCandidates, describeDiff } from '@/lib/method-diff'
 
 export const dynamic = 'force-dynamic'
 
@@ -42,6 +44,20 @@ export default async function Home({
   // 棚（マイフレーバー）×王道＝「今作れる王道 / あと1種で作れる王道」（再訪動機＋購入導線）
   const makeableReps =
     user && !hasFilters && onboarding.hasShelf ? await getMakeableReps() : { ready: [], almost: [] }
+
+  // 今月の煙道検証。参加している人には「次の1台」まで出す（トップの主役はここ）
+  const [themeOverview, themeMade] =
+    user && !hasFilters
+      ? await Promise.all([getThemeOverview(FIRST_THEME.comboKey), getMyThemeMade(FIRST_THEME.comboKey)])
+      : [null, []]
+  const themeMadeIds = new Set(themeMade.map((r) => r.mixId))
+  const themeLatest = themeMade[0] ? themeOverview?.methods.find((m) => m.id === themeMade[0].mixId) ?? null : null
+  const themeNext = themeLatest
+    ? rankNextCandidates(themeLatest, themeOverview?.methods ?? [], {
+        madeIds: themeMadeIds,
+        makerCount: (id) => themeOverview?.stats.get(id)?.makerCount ?? 0,
+      }).find((c) => !themeMadeIds.has(c.method.id))
+    : undefined
 
   const [combos, allTags, flavors, photoMixes, unfilteredCombos] = await Promise.all([
     getCombos({ sort, tags: activeTags, q, makeableOnly }),
@@ -78,43 +94,95 @@ export default async function Home({
   return (
     <div className="wrap py-8 sm:py-12">
       {/* ---------- HERO（コンパクト） ---------- */}
+      {/* サービスの説明は初見のためのもの。毎回来る人には見出しと入口だけでよい。 */}
       <section className="glow-bg fade-up mx-auto max-w-2xl text-center">
-        <div className="mb-3 flex flex-wrap justify-center gap-2">
-          <span className="float d1"><IconOrb preset="green" size={30}><Kamon name="hanabishi" size={17} /></IconOrb></span>
-          <span className="float d2"><IconOrb preset="amber" size={30}><Kamon name="sakura" size={17} /></IconOrb></span>
-          <span className="float d3"><IconOrb preset="blue" size={30}><Kamon name="seigaiha" size={17} /></IconOrb></span>
-          <span className="float d4"><IconOrb preset="violet" size={30}><Kamon name="shippou" size={17} /></IconOrb></span>
-          <span className="float d5"><IconOrb preset="green" size={30}><Kamon name="igeta" size={17} /></IconOrb></span>
-        </div>
-        <h1 className="text-3xl leading-tight sm:text-4xl" style={{ fontWeight: 800, letterSpacing: '-0.01em' }}>
+        {!user && (
+          <div className="mb-3 flex flex-wrap justify-center gap-2">
+            <span className="float d1"><IconOrb preset="green" size={30}><Kamon name="hanabishi" size={17} /></IconOrb></span>
+            <span className="float d2"><IconOrb preset="amber" size={30}><Kamon name="sakura" size={17} /></IconOrb></span>
+            <span className="float d3"><IconOrb preset="blue" size={30}><Kamon name="seigaiha" size={17} /></IconOrb></span>
+            <span className="float d4"><IconOrb preset="violet" size={30}><Kamon name="shippou" size={17} /></IconOrb></span>
+            <span className="float d5"><IconOrb preset="green" size={30}><Kamon name="igeta" size={17} /></IconOrb></span>
+          </div>
+        )}
+        <h1
+          className={user ? 'text-2xl leading-tight' : 'text-3xl leading-tight sm:text-4xl'}
+          style={{ fontWeight: 800, letterSpacing: '-0.01em' }}
+        >
           今日のミックス、<span className="text-grad-anim">もう迷わない。</span>
         </h1>
-        {/* ミッション（共創性）→ ベネフィットの根拠、の順で3〜5秒で伝える */}
-        <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed" style={{ color: 'var(--color-cream)', fontWeight: 600 }}>
-          日本のシーシャの「王道」を、みんなでつくる。
-        </p>
-        <p className="mx-auto mt-1.5 max-w-md text-sm leading-relaxed" style={{ color: 'var(--color-ash)' }}>
-          実際に作られ、吸われ、<b className="bouten">支持された作り方</b>から、まず試したい一台が見つかります。
-        </p>
+        {!user && (
+          <>
+            {/* ミッション（共創性）→ ベネフィットの根拠、の順で3〜5秒で伝える */}
+            <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed" style={{ color: 'var(--color-cream)', fontWeight: 600 }}>
+              日本のシーシャの「王道」を、みんなでつくる。
+            </p>
+            <p className="mx-auto mt-1.5 max-w-md text-sm leading-relaxed" style={{ color: 'var(--color-ash)' }}>
+              実際に作られ、吸われ、<b className="bouten">支持された作り方</b>から、まず試したい一台が見つかります。
+            </p>
+          </>
+        )}
         <p className="mt-1.5 text-xs" style={{ color: 'var(--color-ash-dim)' }}>
           {flavors.length > 0
             ? `${totalCombos}通りの組み合わせ ・ ${flavors.length}種のフレーバー`
             : '気分で探す ・ 作り方で選ぶ王道シーシャ図鑑'}
         </p>
         {/* 煙（けむり）＝ブランド"煙道"の象徴を一筋 */}
-        <div className="smoke-line mx-auto mt-3 w-6" aria-hidden />
-        {/* 全員に同じ入口。属性で出し分けない */}
+        {!user && <div className="smoke-line mx-auto mt-3 w-6" aria-hidden />}
         <div className="mt-4 flex flex-wrap justify-center gap-2">
-          <Link href="/national" className="chip chip-active">王道</Link>
+          {/* 王道は現時点で0件なので入口に置かない。いま実際に動いている場所を先に出す */}
+          <Link href={THEME_PATH} className="chip chip-active">検 今月の検証</Link>
           <Link href="/areas" className="chip">📍 近くの名店</Link>
           <Link href="/shelf" className="chip">🫙 あと1つで作れる</Link>
-          <Link href="/guide" className="chip">📖 作り方ガイド</Link>
-          {/* 再訪導線：ログイン中だけ、主目的（今日の一台を探す）を邪魔しない大きさで */}
+          {!user && <Link href="/guide" className="chip">📖 作り方ガイド</Link>}
           {user && <Link href="/mypage" className="chip">帳 煙道帳</Link>}
         </div>
       </section>
 
-      {/* ---------- 王道とは（3秒で伝わる"仕組み"）───ただの検索でなく"決める場所"だと示す ---------- */}
+      {/* ---------- 今月の煙道検証（トップの主役） ----------
+          煙道の主行動は「作り方を眺めること」ではなく「他人の作り方を試して残すこと」。
+          参加している人には次の1台まで、まだの人にはテーマの入口だけを出す。
+          「ダブルアップルだけのサイト」にはしないので、図鑑は下にそのまま残す。 */}
+      <section className="mx-auto mt-6 max-w-2xl">
+        <Link href={themeNext ? `/mix/${themeNext.method.id}` : THEME_PATH} className="card block p-5 sm:p-6">
+          <p className="eyebrow">今月の煙道検証</p>
+          {themeNext ? (
+            <>
+              <p className="mt-1.5 text-sm" style={{ color: 'var(--color-ash)' }}>
+                あなたはこのテーマで {themeMade.length} 通り試しています。次の一台はこれです。
+              </p>
+              <p className="mt-2 text-lg leading-tight" style={{ fontWeight: 800 }}>
+                {themeNext.method.title?.trim() || flavorLine(themeNext.method.mix_flavors)}
+              </p>
+              <p className="mt-1 text-sm" style={{ color: 'var(--color-ember-hot)', fontWeight: 700 }}>
+                {themeNext.diffs.map(describeDiff).join('／')}
+              </p>
+              <p className="mt-2 text-[0.7rem]" style={{ color: 'var(--color-ash-dim)' }}>
+                次にシーシャを作るときで大丈夫です。
+              </p>
+            </>
+          ) : (
+            <>
+              <p className="mt-1.5 text-xl leading-tight" style={{ fontWeight: 800 }}>
+                {FIRST_THEME.brand} {FIRST_THEME.flavor} 100%
+              </p>
+              <p className="mt-1 text-sm" style={{ color: 'var(--color-ember-hot)', fontWeight: 700 }}>
+                {FIRST_THEME.lead}
+              </p>
+              <p className="mt-2 text-xs leading-relaxed" style={{ color: 'var(--color-ash-dim)' }}>
+                同じフレーバーでも、ボウル・詰め方・炭・火入れで一台は変わります。
+                いつもの一台を、誰かのやり方に置き換えてみませんか。
+              </p>
+              <span className="mt-3 inline-block text-sm brush-underline" style={{ fontWeight: 600 }}>
+                見てみる →
+              </span>
+            </>
+          )}
+        </Link>
+      </section>
+
+      {/* ---------- 王道とは（初見向けの説明。常連には毎回出さない） ---------- */}
+      {!user && (
       <section className="mx-auto mt-8 max-w-2xl">
         <div className="card card-wa p-5 sm:p-6">
           <div className="flex items-center justify-center gap-2.5">
@@ -143,28 +211,7 @@ export default async function Home({
           </div>
         </div>
       </section>
-
-      {/* ---------- 今月の煙道検証（特別エリア。無視できる置き方にする） ----------
-          煙道を「ダブルアップルだけのサイト」にしない。表側は通常の図鑑のまま、
-          その中に1ブロックだけテーマへの入口を置く（docs/第一テーマ_設計再構成.md §0）。 */}
-      <section className="mx-auto mt-6 max-w-2xl">
-        <Link href={THEME_PATH} className="card block p-5 transition-colors sm:p-6">
-          <p className="eyebrow">今月の煙道検証</p>
-          <p className="mt-1.5 text-xl leading-tight" style={{ fontWeight: 800 }}>
-            {FIRST_THEME.brand} {FIRST_THEME.flavor} 100%
-          </p>
-          <p className="mt-1 text-sm" style={{ color: 'var(--color-ember-hot)', fontWeight: 700 }}>
-            {FIRST_THEME.lead}
-          </p>
-          <p className="mt-2 text-xs leading-relaxed" style={{ color: 'var(--color-ash-dim)' }}>
-            同じフレーバーでも、ボウル・詰め方・炭・火入れで一台は変わります。
-            いつもの一台を、誰かのやり方に置き換えてみませんか。
-          </p>
-          <span className="mt-3 inline-block text-sm brush-underline" style={{ fontWeight: 600 }}>
-            見てみる →
-          </span>
-        </Link>
-      </section>
+      )}
 
       {/* ---------- オンボーディング（初回ユーザー向け） ---------- */}
       {user && (

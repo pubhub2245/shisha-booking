@@ -45,8 +45,10 @@ export async function SiteHeader() {
 
         <nav className="hidden items-center gap-6 text-sm md:flex" style={{ color: 'var(--color-ash)' }}>
           <Link href="/" className="brush-underline transition-colors hover:text-[var(--color-cream)]">図鑑</Link>
+          {/* いま実際に進んでいる場所を、王道より前に置く（王道は現時点で0件） */}
+          <Link href="/theme" className="brush-underline transition-colors hover:text-[var(--color-cream)]" style={{ fontWeight: 700 }}>検証</Link>
           {/* ランキング系（王道/地域別/人気）は王道ページ上部のタブで束ねる */}
-          <Link href="/national" className="brush-underline transition-colors hover:text-[var(--color-cream)]" style={{ fontWeight: 700 }}>王道</Link>
+          <Link href="/national" className="brush-underline transition-colors hover:text-[var(--color-cream)]">王道</Link>
           <Link href="/flavors" className="brush-underline transition-colors hover:text-[var(--color-cream)]">フレーバー</Link>
           <Link href="/guide" className="brush-underline transition-colors hover:text-[var(--color-cream)]">作り方</Link>
           {user && <Link href="/shelf" className="brush-underline transition-colors hover:text-[var(--color-cream)]">マイフレーバー</Link>}
