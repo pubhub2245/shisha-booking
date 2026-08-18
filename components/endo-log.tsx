@@ -97,7 +97,7 @@ export function EndoLog({ entries }: { entries: SmokeLogEntry[] }) {
                     className="block truncate text-sm brush-underline"
                     style={{ fontWeight: 600 }}
                   >
-                    {flavorLine(e.mix.mix_flavors) || e.mix.title || 'ミックス'}
+                    {flavorLine(e.mix.mix_flavors) || e.mix.title || '作り方'}
                   </Link>
                   <div className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-1">
                     <KindLabel entry={e} />

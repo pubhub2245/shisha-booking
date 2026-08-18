@@ -56,7 +56,7 @@ export function CommentForm({
       <div className="field">
         <textarea
           name="body"
-          placeholder={placeholder ?? 'このミックスの感想・コツ・アレンジを書く…（@ユーザー名で言及できます）'}
+          placeholder={placeholder ?? 'この作り方の感想・コツ・アレンジを書く…（@ユーザー名で言及できます）'}
           maxLength={500}
           required
           style={compact ? { minHeight: 64 } : undefined}

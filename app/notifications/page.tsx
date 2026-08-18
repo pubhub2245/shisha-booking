@@ -56,9 +56,9 @@ export default async function NotificationsPage() {
         <div className="card mt-6 p-10 text-center">
           <div className="text-3xl" aria-hidden>🔔</div>
           <p className="mt-2 text-sm" style={{ color: 'var(--color-ash)' }}>
-            通知はまだありません。<br />ミックスを投稿すると、いいねやコメントがここに届きます。
+            通知はまだありません。<br />作り方を登録すると、いいねやコメントがここに届きます。
           </p>
-          <Link href="/post" className="btn btn-ember mt-4 text-sm">＋ ミックスを投稿</Link>
+          <Link href="/post" className="btn btn-ember mt-4 text-sm">＋ 作り方を登録</Link>
         </div>
       ) : (
         <ul className="mt-6 flex flex-col gap-2">
@@ -96,7 +96,7 @@ export default async function NotificationsPage() {
                   <div className="min-w-0 flex-1">
                     {isSystem ? (
                       <p className="text-sm leading-snug" style={{ fontWeight: 700, color: 'var(--color-cream)' }}>
-                        🎉 あなたのミックスが王道に選ばれました！
+                        🎉 あなたの作り方が王道に選ばれました！
                       </p>
                     ) : (
                       <p className="text-sm leading-snug" style={{ color: 'var(--color-cream)' }}>

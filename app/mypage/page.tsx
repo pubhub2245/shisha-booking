@@ -255,24 +255,24 @@ export default async function MyPage() {
 
       <section>
         <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-lg" style={{ fontWeight: 700 }}>投稿したミックス（{myMixes.length}）</h2>
+          <h2 className="text-lg" style={{ fontWeight: 700 }}>登録した作り方（{myMixes.length}）</h2>
           <Link href="/post" className="btn btn-ghost text-sm">＋ 新しく投稿</Link>
         </div>
-        <MixGrid mixes={myMixes} likedIds={likedIds} emptyText="まだ投稿がありません。最初のミックスを投稿しましょう。" />
+        <MixGrid mixes={myMixes} likedIds={likedIds} emptyText="まだ登録がありません。最初の作り方を残しましょう。" />
       </section>
 
       <div className="divider my-10" />
 
       <section>
-        <h2 className="mb-4 text-lg" style={{ fontWeight: 700 }}>🔖 保存したミックス（{bookmarked.length}）</h2>
-        <MixGrid mixes={bookmarked} likedIds={likedIds} emptyText="保存したミックスはまだありません。" />
+        <h2 className="mb-4 text-lg" style={{ fontWeight: 700 }}>🔖 保存した作り方（{bookmarked.length}）</h2>
+        <MixGrid mixes={bookmarked} likedIds={likedIds} emptyText="保存した作り方はまだありません。" />
       </section>
 
       <div className="divider my-10" />
 
       <section>
-        <h2 className="mb-4 text-lg" style={{ fontWeight: 700 }}>❤️ いいねしたミックス（{liked.length}）</h2>
-        <MixGrid mixes={liked} likedIds={likedIds} emptyText="いいねしたミックスはまだありません。" />
+        <h2 className="mb-4 text-lg" style={{ fontWeight: 700 }}>❤️ いいねした作り方（{liked.length}）</h2>
+        <MixGrid mixes={liked} likedIds={likedIds} emptyText="いいねした作り方はまだありません。" />
       </section>
     </div>
   )

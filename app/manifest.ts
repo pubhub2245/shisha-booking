@@ -5,7 +5,7 @@ export default function manifest(): MetadataRoute.Manifest {
   return {
     name: BRAND_TITLE,
     short_name: BRAND.full,
-    description: `日本中の「美味しい」シーシャ ミックスと作り方が集まる${BRAND.category}コミュニティ。`,
+    description: `1つのフレーバーを、どう作るか。実際に作られた作り方を試して、比べられます。`,
     start_url: '/',
     display: 'standalone',
     background_color: '#f3ede1',

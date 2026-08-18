@@ -96,7 +96,7 @@ const sections: Section[] = [
   {
     id: 'mix',
     icon: '🧩',
-    title: 'ミックスの基本',
+    title: '作り方の基本',
     lead: 'メインの味を「補完」するイメージで組む。',
     points: [
       { h: 'メイン＋補助で考える', body: '主役のフレーバーを決め、それを引き立てる補助を足す。足し算で埋もれさせず、メインの輪郭を強くする。' },
@@ -319,7 +319,7 @@ export default function GuidePage() {
           熱管理カーブには、各時点のキューブ炭の個数まで残せます。あなたのノウハウを図鑑に。
         </p>
         <div className="flex flex-wrap justify-center gap-3">
-          <Link href="/post" className="btn btn-ember">ミックスを投稿</Link>
+          <Link href="/post" className="btn btn-ember">作り方を登録</Link>
           <Link href="/" className="btn btn-ghost">図鑑を見る</Link>
         </div>
       </div>

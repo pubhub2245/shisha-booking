@@ -34,7 +34,7 @@ export default async function NationalTeamPage() {
           王道シーシャ図鑑
         </h1>
         <p className="mx-auto mt-3 max-w-xl text-sm leading-relaxed" style={{ color: 'var(--color-ash)' }}>
-          実際に吸われ、再現されながら育ってきた、その組み合わせの
+          実際に吸われ、再現されながら育ってきた、そのフレーバーの
           <b className="bouten">「まずこれ」</b>と言える作り方。
         </p>
         <p className="mx-auto mt-2 max-w-xl text-xs leading-relaxed" style={{ color: 'var(--color-ash-dim)' }}>

@@ -29,8 +29,8 @@ export default async function AdminOrthodoxyPage() {
       <Link href="/mypage" className="text-sm" style={{ color: 'var(--color-ash-dim)' }}>← マイページ</Link>
       <h1 className="mt-3 text-2xl" style={{ fontWeight: 800 }}>王道の認定</h1>
       <p className="mt-2 text-sm" style={{ color: 'var(--color-ash-dim)' }}>
-        運営・認証プロから<b>推薦</b>された作り方の一覧です。1つの組み合わせにつき王道は1つだけ。
-        別の作り方を認定すると、その組み合わせの王道は自動的に入れ替わります（履歴は保存されます）。
+        運営・認証プロから<b>推薦</b>された作り方の一覧です。1つのフレーバーにつき王道は1つだけ。
+        別の作り方を認定すると、そのフレーバーの王道は自動的に入れ替わります（履歴は保存されます）。
         <br />※ 王道は単純な票数では決めません。推薦は「候補の発見」のための材料です。
       </p>
 
@@ -52,7 +52,7 @@ export default async function AdminOrthodoxyPage() {
                     {flavorLine(mix.mix_flavors) || mix.title || '作り方'}
                   </Link>
                   <p className="mt-1 text-xs" style={{ color: 'var(--color-ash-dim)' }}>
-                    推薦 {recommendCount} ・ 組み合わせ: {mix.combo_key} ・ {relativeTime(mix.created_at)}
+                    推薦 {recommendCount} ・ フレーバー: {mix.combo_key} ・ {relativeTime(mix.created_at)}
                   </p>
                 </div>
                 {isOrthodox && (

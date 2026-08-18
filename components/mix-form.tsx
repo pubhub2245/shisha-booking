@@ -83,7 +83,7 @@ export function MixForm({
   const LOCKABLE_KEYS = LOCKABLE_SECTIONS.map((s) => s.v) as string[]
   const ALL_SECTION_KEYS = MIX_DISPLAY_SECTIONS.map((s) => s.v)
   const chooserItems: { v: string; label: string; hint: string; lockable: boolean }[] = [
-    { v: 'title', label: '🏷 ネーミング・ひとこと', hint: 'このミックスの名前・特徴を添える', lockable: false },
+    { v: 'title', label: '🏷 ネーミング・ひとこと', hint: 'この作り方の名前・特徴を添える', lockable: false },
     ...MIX_DISPLAY_SECTIONS.map((s) => ({ v: s.v, label: s.label, hint: s.hint, lockable: canSell && LOCKABLE_KEYS.includes(s.v) })),
   ]
   const initialShown =
@@ -525,7 +525,7 @@ export function MixForm({
         </p>
         <div className="mt-3 flex flex-col gap-3">
           <div className="field"><label>下処理（タバコの手入れ・シロップ切り等）</label><textarea name="prep_note" defaultValue={initial?.prepNote} placeholder="例：開封後に軽くほぐし、余分なシロップを切る。○分置く、など。" maxLength={800} /></div>
-          <div className="field"><label>配合の狙い（なぜこの比率か）</label><textarea name="ratio_reason" defaultValue={initial?.ratioReason} placeholder="例：ミントを1割に抑えて甘さを主役に。冷涼感は氷で補う。" maxLength={800} /></div>
+          <div className="field"><label>この作り方の狙い（なぜこうするのか）</label><textarea name="ratio_reason" defaultValue={initial?.ratioReason} placeholder="例：シロップを飛ばしすぎないぎりぎりの熱量を狙う。炭4個だと最初の10分で香りが飛ぶ。" maxLength={800} /></div>
           <div className="field"><label>提供・吸い方のコツ</label><textarea name="serve_note" defaultValue={initial?.serveNote} placeholder="例：最初の数吸いはゆっくり。○分ごとに炭をローテ。" maxLength={800} /></div>
         </div>
       </div>
@@ -533,7 +533,7 @@ export function MixForm({
       </details>
 
       <button type="submit" disabled={pending} className="btn btn-ember self-start">
-        {pending ? '保存中…' : mode === 'edit' ? '変更を保存する' : 'ミックスを投稿する'}
+        {pending ? '保存中…' : mode === 'edit' ? '変更を保存する' : '作り方を登録する'}
       </button>
     </form>
   )

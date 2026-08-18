@@ -30,7 +30,7 @@ export function OnboardingHint({ isAuthed }: { isAuthed: boolean }) {
         <div>
           <div className="text-sm" style={{ fontWeight: 700 }}>👋 はじめての方へ</div>
           <p className="mt-1 text-sm" style={{ color: 'var(--color-ash)' }}>
-            気分をタップして今日の一台を探す・持っているフレーバーで作れるミックスを見る・お店のメニューを見る、が主な使い方です。
+            フレーバーを選んで作り方を見る・実際に作って記録する・前の一台と比べる、が主な使い方です。
           </p>
           <div className="mt-2 flex flex-wrap gap-2">
             <Link href="#mood" className="chip chip-active">気分で探す</Link>
