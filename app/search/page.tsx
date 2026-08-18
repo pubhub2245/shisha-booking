@@ -8,7 +8,7 @@ export const dynamic = 'force-dynamic'
 
 export const metadata: Metadata = {
   title: '検索 — 煙道',
-  description: 'ミックス・フレーバーを検索。',
+  description: '作り方・フレーバーを検索。',
 }
 
 export default async function SearchPage({ searchParams }: { searchParams: Promise<{ q?: string }> }) {
@@ -27,7 +27,7 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
         <input
           name="q"
           defaultValue={query}
-          placeholder="ミックス・フレーバー・タグで検索"
+          placeholder="作り方・フレーバー・タグで検索"
           aria-label="検索"
           autoFocus
           className="min-w-0 flex-1 rounded-xl border px-4 py-2.5 text-sm outline-none"
@@ -56,7 +56,7 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
           )}
 
           <section className="mt-8">
-            <h2 className="mb-4 text-sm eyebrow">ミックス（{mixes.length}）</h2>
+            <h2 className="mb-4 text-sm eyebrow">作り方（{mixes.length}）</h2>
             {mixes.length > 0 ? (
               <div className="grid gap-5 sm:grid-cols-2">
                 {mixes.map((m) => (
@@ -65,7 +65,7 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
               </div>
             ) : (
               <div className="card p-8 text-center text-sm" style={{ color: 'var(--color-ash)' }}>
-                「{query}」に一致するミックスは見つかりませんでした。
+                「{query}」に一致する作り方は見つかりませんでした。
                 {flavors.length === 0 && <><br />別のキーワードでお試しください。</>}
               </div>
             )}

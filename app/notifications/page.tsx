@@ -14,10 +14,10 @@ function actorName(a: MixAuthor | null): string {
 }
 
 const VERB: Record<string, string> = {
-  like: 'があなたのミックスにいいねしました',
-  comment: 'があなたのミックスにコメントしました',
+  like: 'があなたの作り方にいいねしました',
+  comment: 'があなたの作り方にコメントしました',
   follow: 'があなたをフォローしました',
-  make: 'があなたのミックスを「作った」しました',
+  make: 'があなたの作り方を「作った」しました',
   reply: 'があなたのコメントに返信しました',
   mention: 'がコメントであなたに言及しました',
   comment_like: 'があなたのコメントにいいねしました',
@@ -56,9 +56,9 @@ export default async function NotificationsPage() {
         <div className="card mt-6 p-10 text-center">
           <div className="text-3xl" aria-hidden>🔔</div>
           <p className="mt-2 text-sm" style={{ color: 'var(--color-ash)' }}>
-            通知はまだありません。<br />ミックスを投稿すると、いいねやコメントがここに届きます。
+            通知はまだありません。<br />作り方を登録すると、いいねやコメントがここに届きます。
           </p>
-          <Link href="/post" className="btn btn-ember mt-4 text-sm">＋ ミックスを投稿</Link>
+          <Link href="/post" className="btn btn-ember mt-4 text-sm">＋ 作り方を登録</Link>
         </div>
       ) : (
         <ul className="mt-6 flex flex-col gap-2">
@@ -66,12 +66,12 @@ export default async function NotificationsPage() {
             const isSystem = n.type === 'national_selected'
             const name = actorName(n.actor)
             const href = isSystem
-              ? (n.mix ? `/mix/${n.mix.id}` : '/national')
+              ? (n.mix ? `/method/${n.mix.id}` : '/national')
               : n.type.startsWith('idea')
                 ? '/ideas'
                 : n.type === 'follow'
                   ? (n.actor?.username ? `/u/${n.actor.username}` : '/notifications')
-                  : (n.mix ? `/mix/${n.mix.id}` : '/notifications')
+                  : (n.mix ? `/method/${n.mix.id}` : '/notifications')
             return (
               <li key={n.id}>
                 <Link
@@ -96,7 +96,7 @@ export default async function NotificationsPage() {
                   <div className="min-w-0 flex-1">
                     {isSystem ? (
                       <p className="text-sm leading-snug" style={{ fontWeight: 700, color: 'var(--color-cream)' }}>
-                        🎉 あなたのミックスが王道に選ばれました！
+                        🎉 あなたの作り方が王道に選ばれました！
                       </p>
                     ) : (
                       <p className="text-sm leading-snug" style={{ color: 'var(--color-cream)' }}>

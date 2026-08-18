@@ -11,8 +11,8 @@ export async function generateMetadata({ params }: { params: Promise<{ brand: st
   const { brand } = await params
   const name = decodeURIComponent(brand)
   return {
-    title: `${name} のフレーバー一覧・ミックス — 煙道`,
-    description: `${name} のシーシャフレーバーと、それを使ったミックスの作り方まとめ。`,
+    title: `${name} のフレーバー一覧 — 煙道`,
+    description: `${name} のシーシャフレーバーと、その作り方のまとめ。`,
   }
 }
 
@@ -34,7 +34,7 @@ export default async function BrandPage({ params }: { params: Promise<{ brand: s
       <p className="eyebrow mt-4">Brand</p>
       <h1 className="mt-2 text-3xl" style={{ fontWeight: 800 }}>{name}</h1>
       <p className="mt-2 text-sm" style={{ color: 'var(--color-ash)' }}>
-        {name} のフレーバー {flavors.length} 種。タップで各フレーバーの詳細・購入・作れるミックスへ。
+        {name} のフレーバー {flavors.length} 種。タップで各フレーバーの作り方・購入へ。
       </p>
 
       <section className="mt-6">
@@ -50,7 +50,7 @@ export default async function BrandPage({ params }: { params: Promise<{ brand: s
 
       {mixes.length > 0 && (
         <section className="mt-10">
-          <h2 className="mb-4 text-lg" style={{ fontWeight: 700 }}>{name} を使ったミックス（{mixes.length}）</h2>
+          <h2 className="mb-4 text-lg" style={{ fontWeight: 700 }}>{name} を使った作り方（{mixes.length}）</h2>
           <div className="grid gap-5 sm:grid-cols-2">
             {mixes.map((m) => (
               <MixCard key={m.id} mix={m} liked={likedIds.has(m.id)} isAuthed={!!user} />

@@ -9,7 +9,11 @@ import {
   getFollowCounts,
   getMyShops,
   getSmokeLog,
+  getThemeOverview,
+  getMyThemeMade,
 } from '@/lib/queries'
+import { FIRST_THEME } from '@/lib/theme'
+import { rankNextCandidates, describeDiff } from '@/lib/method-diff'
 import { MixCard } from '@/components/mix-card'
 import { Avatar } from '@/components/avatar'
 import { VerifiedBadge } from '@/components/verified-badge'
@@ -58,6 +62,28 @@ export default async function MyPage() {
     getMyShops(),
     getSmokeLog(30),
   ])
+
+  // 今月の煙道検証：自分が最後に作った一台と、そこから差が小さい「次の1台」
+  const [themeOverview, themeMade] = await Promise.all([
+    getThemeOverview(FIRST_THEME.comboKey),
+    getMyThemeMade(FIRST_THEME.comboKey),
+  ])
+  const themeMadeCount = themeMade.length
+  const themeLatest = themeMade[0] ? themeOverview.methods.find((m) => m.id === themeMade[0].mixId) ?? null : null
+  const themeMadeIds = new Set(themeMade.map((r) => r.mixId))
+  const themeTop = themeLatest
+    ? rankNextCandidates(themeLatest, themeOverview.methods, {
+        madeIds: themeMadeIds,
+        makerCount: (id) => themeOverview.stats.get(id)?.makerCount ?? 0,
+      }).find((c) => !themeMadeIds.has(c.method.id))
+    : undefined
+  const themeNext = themeTop
+    ? {
+        id: themeTop.method.id,
+        label: themeTop.method.title?.trim() || `作り方 ${themeTop.method.id.slice(0, 4)}`,
+        diff: themeTop.diffs.map(describeDiff).join('／'),
+      }
+    : null
 
   const displayName = user.profile?.display_name || (user.profile?.username ? `@${user.profile.username}` : 'あなた')
   const username = user.profile?.username
@@ -124,6 +150,34 @@ export default async function MyPage() {
         <InviteButton />
         <Link href="/mypage/edit" className="btn btn-ghost text-sm">⚙️ 設定</Link>
       </div>
+
+      {/* ---------- 今月の煙道検証：次の1台 ----------
+          記録した直後の画面にしか置かないと、次のセッション（数日〜数週間後）には忘れられる。
+          完了画面を離れても、戻ってくる場所に同じものが待っている状態にする
+          （docs/第一テーマ_設計再構成.md P0-4）。宿題にしないため、催促の言葉は使わない。 */}
+      {themeNext && (
+        <section className="mt-8">
+          <div className="card p-5">
+            <p className="eyebrow">今月の煙道検証</p>
+            <p className="mt-1 text-sm" style={{ color: 'var(--color-ash)' }}>
+              あなたはこのテーマで {themeMadeCount} 通り試しています。
+            </p>
+            <Link
+              href={`/method/${themeNext.id}`}
+              className="mt-3 flex flex-col gap-1 rounded-lg border px-3 py-2.5"
+              style={{ borderColor: 'var(--line)' }}
+            >
+              <span className="text-sm" style={{ fontWeight: 700 }}>{themeNext.label}</span>
+              <span className="text-xs" style={{ color: 'var(--color-ember-hot)', fontWeight: 600 }}>
+                {themeNext.diff}
+              </span>
+            </Link>
+            <p className="mt-2 text-[0.7rem]" style={{ color: 'var(--color-ash-dim)' }}>
+              次にシーシャを作るときで大丈夫です。
+            </p>
+          </div>
+        </section>
+      )}
 
       {/* ---------- 煙道帳：自分のシーシャの記録（探す→吸う→残す の「残す」） ---------- */}
       <section className="mt-8">
@@ -201,24 +255,24 @@ export default async function MyPage() {
 
       <section>
         <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-lg" style={{ fontWeight: 700 }}>投稿したミックス（{myMixes.length}）</h2>
+          <h2 className="text-lg" style={{ fontWeight: 700 }}>登録した作り方（{myMixes.length}）</h2>
           <Link href="/post" className="btn btn-ghost text-sm">＋ 新しく投稿</Link>
         </div>
-        <MixGrid mixes={myMixes} likedIds={likedIds} emptyText="まだ投稿がありません。最初のミックスを投稿しましょう。" />
+        <MixGrid mixes={myMixes} likedIds={likedIds} emptyText="まだ登録がありません。最初の作り方を残しましょう。" />
       </section>
 
       <div className="divider my-10" />
 
       <section>
-        <h2 className="mb-4 text-lg" style={{ fontWeight: 700 }}>🔖 保存したミックス（{bookmarked.length}）</h2>
-        <MixGrid mixes={bookmarked} likedIds={likedIds} emptyText="保存したミックスはまだありません。" />
+        <h2 className="mb-4 text-lg" style={{ fontWeight: 700 }}>🔖 保存した作り方（{bookmarked.length}）</h2>
+        <MixGrid mixes={bookmarked} likedIds={likedIds} emptyText="保存した作り方はまだありません。" />
       </section>
 
       <div className="divider my-10" />
 
       <section>
-        <h2 className="mb-4 text-lg" style={{ fontWeight: 700 }}>❤️ いいねしたミックス（{liked.length}）</h2>
-        <MixGrid mixes={liked} likedIds={likedIds} emptyText="いいねしたミックスはまだありません。" />
+        <h2 className="mb-4 text-lg" style={{ fontWeight: 700 }}>❤️ いいねした作り方（{liked.length}）</h2>
+        <MixGrid mixes={liked} likedIds={likedIds} emptyText="いいねした作り方はまだありません。" />
       </section>
     </div>
   )

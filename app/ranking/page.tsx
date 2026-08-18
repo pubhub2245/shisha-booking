@@ -8,7 +8,7 @@ import { EmptyState } from '@/components/empty-state'
 export const dynamic = 'force-dynamic'
 export const metadata = {
   title: '人気ランキング — 煙道',
-  description: 'いいねが多い人気のシーシャ ミックスランキング。週間・月間・全期間。',
+  description: 'いいねが多い人気の作り方ランキング。週間・月間・全期間。',
 }
 
 const MEDALS = ['🥇', '🥈', '🥉']
@@ -34,7 +34,7 @@ export default async function RankingPage({ searchParams }: { searchParams: Prom
     <div className="wrap max-w-3xl py-10">
       <p className="eyebrow">Ranking</p>
       <h1 className="mt-2 text-3xl" style={{ fontWeight: 800 }}>
-        人気ミックスランキング
+        人気の作り方ランキング
       </h1>
       <p className="mt-2 mb-4 text-sm" style={{ color: 'var(--color-ash)' }}>
         みんなの「いいね」が多い順。迷ったら上位から試すのがおすすめ。
@@ -59,16 +59,16 @@ export default async function RankingPage({ searchParams }: { searchParams: Prom
         <EmptyState
           icon="🏆"
           title={period === 'all' ? 'まだランキングデータがありません' : 'この期間の「いいね」はまだありません'}
-          action={<Link href="/post" className="btn btn-ember">＋ ミックスを投稿</Link>}
+          action={<Link href="/post" className="btn btn-ember">＋ 作り方を登録</Link>}
         >
-          ミックスに👍が集まると、人気順に並びます。
+          作り方に👍が集まると、人気順に並びます。
         </EmptyState>
       ) : (
         <>
           {/* TOP3 */}
           <div className="mt-8 grid gap-4">
             {top3.map((m, i) => (
-              <Link key={m.id} href={`/mix/${m.id}`} className="card card-hover flex items-center gap-4 p-5">
+              <Link key={m.id} href={`/method/${m.id}`} className="card card-hover flex items-center gap-4 p-5">
                 <span className="text-3xl">{MEDALS[i]}</span>
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-x-1.5 leading-snug" style={{ fontWeight: 700 }}>

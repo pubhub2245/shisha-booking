@@ -6,6 +6,7 @@ import { redirect } from 'next/navigation'
 import type { HeatPoint, HeatEvent } from '@/lib/types/database'
 import { comboKey } from '@/lib/combo'
 import { normalizePrice, LOCKABLE_SECTIONS } from '@/lib/premium'
+import { LOCK_FEATURE_ENABLED } from '@/lib/lock'
 import { MIX_DISPLAY_SECTION_KEYS } from '@/lib/mix-sections'
 import { ALL_TASTE_TAGS } from '@/lib/tags'
 import { isValidMixPhotoUrl } from '@/lib/storage'
@@ -32,26 +33,29 @@ type FlavorInput = {
   affiliate_url: string | null
 }
 
-/** 投稿フォームから複数フレーバー行をパースする（選択式：flavor_id + brand/name の並列配列） */
+/**
+ * 投稿フォームからフレーバーをパースする。
+ *
+ * 煙道が扱うのは「1つのフレーバーを、どう作るか」なので、作り方に紐づくフレーバーは常に1つ。
+ * 配合（ratio）は概念として持たない。古いフォームや直接POSTで複数来ても先頭だけを採る。
+ */
 function parseFlavors(formData: FormData): FlavorInput[] {
   const ids = formData.getAll('flavor_id').map((v) => String(v).trim())
   const names = formData.getAll('flavor_name').map((v) => String(v).trim())
   const brands = formData.getAll('flavor_brand').map((v) => String(v).trim())
-  const ratios = formData.getAll('flavor_ratio').map((v) => String(v).trim())
   const urls = formData.getAll('flavor_url').map((v) => String(v).trim())
 
-  const out: FlavorInput[] = []
-  for (let i = 0; i < names.length; i++) {
-    if (!names[i]) continue
-    out.push({
+  const i = names.findIndex((n) => !!n)
+  if (i < 0) return []
+  return [
+    {
       flavor_id: ids[i] || null,
       brand: brands[i] || '',
       name: names[i],
-      ratio: ratios[i] ? Number(ratios[i]) || null : null,
+      ratio: null,
       affiliate_url: urls[i] || null,
-    })
-  }
-  return out
+    },
+  ]
 }
 
 /** 熱管理カーブ（JSON）をパースして検証する */
@@ -233,6 +237,8 @@ async function parsePremium(
   userId: string,
   formData: FormData
 ): Promise<{ premium: boolean; price: number | null; locked_sections: string[] }> {
+  // ロック機能を非表示にしている間は、フォームから何が来ても有料にしない（lib/lock.ts）
+  if (!LOCK_FEATURE_ENABLED) return { premium: false, price: null, locked_sections: [] }
   const validSections = LOCKABLE_SECTIONS.map((s) => s.v) as string[]
   const requested = formData.get('premium') === 'on'
   const locked = formData.getAll('locked_sections').map(String).filter((v) => validSections.includes(v))

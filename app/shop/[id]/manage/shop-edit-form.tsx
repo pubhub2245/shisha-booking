@@ -111,7 +111,7 @@ export function ShopEditForm({ shop }: { shop: Shop }) {
         <div className="text-sm" style={{ fontWeight: 700 }}>📍 お店の位置（実地評価用）</div>
         <p className="mt-1 text-xs leading-relaxed" style={{ color: 'var(--color-ash)' }}>
           この位置を基準に「お客さんが本当に来店したか」をGPSで判定します。
-          <b>お店の中で</b>「現在地を登録」を押してください。来店したお客さんだけが、あなたのミックスを実地評価できるようになります。
+          <b>お店の中で</b>「現在地を登録」を押してください。来店したお客さんだけが、あなたの作り方を実地評価できるようになります。
         </p>
         <div className="mt-3 flex flex-wrap items-center gap-2">
           <button type="button" onClick={captureLocation} disabled={locating} className="btn btn-ghost text-sm">

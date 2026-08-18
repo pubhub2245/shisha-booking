@@ -5,7 +5,7 @@ import { getCurrentUser } from '@/lib/auth'
 export const dynamic = 'force-dynamic'
 export const metadata = {
   title: '店舗一覧 — 煙道',
-  description: '煙道 に登録しているシーシャ店の一覧。お店の在庫メニューや作れるミックスをチェックしよう。',
+  description: '煙道 に登録しているシーシャ店の一覧。お店の在庫と、そこで試せる作り方をチェックしよう。',
 }
 
 export default async function ShopsPage() {

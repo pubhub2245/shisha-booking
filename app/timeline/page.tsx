@@ -18,7 +18,7 @@ export default async function TimelinePage() {
       <p className="eyebrow">Timeline</p>
       <h1 className="mt-2 text-3xl" style={{ fontWeight: 800 }}>タイムライン</h1>
       <p className="mt-2 text-sm" style={{ color: 'var(--color-ash)' }}>
-        フォロー中の人が投稿した新着ミックス。
+        フォロー中の人が登録した新着の作り方。
       </p>
 
       {mixes.length > 0 ? (

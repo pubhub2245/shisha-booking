@@ -1,7 +1,7 @@
 import { unstable_cache } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { createPublicClient } from '@/lib/supabase/public'
-import { comboKey, comboSlug, comboKeyFromSlug, flavorKey } from '@/lib/combo'
+import { comboKey, comboSlug, comboKeyFromSlug, flavorKey, isLegacyMultiFlavorKey } from '@/lib/combo'
 import { mixQuality, mixCompleteness } from '@/lib/quality'
 import { searchVariants } from '@/lib/kana'
 import { TYPE_TAGS } from '@/lib/tags'
@@ -24,7 +24,6 @@ import type {
   ProApplication,
   ProApplicationWithUser,
   ComboSummary,
-  NearMakeable,
   Shop,
   ShopMember,
   ShopMemberRole,
@@ -464,81 +463,6 @@ export async function getCombos(opts: FeedOptions = {}): Promise<ComboSummary[]>
   // 「作れるものだけ」指定時は所持フレーバー集合を取得
   const owned = opts.makeableOnly ? await getOwnedFlavorKeys() : null
   return buildCombos(mixes, opts, owned)
-}
-
-/** 所持フレーバーで「あと1つ」だけ足りないコンボ（不足フレーバーを提示） */
-export async function getNearMakeableForKeys(ownedKeys: Set<string>): Promise<NearMakeable[]> {
-  if (ownedKeys.size === 0) return []
-  const [mixes, flavorsMaster] = await Promise.all([getMixes({}), getFlavors()])
-  const combos = buildCombos(mixes, { sort: 'detailed' }, null)
-  const idByKey = new Map(flavorsMaster.map((f) => [flavorKey(f.brand, f.name), f.id]))
-  const near: NearMakeable[] = []
-  for (const c of combos) {
-    const setFlavors = c.top.mix_flavors ?? []
-    if (setFlavors.length < 2) continue // 単一フレーバーは「あと1つ」の対象外
-    const missing = setFlavors.filter((f) => !ownedKeys.has(flavorKey(f.brand, f.name)))
-    if (missing.length !== 1) continue
-    const mf = missing[0]
-    near.push({
-      combo: c,
-      missing: {
-        brand: mf.brand,
-        name: mf.name,
-        flavorId: mf.flavor_id ?? idByKey.get(flavorKey(mf.brand, mf.name)) ?? null,
-      },
-    })
-  }
-  return near.slice(0, 12)
-}
-
-/** ログイン中ユーザーの「あと1つで作れる」コンボ */
-export async function getMyNearMakeable(): Promise<NearMakeable[]> {
-  const owned = await getOwnedFlavorKeys()
-  return getNearMakeableForKeys(owned)
-}
-
-export type MakeableReps = {
-  ready: NationalRep[]
-  almost: { rep: NationalRep; missing: { brand: string | null; name: string; flavorId: string | null } }[]
-}
-
-/**
- * ログイン中ユーザーの棚（マイフレーバー）で「今作れる王道」「あと1種で作れる王道」を算出。
- * 王道(getNationalTeam)は公開データ・キャッシュ済み、棚はユーザー個別。
- * "あと1種"の不足フレーバーは購入導線（アフィリエイト）に自然につながる。
- */
-export async function getMakeableReps(): Promise<MakeableReps> {
-  try {
-    const [team, ownedKeys, flavorsMaster] = await Promise.all([
-      getNationalTeam(),
-      getOwnedFlavorKeys(),
-      getFlavors(),
-    ])
-    if (ownedKeys.size === 0 || team.length === 0) return { ready: [], almost: [] }
-    const idByKey = new Map(flavorsMaster.map((f) => [flavorKey(f.brand, f.name), f.id]))
-    const ready: NationalRep[] = []
-    const almost: MakeableReps['almost'] = []
-    for (const rep of team) {
-      const fl = rep.mix.mix_flavors ?? []
-      if (fl.length === 0) continue
-      const missing = fl.filter((f) => !ownedKeys.has(flavorKey(f.brand, f.name)))
-      if (missing.length === 0) ready.push(rep)
-      else if (missing.length === 1) {
-        const mf = missing[0]
-        almost.push({
-          rep,
-          missing: {
-            brand: mf.brand,
-            name: mf.name,
-            flavorId: mf.flavor_id ?? idByKey.get(flavorKey(mf.brand, mf.name)) ?? null,
-          },
-        })
-      }
-    }
-    return { ready, almost }
-  } catch {
-    return { ready: [], almost: [] }
-  }
 }
 
 /** Combo 詳細：その組み合わせの全ての作り方（Method） */
@@ -1313,7 +1237,7 @@ export async function getRankedMixes(period: 'week' | 'month' | 'all'): Promise<
  * 初期はデータが少ないため、AI生成サンプルも候補に含める（バッジで区別済み）。
  */
 // 公開データの重い集計（最大 1000 mix + 10000 makes + 10000 onsite を JS 集計）。
-// /national・/mix/[id]（王道バッジ）・/u/[username]（実績）から毎回呼ばれるため、
+// /national・/method/[id]（王道バッジ）・/u/[username]（実績）から毎回呼ばれるため、
 // クッキー非依存の公開クライアントで計算し 5 分キャッシュする（王道は最短でも5分間隔で更新）。
 const _getNationalTeamCached = unstable_cache(
   async (): Promise<NationalRep[]> => {
@@ -2484,5 +2408,200 @@ export async function getOrthodoxList(limit = 60): Promise<OrthodoxEntry[]> {
       .filter((x): x is OrthodoxEntry => !!x)
   } catch {
     return []
+  }
+}
+
+/* ---------------------------------------------------------------------------
+ * 第一テーマ（今月の煙道検証）
+ *
+ * テーマは combo を1つ指名しただけのもので、専用テーブルを持たない（lib/theme.ts）。
+ * ここでの集計は「他人を含む」ため、RLS が本人限定の mix_experiences は
+ * SECURITY DEFINER の RPC 経由で読む。
+ * ------------------------------------------------------------------------- */
+
+export type ThemeMethodStat = { makerCount: number; madeTotal: number; repeatMakers: number }
+
+export type ThemeOverview = {
+  comboKey: string
+  methods: MixWithRelations[]
+  stats: Map<string, ThemeMethodStat>
+  progress: {
+    methodCount: number
+    participants: number
+    repeaters: number
+    multiMethod: number
+    comparers: number
+    comparisons: number
+    madeTotal: number
+  }
+}
+
+const EMPTY_PROGRESS = {
+  methodCount: 0,
+  participants: 0,
+  repeaters: 0,
+  multiMethod: 0,
+  comparers: 0,
+  comparisons: 0,
+  madeTotal: 0,
+}
+
+/** テーマの全体像：作り方一覧＋作り方ごとの実績＋段階指標。作り方0件でも例外にしない。 */
+export async function getThemeOverview(comboKey: string): Promise<ThemeOverview> {
+  try {
+    const supabase = await createClient()
+    const [{ data: mixRows }, { data: statRows }, { data: progressRows }] = await Promise.all([
+      supabase.from('mixes').select('*').eq('combo_key', comboKey).eq('hidden', false),
+      supabase.rpc('theme_method_stats', { p_combo_key: comboKey }),
+      supabase.rpc('theme_progress', { p_combo_key: comboKey }),
+    ])
+    const methods = await attachRelations(supabase, (mixRows ?? []) as Mix[])
+    const stats = new Map<string, ThemeMethodStat>()
+    for (const r of statRows ?? []) {
+      stats.set(r.mix_id, {
+        makerCount: r.maker_count ?? 0,
+        madeTotal: r.made_total ?? 0,
+        repeatMakers: r.repeat_makers ?? 0,
+      })
+    }
+    // 実際に作られている順ではなく、詳しさ順に並べる。
+    // 人気順にすると、まだ誰も試していない作り方が永久に選ばれなくなる。
+    methods.sort((a, b) => mixQuality(b) - mixQuality(a) || (a.created_at < b.created_at ? 1 : -1))
+    const p = progressRows?.[0]
+    return {
+      comboKey,
+      methods,
+      stats,
+      progress: p
+        ? {
+            methodCount: p.method_count ?? 0,
+            participants: p.participants ?? 0,
+            repeaters: p.repeaters ?? 0,
+            multiMethod: p.multi_method ?? 0,
+            comparers: p.comparers ?? 0,
+            comparisons: p.comparisons ?? 0,
+            madeTotal: p.made_total ?? 0,
+          }
+        : { ...EMPTY_PROGRESS, methodCount: methods.length },
+    }
+  } catch {
+    return { comboKey, methods: [], stats: new Map(), progress: { ...EMPTY_PROGRESS } }
+  }
+}
+
+/** テーマ内で自分が「作った」作り方（新しい順・重複なし）。比較の基準点に使う。 */
+export type MyThemeMade = { mixId: string; at: string; count: number }
+
+export async function getMyThemeMade(comboKey: string): Promise<MyThemeMade[]> {
+  try {
+    const supabase = await createClient()
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+    if (!user) return []
+    const { data: mixRows } = await supabase.from('mixes').select('id').eq('combo_key', comboKey)
+    const ids = (mixRows ?? []).map((m) => m.id as string)
+    if (ids.length === 0) return []
+    const { data } = await supabase
+      .from('mix_experiences')
+      .select('mix_id, occurred_at')
+      .eq('user_id', user.id)
+      .eq('experience_type', 'made')
+      .in('mix_id', ids)
+      .order('occurred_at', { ascending: false })
+    const byMix = new Map<string, MyThemeMade>()
+    for (const r of (data ?? []) as { mix_id: string; occurred_at: string }[]) {
+      const cur = byMix.get(r.mix_id)
+      if (cur) cur.count += 1
+      else byMix.set(r.mix_id, { mixId: r.mix_id, at: r.occurred_at, count: 1 })
+    }
+    return [...byMix.values()].sort((a, b) => (a.at < b.at ? 1 : -1))
+  } catch {
+    return []
+  }
+}
+
+/* ---------------------------------------------------------------------------
+ * フレーバー中心の煙道
+ *
+ * 煙道が扱うのは「1つのフレーバーを、どう作るか」。作り方に紐づくフレーバーは常に1つで、
+ * 配合（複数フレーバーの組み合わせ）は概念として持たない。
+ * したがって mixes.combo_key はそのままフレーバーのキーになり、combo_orthodoxy は
+ * 「そのフレーバーの王道」を指す。既存のテーブルはそのまま使える。
+ * ------------------------------------------------------------------------- */
+
+/** フレーバー1件と、その作り方（1フレーバーのものだけ）。配合ものは対象外。 */
+export type FlavorHub = {
+  flavor: Flavor
+  key: string
+  methods: MixWithRelations[]
+  stats: Map<string, ThemeMethodStat>
+  progress: ThemeOverview['progress']
+  /** そのフレーバーで公式認定された作り方（combo_orthodoxy が唯一の source of truth） */
+  orthodoxMixId: string | null
+}
+
+export async function getFlavorHub(flavorId: string): Promise<FlavorHub | null> {
+  try {
+    const supabase = await createClient()
+    const { data: f } = await supabase.from('flavors').select('*').eq('id', flavorId).maybeSingle()
+    if (!f) return null
+    const flavor = f as Flavor
+    const key = flavorKey(flavor.brand, flavor.name)
+    const [overview, { data: ortho }] = await Promise.all([
+      getThemeOverview(key),
+      supabase.from('combo_orthodoxy').select('mix_id').eq('combo_key', key).maybeSingle(),
+    ])
+    return {
+      flavor,
+      key,
+      methods: overview.methods,
+      stats: overview.stats,
+      progress: overview.progress,
+      orthodoxMixId: (ortho?.mix_id as string | undefined) ?? null,
+    }
+  } catch {
+    return null
+  }
+}
+
+/** フレーバー一覧（作り方の数つき）。作り方が多い順＝いま擦られている順に出す。 */
+export type FlavorWithMethods = { flavor: Flavor; methodCount: number }
+
+export async function getFlavorsWithMethods(): Promise<FlavorWithMethods[]> {
+  try {
+    const supabase = await createClient()
+    const [{ data: flavorRows }, { data: mixRows }] = await Promise.all([
+      supabase.from('flavors').select('*').order('brand'),
+      supabase.from('mixes').select('combo_key').eq('hidden', false),
+    ])
+    const counts = new Map<string, number>()
+    for (const m of (mixRows ?? []) as { combo_key: string }[]) {
+      // 旧モデル（複数フレーバー）の記録はフレーバーに属さないので数えない
+      if (isLegacyMultiFlavorKey(m.combo_key)) continue
+      counts.set(m.combo_key, (counts.get(m.combo_key) ?? 0) + 1)
+    }
+    return ((flavorRows ?? []) as Flavor[])
+      .map((flavor) => ({ flavor, methodCount: counts.get(flavorKey(flavor.brand, flavor.name)) ?? 0 }))
+      .sort(
+        (a, b) =>
+          b.methodCount - a.methodCount ||
+          `${a.flavor.brand} ${a.flavor.name}`.localeCompare(`${b.flavor.brand} ${b.flavor.name}`, 'ja')
+      )
+  } catch {
+    return []
+  }
+}
+
+/** その作り方が対象にしているフレーバー（作り方1件 = フレーバー1つ）。 */
+export async function getMethodFlavor(mix: { mix_flavors?: { flavor_id: string | null }[] | null }): Promise<Flavor | null> {
+  try {
+    const id = mix.mix_flavors?.[0]?.flavor_id
+    if (!id) return null
+    const supabase = await createClient()
+    const { data } = await supabase.from('flavors').select('*').eq('id', id).maybeSingle()
+    return (data as Flavor) ?? null
+  } catch {
+    return null
   }
 }

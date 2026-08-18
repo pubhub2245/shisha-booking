@@ -11,7 +11,6 @@ import {
 } from '@/lib/queries'
 import { getCurrentUser } from '@/lib/auth'
 import { relativeTime, isOlderThanDays } from '@/lib/time'
-import { ComboCard } from '@/components/combo-card'
 import { VerifiedBadge } from '@/components/verified-badge'
 import { Avatar } from '@/components/avatar'
 import { ShopJoinButton } from '@/components/shop-join-button'
@@ -25,7 +24,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   if (!shop) return { title: 'お店が見つかりません — 煙道' }
   return {
     title: `${shop.name} のメニュー — 煙道`,
-    description: `${shop.name} で今吸えるフレーバーと、作れるミックスの一覧。`,
+    description: `${shop.name} で今吸えるフレーバーと、そこで試せる作り方の一覧。`,
   }
 }
 
@@ -124,7 +123,7 @@ export default async function ShopPage({ params }: { params: Promise<{ id: strin
         >
           <div className="flex items-center gap-2" style={{ fontWeight: 800 }}>📍 ご来店ありがとうございます</div>
           <p className="mt-1 text-xs leading-relaxed" style={{ color: 'var(--color-ash)' }}>
-            スタッフのミックスを実際に吸ったら、そのミックスのページで <b>「実地評価」</b> を押してください。
+            スタッフの作り方で実際に吸ったら、その作り方のページで <b>「実地評価」</b> を押してください。
             現地のGPSで確認された一票は、いいねより重く<b>王道の選出</b>に効きます。
           </p>
         </div>
@@ -142,7 +141,7 @@ export default async function ShopPage({ params }: { params: Promise<{ id: strin
         <>
           <section className="mt-8">
             <p className="mb-3 text-sm" style={{ color: 'var(--color-ash)' }}>
-              この中から好きなフレーバーを選んでください。タップで詳細・作れるミックスが見られます。
+              この中から好きなフレーバーを選んでください。タップでそのフレーバーの作り方が見られます。
             </p>
             <div className="mb-3 flex flex-wrap items-baseline justify-between gap-2">
               <h2 className="text-lg" style={{ fontWeight: 700 }}>🍃 今あるフレーバー（{flavors.length}）</h2>
@@ -177,12 +176,24 @@ export default async function ShopPage({ params }: { params: Promise<{ id: strin
 
           {combos.length > 0 && (
             <section className="mt-12">
-              <div className="mb-3 flex items-baseline justify-between">
-                <h2 className="text-lg" style={{ fontWeight: 700 }}>🔥 このお店で作れるミックス（{combos.length}）</h2>
-              </div>
-              <div className="grid gap-5 sm:grid-cols-2">
+              <h2 className="mb-3 text-lg" style={{ fontWeight: 700 }}>
+                🔥 この店の在庫で試せる作り方（{combos.length}）
+              </h2>
+              <div className="grid gap-2 sm:grid-cols-2">
                 {combos.slice(0, 12).map((combo) => (
-                  <ComboCard key={combo.key} combo={combo} />
+                  <Link
+                    key={combo.key}
+                    href={`/method/${combo.top.id}`}
+                    className="flex flex-col gap-0.5 rounded-lg border px-3 py-2.5"
+                    style={{ borderColor: 'var(--line)' }}
+                  >
+                    <span className="truncate text-sm" style={{ fontWeight: 700 }}>
+                      {combo.flavorNames.join(' × ')}
+                    </span>
+                    <span className="text-xs" style={{ color: 'var(--color-ember-hot)', fontWeight: 600 }}>
+                      {combo.methodCount} 通りの作り方
+                    </span>
+                  </Link>
                 ))}
               </div>
             </section>

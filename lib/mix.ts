@@ -1,4 +1,4 @@
-// ミックスの表示名ヘルパー
+// 作り方の表示名ヘルパー
 // 方針：フレーバー名の組み合わせが「正式名」。title は任意の短い一言（特徴）。
 
 export function flavorLine(flavors: { name: string }[] | null | undefined): string {
@@ -10,5 +10,5 @@ export function mixHeading(mix: {
   title: string | null
   mix_flavors?: { name: string }[] | null
 }): string {
-  return flavorLine(mix.mix_flavors) || mix.title || 'ミックス'
+  return flavorLine(mix.mix_flavors) || mix.title || '作り方'
 }

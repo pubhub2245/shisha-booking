@@ -31,14 +31,14 @@ const perks: { icon: string; preset: OrbPreset; title: string; body: string }[] 
     icon: '🏠',
     preset: 'blue',
     title: 'お店への送客',
-    body: '店舗を登録すれば、あなたのミックスから来店動機が生まれます。在庫棚・店頭QRメニューで「この店ならこれが吸える」を可視化。',
+    body: '店舗を登録すれば、あなたの作り方から来店動機が生まれます。在庫棚・店頭QRメニューで「この店ならこれが吸える」を可視化。',
   },
 ]
 
 const steps: { n: string; title: string; body: string }[] = [
   { n: '1', title: 'アカウント登録', body: 'メールとパスワードだけ。1分で完了します。' },
   { n: '2', title: 'お店を紐付け（任意）', body: 'お店を登録してオーナーに。スタッフは参加申請 → 承認で紐付け。' },
-  { n: '3', title: 'プロ申請 → 最初のレシピを投稿', body: 'SNSと在籍店で申請、運営が確認して認証。あとは自慢のミックスを1つ投稿するだけ。' },
+  { n: '3', title: 'プロ申請 → 最初の作り方を登録', body: 'SNSと在籍店で申請、運営が確認して認証。あとは自慢の作り方を1つ登録するだけ。' },
 ]
 
 export default function FoundersPage() {
@@ -87,7 +87,7 @@ export default function FoundersPage() {
       <div className="card mt-12 flex flex-col items-center gap-4 p-8 text-center">
         <h2 className="text-xl" style={{ fontWeight: 800 }}>登録は無料。今なら、王道の座は空いています。</h2>
         <p className="text-sm leading-relaxed" style={{ color: 'var(--color-ash)' }}>
-          あなたの一台が、日本の「美味しい」の基準になる。まずはアカウントを作って、自慢のミックスを1つ投稿してみてください。
+          あなたの一台が、日本の「美味しい」の基準になる。まずはアカウントを作って、自慢の作り方を1つ登録してみてください。
         </p>
         <div className="flex flex-wrap justify-center gap-3">
           <Link href="/signup" className="btn btn-ember">無料で創設メンバーになる</Link>

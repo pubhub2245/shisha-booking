@@ -5,11 +5,10 @@ import { getCurrentUser } from '@/lib/auth'
 import { MixCard } from '@/components/mix-card'
 import { RankingTabs } from '@/components/ranking-tabs'
 import { EmptyState } from '@/components/empty-state'
-import { comboSlug } from '@/lib/combo'
 
 export const dynamic = 'force-dynamic'
 export const metadata: Metadata = {
-  title: '王道シーシャ図鑑 — 煙道',
+  title: '王道 — 煙道',
   description:
     '実際に吸われ、再現されながら育ってきた「まずこれ」と言える作り方。煙道が確認して認定した王道の一覧です。',
 }
@@ -35,7 +34,7 @@ export default async function NationalTeamPage() {
           王道シーシャ図鑑
         </h1>
         <p className="mx-auto mt-3 max-w-xl text-sm leading-relaxed" style={{ color: 'var(--color-ash)' }}>
-          実際に吸われ、再現されながら育ってきた、その組み合わせの
+          実際に吸われ、再現されながら育ってきた、そのフレーバーの
           <b className="bouten">「まずこれ」</b>と言える作り方。
         </p>
         <p className="mx-auto mt-2 max-w-xl text-xs leading-relaxed" style={{ color: 'var(--color-ash-dim)' }}>
@@ -68,13 +67,15 @@ export default async function NationalTeamPage() {
               <div key={entry.comboKey} className="flex flex-col gap-2">
                 <div className="flex items-center gap-2">
                   <span className="seal seal-stamp text-xs">王道</span>
-                  <Link
-                    href={`/combo/${comboSlug(entry.comboKey)}`}
-                    className="text-xs brush-underline"
-                    style={{ color: 'var(--color-ash-dim)' }}
-                  >
-                    この組み合わせを見る
-                  </Link>
+                  {(entry.mix.mix_flavors ?? [])[0]?.flavor_id && (
+                    <Link
+                      href={`/flavor/${(entry.mix.mix_flavors ?? [])[0]!.flavor_id}`}
+                      className="text-xs brush-underline"
+                      style={{ color: 'var(--color-ash-dim)' }}
+                    >
+                      このフレーバーの作り方を見る
+                    </Link>
+                  )}
                 </div>
                 <MixCard mix={entry.mix} liked={likedIds.has(entry.mix.id)} isAuthed={!!user} />
               </div>
@@ -85,7 +86,7 @@ export default async function NationalTeamPage() {
 
       <div className="mt-12 text-center">
         <Link href="/" className="btn btn-ghost text-sm">
-          図鑑をひらく
+          フレーバーを見る
         </Link>
       </div>
     </div>

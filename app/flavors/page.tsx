@@ -5,7 +5,7 @@ import { FlavorSearch } from '@/components/flavor-search'
 export const dynamic = 'force-dynamic'
 export const metadata = {
   title: 'フレーバー図鑑 — 煙道',
-  description: 'シーシャのフレーバーを一覧。ブランド別に探して、使われているミックスや購入リンクをチェック。',
+  description: 'シーシャのフレーバーを一覧。ブランド別に探して、作り方や購入リンクをチェック。',
 }
 
 export default async function FlavorsPage() {
@@ -20,7 +20,7 @@ export default async function FlavorsPage() {
         フレーバー図鑑
       </h1>
       <p className="mt-2 text-sm" style={{ color: 'var(--color-ash)' }}>
-        タップすると、そのフレーバーを使ったミックスと購入リンクが見られます。
+        タップすると、そのフレーバーの作り方と購入リンクが見られます。
         現在 <b>{flavors.length}</b> 種を掲載。図鑑は作り手みんなで育てるもので、
         <Link href="/founders" className="hover:underline" style={{ color: 'var(--color-ember-hot)', fontWeight: 600 }}>認証プロ・創設メンバー</Link>
         は新しいフレーバーを追加できます。

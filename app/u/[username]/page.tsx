@@ -29,7 +29,7 @@ export async function generateMetadata({
   const profile = await getProfileByUsername(username)
   if (!profile) return { title: 'ユーザーが見つかりません — 煙道' }
   const name = profile.is_shop && profile.shop_name ? profile.shop_name : profile.display_name || `@${username}`
-  return { title: `${name} のミックス — 煙道`, description: profile.bio ?? undefined }
+  return { title: `${name} の作り方 — 煙道`, description: profile.bio ?? undefined }
 }
 
 export default async function ProfilePage({ params }: { params: Promise<{ username: string }> }) {
@@ -200,7 +200,7 @@ export default async function ProfilePage({ params }: { params: Promise<{ userna
             {mixes
               .filter((m) => m.pack_photo_url)
               .map((m) => (
-                <Link key={m.id} href={`/mix/${m.id}`} className="group block overflow-hidden rounded-lg">
+                <Link key={m.id} href={`/method/${m.id}`} className="group block overflow-hidden rounded-lg">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={m.pack_photo_url!}
@@ -216,7 +216,7 @@ export default async function ProfilePage({ params }: { params: Promise<{ userna
 
       {/* ---------- MIXES ---------- */}
       <h2 className="mb-4 mt-8 text-lg" style={{ fontWeight: 700 }}>
-        投稿したミックス
+        登録した作り方
       </h2>
       {mixes.length > 0 ? (
         <div className="grid gap-5 sm:grid-cols-2">
@@ -226,7 +226,7 @@ export default async function ProfilePage({ params }: { params: Promise<{ userna
         </div>
       ) : (
         <div className="card p-8 text-center text-sm" style={{ color: 'var(--color-ash)' }}>
-          まだミックスの投稿がありません。
+          まだ作り方の登録がありません。
         </div>
       )}
     </div>

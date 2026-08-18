@@ -1,3 +1,5 @@
+import { LOCK_FEATURE_ENABLED } from '@/lib/lock'
+
 // 法務ページの事業者情報。値は環境変数から読み、コード側で捏造しない。
 // 未設定のときは「その項目が無い」ものとして扱い、開発者向けの警告や
 // 環境変数名を一般UIへ出さない（管理者向けの確認は /admin/legal で行う）。
@@ -35,5 +37,8 @@ export function legalEmail(): string | null {
  * Stripe が未設定なら購入導線自体が動かないため、特商法表示の要否判断に使う。
  */
 export function paidSalesEnabled(): boolean {
+  // ロック（有料ノート）を非表示にしている間は、Stripe の設定が残っていても販売はしていない。
+  // 法務ページが「有料販売あり」と書いてしまわないよう、機能スイッチ側を先に見る。
+  if (!LOCK_FEATURE_ENABLED) return false
   return !!process.env.STRIPE_SECRET_KEY
 }

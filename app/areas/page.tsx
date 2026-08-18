@@ -12,7 +12,7 @@ export const dynamic = 'force-dynamic'
 export const metadata = {
   title: '地域別ランキング — 煙道',
   description:
-    '地方ごとのシーシャ ミックス＆お店ランキング。旅行先で一番美味しいシーシャ屋さんを見つけよう。都会だけが有利にならない、地域対抗の図鑑。',
+    '地方ごとの作り方＆お店ランキング。旅行先で一番美味しいシーシャ屋さんを見つけよう。都会だけが有利にならない、地域対抗の図鑑。',
 }
 
 const MEDALS = ['🥇', '🥈', '🥉']
@@ -117,7 +117,7 @@ export default async function AreasPage() {
                 {/* ---------- ミックスランキング ---------- */}
                 {r.mixes.length > 0 && (
                   <div className="mt-6">
-                    <h3 className="mb-2 text-sm eyebrow">Mixes — この地域の注目ミックス</h3>
+                    <h3 className="mb-2 text-sm eyebrow">Methods — この地域の注目の作り方</h3>
                     <div className="grid gap-5 sm:grid-cols-2">
                       {r.mixes.map((x, i) => (
                         <div key={x.mix.id} className="relative">

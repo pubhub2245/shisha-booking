@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { getStripe, stripeConfigured } from '@/lib/stripe'
 import { normalizePrice } from '@/lib/premium'
+import { LOCK_FEATURE_ENABLED } from '@/lib/lock'
 
 /**
  * 有料ノートの解錠。
@@ -11,6 +12,8 @@ import { normalizePrice } from '@/lib/premium'
  *   決済完了は /api/stripe/webhook が受け取り、mix_unlocks を付与する。
  */
 export async function unlockMix(mixId: string): Promise<{ url: string } | { error: string }> {
+  // ロック機能は一時的に非表示（lib/lock.ts）。導線が無いだけでなく、直接呼ばれても課金しない。
+  if (!LOCK_FEATURE_ENABLED) return { error: 'いまは有料ノートを扱っていません。' }
   const supabase = await createClient()
   const {
     data: { user },

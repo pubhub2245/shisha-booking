@@ -22,6 +22,14 @@ export const TASTE_AXES: {
 export const MIN_RATERS_FOR_AVERAGE = 3
 
 /**
+ * 直接比較で「どこが違ったか」を選ぶ語。
+ * 5軸の 1〜5 を2台ぶん思い出す必要がないよう、相対的な言葉だけにしている。
+ * 値は DB にそのまま入るので、増減させるときは既存データの意味が変わらないか確認すること。
+ */
+export const COMPARISON_AXES = ['甘い', '軽い', '濃い', '涼しい', '重い', '分からない'] as const
+export type ComparisonAxis = (typeof COMPARISON_AXES)[number]
+
+/**
  * 自然言語タグの閾値（定数化して後から調整できるようにする）。
  * V1では複雑な分類をしない：各軸を単独で見て、強い/弱い側だけ言葉にする。
  */

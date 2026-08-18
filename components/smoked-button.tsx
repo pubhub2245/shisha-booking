@@ -43,7 +43,7 @@ export function SmokedButton({
 
   function onSmoke() {
     if (!isAuthed) {
-      router.push(`/login?next=/mix/${mixId}`)
+      router.push(`/login?next=/method/${mixId}`)
       return
     }
     // 楽観更新

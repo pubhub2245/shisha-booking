@@ -36,7 +36,7 @@ export function CommentForm({
     return (
       <div className="card p-4 text-center text-sm" style={{ color: 'var(--color-ash)' }}>
         コメントするには{' '}
-        <Link href={`/login?next=/mix/${mixId}`} style={{ color: 'var(--color-ember-hot)', fontWeight: 600 }}>
+        <Link href={`/login?next=/method/${mixId}`} style={{ color: 'var(--color-ember-hot)', fontWeight: 600 }}>
           ログイン
         </Link>
         してください。
@@ -56,7 +56,7 @@ export function CommentForm({
       <div className="field">
         <textarea
           name="body"
-          placeholder={placeholder ?? 'このミックスの感想・コツ・アレンジを書く…（@ユーザー名で言及できます）'}
+          placeholder={placeholder ?? 'この作り方の感想・コツ・アレンジを書く…（@ユーザー名で言及できます）'}
           maxLength={500}
           required
           style={compact ? { minHeight: 64 } : undefined}

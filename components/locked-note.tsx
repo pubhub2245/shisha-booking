@@ -24,7 +24,7 @@ export function LockedNote({
 
   function onUnlock() {
     if (!isAuthed) {
-      router.push(`/login?next=/mix/${mixId}`)
+      router.push(`/login?next=/method/${mixId}`)
       return
     }
     setMsg(null)

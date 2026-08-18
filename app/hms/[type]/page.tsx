@@ -85,7 +85,7 @@ export default async function HmsTypePage({ params }: { params: Promise<{ type: 
         {photoMixes.length > 0 ? (
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
             {photoMixes.map((m) => (
-              <Link key={m.id} href={`/mix/${m.id}`} className="group block overflow-hidden rounded-xl border" style={{ borderColor: 'var(--line)' }}>
+              <Link key={m.id} href={`/method/${m.id}`} className="group block overflow-hidden rounded-xl border" style={{ borderColor: 'var(--line)' }}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={m.pack_photo_url!}
@@ -110,7 +110,7 @@ export default async function HmsTypePage({ params }: { params: Promise<{ type: 
 
       {mixes.length > 0 && (
         <section className="mt-10">
-          <h2 className="mb-4 text-lg" style={{ fontWeight: 700 }}>{hms.l}を使ったミックス（{mixes.length}）</h2>
+          <h2 className="mb-4 text-lg" style={{ fontWeight: 700 }}>{hms.l}を使った作り方（{mixes.length}）</h2>
           <div className="grid gap-5 sm:grid-cols-2">
             {mixes.map((m) => (
               <MixCard key={m.id} mix={m} liked={likedIds.has(m.id)} isAuthed={!!user} />

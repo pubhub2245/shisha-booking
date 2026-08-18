@@ -22,7 +22,7 @@ export default async function SignupPage({
         図鑑に参加する
       </h1>
       <p className="mt-2 text-sm" style={{ color: 'var(--color-ash)' }}>
-        無料で登録。あなたのミックスを投稿して、シーシャの「美味しい」を広げよう。
+        無料で登録。あなたの作り方を残して、他の人の作り方を試してみよう。
       </p>
       <AuthForm mode="signup" next={next} />
     </div>

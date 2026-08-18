@@ -2,6 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
+import { COMPARISON_AXES } from '@/lib/taste'
 
 export type CommentState = { error: string } | { ok: true } | null
 
@@ -159,7 +160,7 @@ export async function toggleFollow(targetId: string): Promise<{ following: boole
  */
 export async function logMadeExperience(
   mixId: string
-): Promise<{ made: boolean; count: number; nth: number } | { error: string }> {
+): Promise<{ id: string; made: boolean; count: number; nth: number } | { error: string }> {
   const supabase = await createClient()
   const {
     data: { user },
@@ -176,12 +177,16 @@ export async function logMadeExperience(
     .maybeSingle()
   const isFirst = !existing
 
-  const { error } = await supabase.from('mix_experiences').insert({
-    mix_id: mixId,
-    user_id: user.id,
-    experience_type: 'made',
-  })
-  if (error) return { error: '記録に失敗しました。' }
+  const { data: row, error } = await supabase
+    .from('mix_experiences')
+    .insert({
+      mix_id: mixId,
+      user_id: user.id,
+      experience_type: 'made',
+    })
+    .select('id')
+    .single()
+  if (error || !row) return { error: '記録に失敗しました。' }
 
   if (isFirst) {
     const { data: target } = await supabase.from('mixes').select('author_id').eq('id', mixId).maybeSingle()
@@ -200,7 +205,54 @@ export async function logMadeExperience(
     .eq('user_id', user.id)
     .eq('experience_type', 'made')
   revalidatePath(`/mix/${mixId}`)
-  return { made: true, count, nth: madeCount ?? 1 }
+  return { id: row.id as string, made: true, count, nth: madeCount ?? 1 }
+}
+
+/**
+ * 直接比較——この一台を「自分が前に作った別の作り方」と比べてどうだったか。
+ *
+ * 2台の味覚5軸を引き算する方式は、数日〜数週間空くと成立しない（前の絶対値を覚えていない）。
+ * 人間が答えられるのは相対評価なので、1〜2タップで答えられるこの形にしている。
+ * 「同じくらい（same）」を必ず選べるようにしておくこと。差が出なかったことも記録に値する。
+ */
+export async function setExperienceComparison(
+  experienceId: string,
+  comparedToMixId: string,
+  comparison: 'better' | 'same' | 'worse',
+  axes: string[] = []
+): Promise<{ ok: true } | { error: string }> {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) return { error: 'ログインが必要です。' }
+
+  // 自分の体験であること・比較相手が自分自身でないことは DB 側の RLS と CHECK でも守られるが、
+  // ここでも弾いて無駄な往復を避ける。
+  const { data: own } = await supabase
+    .from('mix_experiences')
+    .select('mix_id')
+    .eq('id', experienceId)
+    .eq('user_id', user.id)
+    .maybeSingle()
+  if (!own) return { error: '記録が見つかりません。' }
+  if (own.mix_id === comparedToMixId) return { error: '同じ作り方どうしは比べられません。' }
+
+  const allowed = new Set<string>(COMPARISON_AXES)
+  const { error } = await supabase
+    .from('mix_experiences')
+    .update({
+      compared_to_mix_id: comparedToMixId,
+      comparison,
+      comparison_axes: axes.filter((a) => allowed.has(a)).slice(0, COMPARISON_AXES.length),
+    })
+    .eq('id', experienceId)
+    .eq('user_id', user.id)
+  if (error) return { error: '保存に失敗しました。' }
+
+  revalidatePath(`/mix/${own.mix_id}`)
+  revalidatePath('/mypage')
+  return { ok: true }
 }
 
 
