@@ -14,8 +14,6 @@ import { BowlPicker } from '@/components/bowl-picker'
 import { PackPicker } from '@/components/pack-picker'
 import { PackPhotoInput } from '@/components/pack-photo-input'
 import { MultiPhotoInput } from '@/components/multi-photo-input'
-import { SourceLine } from '@/components/source-line'
-import { STEEP_SOURCES } from '@/lib/sources'
 import { TagPicker } from '@/components/tag-picker'
 
 export type MixFormInitial = {
@@ -495,7 +493,9 @@ export function MixForm({
             </div>
           )}
           <div className="field">
-            <label>炭の個数</label>
+            {/* 炭は途中で足したり抜いたりするので、通しの「個数」は意味を持たない。
+                比較できるのは立ち上げ時点の数だけ。 */}
+            <label>立ち上げ時の炭の個数</label>
             <input name="charcoal_count" defaultValue={initial?.charcoalCount} inputMode="numeric" placeholder="例：3" />
           </div>
           <div className="field">
@@ -562,18 +562,11 @@ export function MixForm({
             </div>
           </div>
         </div>
-        <p className="mt-2 text-xs" style={{ color: 'var(--color-ash-dim)' }}>
-          蒸らし＝炭を置いてから吸い始めるまで、フタをして熱を通す工程。時間の目安は3〜7分（短いと煙・香りが弱く、長いと焦げやすい）。到達火力は「蒸らし終わりにどこまで火を入れるか」の目安です。
-        </p>
-        <SourceLine sources={STEEP_SOURCES} className="mt-1" />
       </div>
 
       {/* 熱管理カーブ */}
       <div>
         <label className="mb-2 block text-sm" style={{ color: 'var(--color-ash)', fontWeight: 600 }}>🔥 熱管理カーブ（経過時間 × 火力 1〜100）＋ 炭イベント</label>
-        <p className="mb-2 text-xs" style={{ color: 'var(--color-ash-dim)' }}>
-          最初の緩やかな立ち上がりが「蒸らし」の区間です。
-        </p>
         <HeatCurveEditor initialCurve={initial?.heatCurve ?? undefined} initialEvents={initial?.heatEvents ?? undefined} steepMinutes={Number(steepMin) || undefined} steepHeat={Number(steepHeat) || undefined} />
       </div>
 
@@ -590,7 +583,7 @@ export function MixForm({
       {/* 機材・ギア（投稿映え） */}
       <div className="mt-2 rounded-xl border p-4" style={{ borderColor: 'var(--line)' }}>
         <div className="text-sm" style={{ fontWeight: 700 }}>🛠 機材・ギア</div>
-        <p className="mt-0.5 text-xs" style={{ color: 'var(--color-ash-dim)' }}>使っている機材を書くほど再現しやすく、投稿の説得力も増します。</p>
+        <p className="mt-0.5 text-xs" style={{ color: 'var(--color-ash-dim)' }}>書いてあるほど、他の人が同じ一台を再現できます。</p>
         <div className="mt-3 grid gap-3 sm:grid-cols-2">
           <div className="field"><label>本体・パイプ</label><input name="gear_stem" defaultValue={initial?.gearStem} placeholder="例：Wookah / Steamulation" maxLength={120} /></div>
           <div className="field"><label>ボウルの製品名</label><input name="gear_bowl_name" defaultValue={initial?.gearBowlName} placeholder="例：Oblako Phunnel M" maxLength={120} /></div>

@@ -331,7 +331,7 @@ describe('method-diff', () => {
   it('値が入っている軸の差だけを差分にする', () => {
     const d = diffMethods(base, oneAxisCheap)
     expect(d).toHaveLength(1)
-    expect(describeDiff(d[0])).toBe('炭の数 3個 → 2個')
+    expect(describeDiff(d[0])).toBe('立ち上げの炭 3個 → 2個')
   })
 
   it('片方が未記入の軸は差分にしない（違うと言い切れない）', () => {

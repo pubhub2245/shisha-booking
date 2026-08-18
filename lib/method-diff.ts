@@ -38,7 +38,8 @@ function num(v: number | string | null | undefined): number | null {
 export const DIFF_AXES: readonly AxisDef[] = [
   {
     key: 'charcoal_count',
-    label: '炭の数',
+    // 炭は途中で足し引きするので通しの本数は比較できない。立ち上げ時点だけが揃った条件になる。
+    label: '立ち上げの炭',
     changeCost: 0,
     kind: 'number',
     value: (m) => num(m.charcoal_count),

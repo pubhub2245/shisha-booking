@@ -34,7 +34,7 @@ import { ShareBar } from '@/components/share-bar'
 import { ReportButton } from '@/components/report-button'
 import { VerifiedBadge } from '@/components/verified-badge'
 import { HeatCurveChart } from '@/components/heat-curve-chart'
-import { hmsOption, hmsBowls, charcoalLabel, windCoverLabel, bowlOption, packOption, orientationLabel } from '@/lib/heat'
+import { hmsOption, charcoalLabel, windCoverLabel, bowlOption, packOption, orientationLabel } from '@/lib/heat'
 import { HmsIcon } from '@/components/hms-icon'
 import { BowlIcon } from '@/components/bowl-icon'
 import { PackIcon } from '@/components/pack-icon'
@@ -537,25 +537,17 @@ export default async function MixDetail({
               {orthodoxy.isOrthodox && <span aria-hidden className="seal seal-stamp text-xs">王道</span>}
               <h2 className="text-sm" style={{ fontWeight: 800 }}>まずこの作り方</h2>
             </div>
-            <p className="mt-1 text-xs" style={{ color: 'var(--color-ash-dim)' }}>
-              配合は上の使用フレーバーのとおり。あとはこれだけで、まず一台つくれます。
-            </p>
             <div className="mt-3 flex flex-wrap gap-2">
               {bowlOption(mix.bowl_type) && (
                 <span className="chip"><b style={{ color: 'var(--color-ash)' }}>ボウル</b>&nbsp;{bowlOption(mix.bowl_type)!.l}</span>
               )}
               {mix.charcoal_count != null && (
-                <span className="chip"><b style={{ color: 'var(--color-ash)' }}>炭</b>&nbsp;{mix.charcoal_count}個</span>
+                <span className="chip"><b style={{ color: 'var(--color-ash)' }}>立ち上げの炭</b>&nbsp;{mix.charcoal_count}個</span>
               )}
               {mix.steep_minutes != null && (
                 <span className="chip"><b style={{ color: 'var(--color-ash)' }}>蒸らし</b>&nbsp;{mix.steep_minutes}分</span>
               )}
             </div>
-            {showBrew && (hasCurve || hasGear || hasNotes || hasSecrets) && (
-              <p className="mt-3 text-xs" style={{ color: 'var(--color-ember-hot)', fontWeight: 600 }}>
-                ▼ 熱管理カーブ・器具・炭移動など、<span className="brush-underline">詳しい作り方は下の「作り方ノート」</span>から。
-              </p>
-            )}
           </div>
         </section>
       )}
@@ -618,14 +610,8 @@ export default async function MixDetail({
                         </span>
                       )}
                     </div>
-                    {mix.hms_type !== 'other' && (
-                      <div className="text-xs" style={{ color: 'var(--color-ash)' }}>{hmsOption(mix.hms_type)!.desc}</div>
-                    )}
-                    {hmsBowls(mix.hms_type).length > 0 && (
-                      <div className="mt-1 text-xs" style={{ color: 'var(--color-ash-dim)' }}>
-                        相性の良いボウル：{hmsBowls(mix.hms_type).map((b) => b.l).join('・')}
-                      </div>
-                    )}
+                    {/* 種類ごとの解説・相性の良いボウルは出さない。作る人はもう知っている。
+                        知りたい人のために /hms/[type] への導線だけ残す。 */}
                     {mix.hms_type !== 'other' && hmsOption(mix.hms_type) && (
                       <Link href={`/hms/${hmsOption(mix.hms_type)!.v}`} className="mt-1 inline-block text-xs underline underline-offset-2" style={{ color: 'var(--color-ember-hot)' }}>
                         {hmsOption(mix.hms_type)!.l}の実例を見る →
@@ -649,7 +635,6 @@ export default async function MixDetail({
                         </span>
                       )}
                     </div>
-                    <div className="text-xs" style={{ color: 'var(--color-ash)' }}>{bowlOption(mix.bowl_type)!.desc}</div>
                     {bowlOption(mix.bowl_type)!.v !== 'other' && (
                       <Link href={`/bowl/${bowlOption(mix.bowl_type)!.v}`} className="mt-1 inline-block text-xs underline underline-offset-2" style={{ color: 'var(--color-ember-hot)' }}>
                         {bowlOption(mix.bowl_type)!.l}の実例を見る →
@@ -673,7 +658,6 @@ export default async function MixDetail({
                         </span>
                       )}
                     </div>
-                    <div className="text-xs" style={{ color: 'var(--color-ash)' }}>{packOption(mix.pack_style)!.desc}</div>
                   </div>
                 </div>
               )}
@@ -693,7 +677,7 @@ export default async function MixDetail({
                 {[
                   { k: '炭の種類', v: charcoalLabel(mix.charcoal_type) },
                   { k: '置き方', v: orientationLabel(mix.charcoal_orientation) },
-                  { k: '個数', v: mix.charcoal_count != null ? `${mix.charcoal_count}個` : null },
+                  { k: '立ち上げ時の個数', v: mix.charcoal_count != null ? `${mix.charcoal_count}個` : null },
                   { k: '蒸らし', v: mix.steep_minutes != null ? `${mix.steep_minutes}分` : null },
                   { k: '蒸らし到達火力', v: mix.steep_heat != null ? `${mix.steep_heat}` : null },
                   { k: '風防', v: windCoverLabel(mix.wind_cover) },
