@@ -93,7 +93,7 @@ export function EndoLog({ entries }: { entries: SmokeLogEntry[] }) {
                 </span>
                 <div className="min-w-0 flex-1">
                   <Link
-                    href={`/mix/${e.mix.id}`}
+                    href={`/method/${e.mix.id}`}
                     className="block truncate text-sm brush-underline"
                     style={{ fontWeight: 600 }}
                   >

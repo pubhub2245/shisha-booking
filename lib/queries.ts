@@ -1,7 +1,7 @@
 import { unstable_cache } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { createPublicClient } from '@/lib/supabase/public'
-import { comboKey, comboSlug, comboKeyFromSlug, flavorKey } from '@/lib/combo'
+import { comboKey, comboSlug, comboKeyFromSlug, flavorKey, isLegacyMultiFlavorKey } from '@/lib/combo'
 import { mixQuality, mixCompleteness } from '@/lib/quality'
 import { searchVariants } from '@/lib/kana'
 import { TYPE_TAGS } from '@/lib/tags'
@@ -1237,7 +1237,7 @@ export async function getRankedMixes(period: 'week' | 'month' | 'all'): Promise<
  * 初期はデータが少ないため、AI生成サンプルも候補に含める（バッジで区別済み）。
  */
 // 公開データの重い集計（最大 1000 mix + 10000 makes + 10000 onsite を JS 集計）。
-// /national・/mix/[id]（王道バッジ）・/u/[username]（実績）から毎回呼ばれるため、
+// /national・/method/[id]（王道バッジ）・/u/[username]（実績）から毎回呼ばれるため、
 // クッキー非依存の公開クライアントで計算し 5 分キャッシュする（王道は最短でも5分間隔で更新）。
 const _getNationalTeamCached = unstable_cache(
   async (): Promise<NationalRep[]> => {
@@ -2577,6 +2577,8 @@ export async function getFlavorsWithMethods(): Promise<FlavorWithMethods[]> {
     ])
     const counts = new Map<string, number>()
     for (const m of (mixRows ?? []) as { combo_key: string }[]) {
+      // 旧モデル（複数フレーバー）の記録はフレーバーに属さないので数えない
+      if (isLegacyMultiFlavorKey(m.combo_key)) continue
       counts.set(m.combo_key, (counts.get(m.combo_key) ?? 0) + 1)
     }
     return ((flavorRows ?? []) as Flavor[])

@@ -66,12 +66,12 @@ export default async function NotificationsPage() {
             const isSystem = n.type === 'national_selected'
             const name = actorName(n.actor)
             const href = isSystem
-              ? (n.mix ? `/mix/${n.mix.id}` : '/national')
+              ? (n.mix ? `/method/${n.mix.id}` : '/national')
               : n.type.startsWith('idea')
                 ? '/ideas'
                 : n.type === 'follow'
                   ? (n.actor?.username ? `/u/${n.actor.username}` : '/notifications')
-                  : (n.mix ? `/mix/${n.mix.id}` : '/notifications')
+                  : (n.mix ? `/method/${n.mix.id}` : '/notifications')
             return (
               <li key={n.id}>
                 <Link

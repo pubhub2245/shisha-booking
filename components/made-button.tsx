@@ -22,14 +22,15 @@ const COMPARISONS: { key: 'better' | 'same' | 'worse'; label: (a: string, b: str
   { key: 'worse', label: (_a, b) => `${b} の方が好き` },
 ]
 
-/** テーマ（今月の煙道検証）から渡される文脈。テーマ外の作り方では undefined になる */
-export type MadeThemeContext = {
+/** 同じフレーバーの中での文脈。作り方のページから渡す */
+export type MethodContext = {
   /** 自分が前に作った別の作り方。これがあると直接比較を聞ける */
   baseline: { mixId: string; label: string } | null
   /** 次に試すと差が分かりやすい作り方。宿題ではなく招待として出す */
   next: { id: string; label: string; diff: string; meaning: string | null } | null
-  themePath: string
-  themeTitle: string
+  /** そのフレーバーのページ */
+  flavorPath: string
+  flavorTitle: string
 }
 
 /**
@@ -49,7 +50,7 @@ export function MadeButton({
   initialCount,
   initialMade,
   isAuthed,
-  theme,
+  context,
 }: {
   mixId: string
   /** 比較の文面に出す、この作り方の呼び名 */
@@ -57,7 +58,7 @@ export function MadeButton({
   initialCount: number
   initialMade: boolean
   isAuthed: boolean
-  theme?: MadeThemeContext
+  context?: MethodContext
 }) {
   const router = useRouter()
   const [count, setCount] = useState(initialCount)
@@ -71,7 +72,7 @@ export function MadeButton({
 
   function onClick() {
     if (!isAuthed) {
-      router.push(`/login?next=/mix/${mixId}`)
+      router.push(`/login?next=/method/${mixId}`)
       return
     }
     const wasMade = made
@@ -109,7 +110,7 @@ export function MadeButton({
   }
 
   function saveComparison(next: 'better' | 'same' | 'worse', nextAxes: string[]) {
-    const base = theme?.baseline
+    const base = context?.baseline
     if (!expId || !base) return
     startTransition(async () => {
       const res = await setExperienceComparison(expId, base.mixId, next, nextAxes)
@@ -186,10 +187,10 @@ export function MadeButton({
           </div>
 
           {/* ---- 直接比較。前に別の作り方を作っているときだけ聞く ---- */}
-          {theme?.baseline && (
+          {context?.baseline && (
             <div className="flex flex-col gap-1.5 rounded-lg p-2.5" style={{ background: 'var(--accent-tint)' }}>
               <span className="text-xs" style={{ color: 'var(--color-ash)', fontWeight: 700 }}>
-                前に作った「{theme.baseline.label}」と比べて、どうでしたか？
+                前に作った「{context.baseline.label}」と比べて、どうでしたか？
               </span>
               <div className="flex flex-wrap gap-1.5">
                 {COMPARISONS.map((c) => {
@@ -208,7 +209,7 @@ export function MadeButton({
                         fontWeight: active ? 700 : 500,
                       }}
                     >
-                      {c.label(mixLabel, theme.baseline!.label)}
+                      {c.label(mixLabel, context.baseline!.label)}
                     </button>
                   )
                 })}
@@ -256,20 +257,20 @@ export function MadeButton({
           <TasteInput experienceId={expId} mixId={mixId} />
 
           {/* ---- 次の1台。作れとは言わない ---- */}
-          {theme?.next && (
+          {context?.next && (
             <div className="flex flex-col gap-1 border-t pt-3" style={{ borderColor: 'var(--line)' }}>
               <span className="text-xs" style={{ color: 'var(--color-ash-dim)' }}>気が向いたときに</span>
               <p className="text-sm" style={{ color: 'var(--color-ash)' }}>
-                <span style={{ fontWeight: 700 }}>{theme.next.label}</span> は、いま作った一台と
-                <span style={{ color: 'var(--color-ember-hot)', fontWeight: 700 }}> {theme.next.diff}</span>
-                {theme.next.meaning ? `。${theme.next.meaning}。` : '。'}
+                <span style={{ fontWeight: 700 }}>{context.next.label}</span> は、いま作った一台と
+                <span style={{ color: 'var(--color-ember-hot)', fontWeight: 700 }}> {context.next.diff}</span>
+                {context.next.meaning ? `。${context.next.meaning}。` : '。'}
               </p>
               <div className="mt-1 flex flex-wrap items-center gap-3">
-                <Link href={`/mix/${theme.next.id}`} className="text-sm brush-underline" style={{ fontWeight: 700 }}>
+                <Link href={`/method/${context.next.id}`} className="text-sm brush-underline" style={{ fontWeight: 700 }}>
                   見てみる
                 </Link>
-                <Link href={theme.themePath} className="text-xs" style={{ color: 'var(--color-ash-dim)' }}>
-                  {theme.themeTitle}へ
+                <Link href={context.flavorPath} className="text-xs" style={{ color: 'var(--color-ash-dim)' }}>
+                  {context.flavorTitle}へ
                 </Link>
               </div>
               <p className="text-[0.7rem]" style={{ color: 'var(--color-ash-dim)' }}>

@@ -20,7 +20,7 @@ export function BookmarkButton({
 
   function onClick() {
     if (!isAuthed) {
-      router.push(`/login?next=/mix/${mixId}`)
+      router.push(`/login?next=/method/${mixId}`)
       return
     }
     const next = !saved

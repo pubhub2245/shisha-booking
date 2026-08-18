@@ -154,7 +154,7 @@ export default async function FlavorPage({ params }: { params: Promise<{ id: str
                 {methods.slice(0, 3).map((m) => (
                   <Link
                     key={m.id}
-                    href={`/mix/${m.id}`}
+                    href={`/method/${m.id}`}
                     className="flex flex-col gap-0.5 rounded-lg border px-3 py-2.5"
                     style={{ borderColor: 'var(--line)' }}
                   >
@@ -181,7 +181,7 @@ export default async function FlavorPage({ params }: { params: Promise<{ id: str
                     {next.slice(0, 2).map((c) => (
                       <Link
                         key={c.method.id}
-                        href={`/mix/${c.method.id}`}
+                        href={`/method/${c.method.id}`}
                         className="flex flex-col gap-0.5 rounded-lg border px-3 py-2.5"
                         style={{ borderColor: 'var(--color-ember)' }}
                       >
@@ -247,7 +247,7 @@ export default async function FlavorPage({ params }: { params: Promise<{ id: str
               return (
                 <Link
                   key={m.id}
-                  href={`/mix/${m.id}`}
+                  href={`/method/${m.id}`}
                   className="flex flex-col gap-1 rounded-lg border px-3 py-3"
                   style={{ borderColor: 'var(--line)' }}
                 >

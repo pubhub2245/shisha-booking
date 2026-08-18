@@ -14,5 +14,5 @@ export default async function ComboRedirect({ params }: { params: Promise<{ slug
   const combo = await getComboBySlug(slug)
   if (!combo || combo.methods.length === 0) notFound()
   const flavorId = (combo.methods[0].mix_flavors ?? [])[0]?.flavor_id
-  redirect(flavorId ? `/flavor/${flavorId}` : `/mix/${combo.methods[0].id}`)
+  redirect(flavorId ? `/flavor/${flavorId}` : `/method/${combo.methods[0].id}`)
 }

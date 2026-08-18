@@ -74,7 +74,7 @@ export default async function BowlTypePage({ params }: { params: Promise<{ type:
         {photoMixes.length > 0 ? (
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
             {photoMixes.map((m) => (
-              <Link key={m.id} href={`/mix/${m.id}`} className="group block overflow-hidden rounded-xl border" style={{ borderColor: 'var(--line)' }}>
+              <Link key={m.id} href={`/method/${m.id}`} className="group block overflow-hidden rounded-xl border" style={{ borderColor: 'var(--line)' }}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={m.pack_photo_url!}

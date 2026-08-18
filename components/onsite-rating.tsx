@@ -73,7 +73,7 @@ export function OnsiteRating({
 
   function checkin() {
     if (!isAuthed) {
-      router.push('/login?next=' + encodeURIComponent(`/mix/${mixId}`))
+      router.push('/login?next=' + encodeURIComponent(`/method/${mixId}`))
       return
     }
     if (!('geolocation' in navigator)) {
@@ -112,7 +112,7 @@ export function OnsiteRating({
               setMsg({ kind: 'err', text: '自分の投稿は評価できません。' })
               break
             case 'not_authed':
-              router.push('/login?next=' + encodeURIComponent(`/mix/${mixId}`))
+              router.push('/login?next=' + encodeURIComponent(`/method/${mixId}`))
               break
             default:
               setMsg({ kind: 'err', text: '記録に失敗しました。時間をおいて再度お試しください。' })

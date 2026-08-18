@@ -200,7 +200,7 @@ export default async function ProfilePage({ params }: { params: Promise<{ userna
             {mixes
               .filter((m) => m.pack_photo_url)
               .map((m) => (
-                <Link key={m.id} href={`/mix/${m.id}`} className="group block overflow-hidden rounded-lg">
+                <Link key={m.id} href={`/method/${m.id}`} className="group block overflow-hidden rounded-lg">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={m.pack_photo_url!}

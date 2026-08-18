@@ -68,7 +68,7 @@ export default async function RankingPage({ searchParams }: { searchParams: Prom
           {/* TOP3 */}
           <div className="mt-8 grid gap-4">
             {top3.map((m, i) => (
-              <Link key={m.id} href={`/mix/${m.id}`} className="card card-hover flex items-center gap-4 p-5">
+              <Link key={m.id} href={`/method/${m.id}`} className="card card-hover flex items-center gap-4 p-5">
                 <span className="text-3xl">{MEDALS[i]}</span>
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-x-1.5 leading-snug" style={{ fontWeight: 700 }}>

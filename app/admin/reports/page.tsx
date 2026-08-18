@@ -34,7 +34,7 @@ export default async function AdminReportsPage() {
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
                   {r.mix_id ? (
-                    <Link href={`/mix/${r.mix_id}`} className="text-sm underline underline-offset-2" style={{ color: 'var(--color-ember-hot)', fontWeight: 700 }}>
+                    <Link href={`/method/${r.mix_id}`} className="text-sm underline underline-offset-2" style={{ color: 'var(--color-ember-hot)', fontWeight: 700 }}>
                       {r.mixTitle ?? '（削除済み/不明な作り方）'}
                     </Link>
                   ) : (

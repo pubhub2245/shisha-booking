@@ -22,7 +22,7 @@ export function MixCard({
   const flavors = mix.mix_flavors ?? []
   return (
     <article className="card card-hover flex flex-col overflow-hidden fade-up">
-      <Link href={`/mix/${mix.id}`} className="flex flex-1 flex-col">
+      <Link href={`/method/${mix.id}`} className="flex flex-1 flex-col">
         {mix.pack_photo_url && (
           <div className="relative">
             {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -94,7 +94,7 @@ export function MixCard({
 
       <div className="flex items-center justify-between border-t px-5 py-3" style={{ borderColor: 'var(--line)' }}>
         <LikeButton mixId={mix.id} initialCount={mix.like_count} initialLiked={liked} isAuthed={isAuthed} />
-        <Link href={`/mix/${mix.id}`} className="text-xs" style={{ color: 'var(--color-ember-hot)', fontWeight: 600 }}>
+        <Link href={`/method/${mix.id}`} className="text-xs" style={{ color: 'var(--color-ember-hot)', fontWeight: 600 }}>
           作り方を見る →
         </Link>
       </div>

@@ -163,7 +163,7 @@ export default async function MyPage() {
               あなたはこのテーマで {themeMadeCount} 通り試しています。
             </p>
             <Link
-              href={`/mix/${themeNext.id}`}
+              href={`/method/${themeNext.id}`}
               className="mt-3 flex flex-col gap-1 rounded-lg border px-3 py-2.5"
               style={{ borderColor: 'var(--line)' }}
             >

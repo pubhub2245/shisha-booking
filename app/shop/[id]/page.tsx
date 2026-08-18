@@ -183,7 +183,7 @@ export default async function ShopPage({ params }: { params: Promise<{ id: strin
                 {combos.slice(0, 12).map((combo) => (
                   <Link
                     key={combo.key}
-                    href={`/mix/${combo.top.id}`}
+                    href={`/method/${combo.top.id}`}
                     className="flex flex-col gap-0.5 rounded-lg border px-3 py-2.5"
                     style={{ borderColor: 'var(--line)' }}
                   >

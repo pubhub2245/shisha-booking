@@ -102,7 +102,7 @@ export default async function AdminThemePage() {
               const s = stats.get(m.id)
               return (
                 <li key={m.id} className="flex items-baseline justify-between gap-3 py-2">
-                  <Link href={`/mix/${m.id}`} className="min-w-0 truncate text-sm brush-underline">
+                  <Link href={`/method/${m.id}`} className="min-w-0 truncate text-sm brush-underline">
                     {m.title?.trim() || `作り方 ${m.id.slice(0, 4)}`}
                   </Link>
                   <span className="shrink-0 text-xs" style={{ color: 'var(--color-ash)' }}>

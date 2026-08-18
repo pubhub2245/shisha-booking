@@ -71,7 +71,7 @@ export default async function Home() {
       {themeFlavor && (
         <section className="mt-8">
           <Link
-            href={themeNext ? `/mix/${themeNext.method.id}` : `/flavor/${themeFlavor.flavor.id}`}
+            href={themeNext ? `/method/${themeNext.method.id}` : `/flavor/${themeFlavor.flavor.id}`}
             className="card block p-5 sm:p-6"
           >
             <p className="eyebrow">今月の煙道検証</p>
@@ -122,7 +122,7 @@ export default async function Home() {
             {recent.map((e, i) => (
               <Link
                 key={e.id ?? `${e.kind}-${i}`}
-                href={`/mix/${e.mix.id}`}
+                href={`/method/${e.mix.id}`}
                 className="flex items-baseline justify-between gap-3 rounded-lg border px-3 py-2.5"
                 style={{ borderColor: 'var(--line)' }}
               >

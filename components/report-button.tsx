@@ -12,7 +12,7 @@ export function ReportButton({ mixId, isAuthed }: { mixId: string; isAuthed: boo
 
   function onClick() {
     if (!isAuthed) {
-      router.push(`/login?next=/mix/${mixId}`)
+      router.push(`/login?next=/method/${mixId}`)
       return
     }
     const reason = window.prompt('通報の理由を教えてください（任意）。\n例：不適切・スパム・権利侵害など')

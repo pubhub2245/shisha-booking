@@ -45,7 +45,7 @@ export default async function AdminOrthodoxyPage() {
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
                   <Link
-                    href={`/mix/${mix.id}`}
+                    href={`/method/${mix.id}`}
                     className="text-sm underline underline-offset-2"
                     style={{ color: 'var(--color-ember-hot)', fontWeight: 700 }}
                   >
