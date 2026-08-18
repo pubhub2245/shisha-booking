@@ -2596,3 +2596,86 @@ export async function getMyThemeMade(comboKey: string): Promise<MyThemeMade[]> {
     return []
   }
 }
+
+/* ---------------------------------------------------------------------------
+ * フレーバー中心の煙道
+ *
+ * 煙道が扱うのは「1つのフレーバーを、どう作るか」。作り方に紐づくフレーバーは常に1つで、
+ * 配合（複数フレーバーの組み合わせ）は概念として持たない。
+ * したがって mixes.combo_key はそのままフレーバーのキーになり、combo_orthodoxy は
+ * 「そのフレーバーの王道」を指す。既存のテーブルはそのまま使える。
+ * ------------------------------------------------------------------------- */
+
+/** フレーバー1件と、その作り方（1フレーバーのものだけ）。配合ものは対象外。 */
+export type FlavorHub = {
+  flavor: Flavor
+  key: string
+  methods: MixWithRelations[]
+  stats: Map<string, ThemeMethodStat>
+  progress: ThemeOverview['progress']
+  /** そのフレーバーで公式認定された作り方（combo_orthodoxy が唯一の source of truth） */
+  orthodoxMixId: string | null
+}
+
+export async function getFlavorHub(flavorId: string): Promise<FlavorHub | null> {
+  try {
+    const supabase = await createClient()
+    const { data: f } = await supabase.from('flavors').select('*').eq('id', flavorId).maybeSingle()
+    if (!f) return null
+    const flavor = f as Flavor
+    const key = flavorKey(flavor.brand, flavor.name)
+    const [overview, { data: ortho }] = await Promise.all([
+      getThemeOverview(key),
+      supabase.from('combo_orthodoxy').select('mix_id').eq('combo_key', key).maybeSingle(),
+    ])
+    return {
+      flavor,
+      key,
+      methods: overview.methods,
+      stats: overview.stats,
+      progress: overview.progress,
+      orthodoxMixId: (ortho?.mix_id as string | undefined) ?? null,
+    }
+  } catch {
+    return null
+  }
+}
+
+/** フレーバー一覧（作り方の数つき）。作り方が多い順＝いま擦られている順に出す。 */
+export type FlavorWithMethods = { flavor: Flavor; methodCount: number }
+
+export async function getFlavorsWithMethods(): Promise<FlavorWithMethods[]> {
+  try {
+    const supabase = await createClient()
+    const [{ data: flavorRows }, { data: mixRows }] = await Promise.all([
+      supabase.from('flavors').select('*').order('brand'),
+      supabase.from('mixes').select('combo_key').eq('hidden', false),
+    ])
+    const counts = new Map<string, number>()
+    for (const m of (mixRows ?? []) as { combo_key: string }[]) {
+      counts.set(m.combo_key, (counts.get(m.combo_key) ?? 0) + 1)
+    }
+    return ((flavorRows ?? []) as Flavor[])
+      .map((flavor) => ({ flavor, methodCount: counts.get(flavorKey(flavor.brand, flavor.name)) ?? 0 }))
+      .sort(
+        (a, b) =>
+          b.methodCount - a.methodCount ||
+          `${a.flavor.brand} ${a.flavor.name}`.localeCompare(`${b.flavor.brand} ${b.flavor.name}`, 'ja')
+      )
+  } catch {
+    return []
+  }
+}
+
+/** その作り方が対象にしているフレーバー（作り方1件 = フレーバー1つ）。 */
+export async function getMethodFlavor(mix: { mix_flavors?: { flavor_id: string | null }[] | null }): Promise<Flavor | null> {
+  try {
+    const id = mix.mix_flavors?.[0]?.flavor_id
+    if (!id) return null
+    const supabase = await createClient()
+    const { data } = await supabase.from('flavors').select('*').eq('id', id).maybeSingle()
+    return (data as Flavor) ?? null
+  } catch {
+    return null
+  }
+}

@@ -8,7 +8,7 @@ export const dynamic = 'force-dynamic'
 
 export const metadata: Metadata = {
   title: '検索 — 煙道',
-  description: 'ミックス・フレーバーを検索。',
+  description: '作り方・フレーバーを検索。',
 }
 
 export default async function SearchPage({ searchParams }: { searchParams: Promise<{ q?: string }> }) {

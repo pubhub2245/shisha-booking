@@ -44,12 +44,11 @@ export async function SiteHeader() {
         </Link>
 
         <nav className="hidden items-center gap-6 text-sm md:flex" style={{ color: 'var(--color-ash)' }}>
-          <Link href="/" className="brush-underline transition-colors hover:text-[var(--color-cream)]">図鑑</Link>
+          <Link href="/" className="brush-underline transition-colors hover:text-[var(--color-cream)]">フレーバー</Link>
           {/* いま実際に進んでいる場所を、王道より前に置く（王道は現時点で0件） */}
-          <Link href="/theme" className="brush-underline transition-colors hover:text-[var(--color-cream)]" style={{ fontWeight: 700 }}>検証</Link>
-          {/* ランキング系（王道/地域別/人気）は王道ページ上部のタブで束ねる */}
+          <Link href="/theme" className="brush-underline transition-colors hover:text-[var(--color-cream)]" style={{ fontWeight: 700 }}>今月の検証</Link>
+          {/* 王道は「そのフレーバーで認定された作り方」。現時点では0件 */}
           <Link href="/national" className="brush-underline transition-colors hover:text-[var(--color-cream)]">王道</Link>
-          <Link href="/flavors" className="brush-underline transition-colors hover:text-[var(--color-cream)]">フレーバー</Link>
           <Link href="/guide" className="brush-underline transition-colors hover:text-[var(--color-cream)]">作り方</Link>
           {user && <Link href="/shelf" className="brush-underline transition-colors hover:text-[var(--color-cream)]">マイフレーバー</Link>}
         </nav>
@@ -82,7 +81,7 @@ export async function SiteHeader() {
                 )}
               </Link>
               <Link href="/post" className="btn btn-ember hidden text-sm md:inline-flex">
-                ミックスを投稿
+                作り方を登録
               </Link>
               <Link
                 href="/mypage"

@@ -52,16 +52,6 @@ export type MixFormInitial = {
   flavors: { flavorId: string; name: string; brand: string; ratio: string; url: string }[]
 }
 
-type Row = {
-  id: number
-  brand: string // 選択中のブランド（NEW=新しいブランド）
-  flavorId: string // 選択中の味（マスタのid、NEW=新しい味、''=未選択）
-  newBrand: string
-  newName: string
-  ratio: string
-  url: string
-}
-
 const NEW = '__new__'
 
 export function MixForm({
@@ -161,49 +151,25 @@ export function MixForm({
     flavorsByBrand.set(f.brand, arr)
   }
 
-  const emptyRow = (id: number): Row => ({
-    id,
-    brand: '',
-    flavorId: '',
-    newBrand: '',
-    newName: '',
-    ratio: '',
-    url: '',
-  })
+  // 煙道は「1つのフレーバーを、どう作るか」を扱う。配合（複数フレーバー）は持たない。
+  const seedFlavor = initial?.flavors?.[0]
+  const seedMaster = seedFlavor?.flavorId ? masterById.get(seedFlavor.flavorId) : undefined
+  const seedKnownBrand = !!seedFlavor?.brand && brands.includes(seedFlavor.brand)
+  const [brand, setBrand] = useState(
+    seedMaster ? seedMaster.brand : seedKnownBrand ? seedFlavor!.brand : seedFlavor ? NEW : ''
+  )
+  const [flavorId, setFlavorId] = useState(seedMaster ? seedMaster.id : seedFlavor?.name ? NEW : '')
+  const [newBrand, setNewBrand] = useState(seedMaster || seedKnownBrand ? '' : seedFlavor?.brand ?? '')
+  const [newName, setNewName] = useState(seedMaster ? '' : seedFlavor?.name ?? '')
+  const flavorUrl = seedFlavor?.url ?? ''
 
-  const seed: Row[] =
-    initial && initial.flavors.length > 0
-      ? initial.flavors.map((f, i) => {
-          const master = f.flavorId ? masterById.get(f.flavorId) : undefined
-          if (master) {
-            return { id: i + 1, brand: master.brand, flavorId: f.flavorId, newBrand: '', newName: '', ratio: f.ratio, url: f.url }
-          }
-          // マスタに無い（旧データ・自由入力）。既知ブランドなら味だけ新規、未知ならブランドも新規。
-          const knownBrand = f.brand && brands.includes(f.brand)
-          return {
-            id: i + 1,
-            brand: knownBrand ? f.brand : f.brand || f.name ? NEW : '',
-            flavorId: f.name ? NEW : '',
-            newBrand: knownBrand ? '' : f.brand,
-            newName: f.name,
-            ratio: f.ratio,
-            url: f.url,
-          }
-        })
-      : [emptyRow(1), emptyRow(2)]
-  const [rows, setRows] = useState<Row[]>(seed)
-  const [nextId, setNextId] = useState(seed.length + 1)
-
-  function addRow() {
-    setRows((r) => [...r, emptyRow(nextId)])
-    setNextId((n) => n + 1)
-  }
-  function removeRow(id: number) {
-    setRows((r) => (r.length > 1 ? r.filter((x) => x.id !== id) : r))
-  }
-  function update(id: number, patch: Partial<Row>) {
-    setRows((r) => r.map((x) => (x.id === id ? { ...x, ...patch } : x)))
-  }
+  const isNewBrand = brand === NEW
+  const isNewName = flavorId === NEW
+  const master = !isNewName && flavorId ? masterById.get(flavorId) : undefined
+  const brandFlavors = !isNewBrand && brand ? flavorsByBrand.get(brand) ?? [] : []
+  const submitBrand = isNewBrand ? newBrand : brand
+  const submitName = master ? master.name : isNewName ? newName : ''
+  const submitId = master ? master.id : ''
 
   return (
     <form action={action} className="mt-8 flex flex-col gap-6">
@@ -217,127 +183,81 @@ export function MixForm({
         </div>
       )}
 
-      {/* ---------- FLAVORS (選択式) ---------- */}
+      {/* ---------- FLAVOR（1つだけ） ---------- */}
       <div>
         <div className="mb-2 flex items-center justify-between">
-          <label className="text-sm" style={{ color: 'var(--color-ash)', fontWeight: 600 }}>使用フレーバー *</label>
-          <span className="text-xs" style={{ color: 'var(--color-ash-dim)' }}>
-            {canAddFlavor ? '一覧から選択（無ければ新規追加）' : '一覧から選択'}
-          </span>
+          <label className="text-sm" style={{ color: 'var(--color-ash)', fontWeight: 600 }}>フレーバー *</label>
+          <span className="text-xs" style={{ color: 'var(--color-ash-dim)' }}>1つだけ選びます</span>
+        </div>
+
+        {/* submit 用の hidden。配合は持たないので使用量は送らない */}
+        <input type="hidden" name="flavor_id" value={submitId} />
+        <input type="hidden" name="flavor_brand" value={submitBrand} />
+        <input type="hidden" name="flavor_name" value={submitName} />
+        <input type="hidden" name="flavor_url" value={flavorUrl} />
+
+        <div className="card grid gap-3 p-4 sm:grid-cols-2">
+          <div className="field">
+            <label className="text-xs" style={{ color: 'var(--color-ash-dim)' }}>メーカー</label>
+            <select
+              value={brand}
+              onChange={(e) => {
+                setBrand(e.target.value)
+                setFlavorId('')
+                setNewName('')
+              }}
+            >
+              <option value="">選択してください</option>
+              {brands.map((b) => (
+                <option key={b} value={b}>{b}</option>
+              ))}
+              {canAddFlavor && <option value={NEW}>リストにない（新規追加）</option>}
+            </select>
+          </div>
+
+          <div className="field">
+            <label className="text-xs" style={{ color: 'var(--color-ash-dim)' }}>味</label>
+            {isNewBrand ? (
+              <input
+                value={newName}
+                onChange={(e) => setNewName(e.target.value)}
+                placeholder="フレーバー名（例：ダブルアップル）"
+              />
+            ) : (
+              <select value={flavorId} disabled={!brand} onChange={(e) => { setFlavorId(e.target.value); setNewName('') }}>
+                <option value="">{brand ? '選択してください' : '先にメーカーを選択'}</option>
+                {brandFlavors.map((f) => (
+                  <option key={f.id} value={f.id}>{f.name}</option>
+                ))}
+                {canAddFlavor && <option value={NEW}>リストにない（新規追加）</option>}
+              </select>
+            )}
+          </div>
+
+          {canAddFlavor && isNewBrand && (
+            <div className="field sm:col-span-2">
+              <input
+                value={newBrand}
+                onChange={(e) => setNewBrand(e.target.value)}
+                placeholder="メーカー名（例：AL FAKHER）"
+              />
+            </div>
+          )}
+          {canAddFlavor && !isNewBrand && isNewName && (
+            <div className="field sm:col-span-2">
+              <input
+                value={newName}
+                onChange={(e) => setNewName(e.target.value)}
+                placeholder="フレーバー名（例：ダブルアップル）"
+              />
+            </div>
+          )}
         </div>
         {!canAddFlavor && (
-          <p className="mb-2 text-xs" style={{ color: 'var(--color-ash-dim)' }}>
-            💡 一覧から選択してください。新しいフレーバーの追加は運営（管理者）のみが行えます。見つからないフレーバーは運営までご連絡ください。
+          <p className="mt-2 text-xs" style={{ color: 'var(--color-ash-dim)' }}>
+            見つからないフレーバーは運営までご連絡ください。
           </p>
         )}
-        <div className="flex flex-col gap-3">
-          {rows.map((row, i) => {
-            const isNewBrand = row.brand === NEW
-            const isNewName = row.flavorId === NEW
-            const master = !isNewName && row.flavorId ? masterById.get(row.flavorId) : undefined
-            const brandFlavors = !isNewBrand && row.brand ? flavorsByBrand.get(row.brand) ?? [] : []
-            // submit する実際の値（ブランド／味／マスタid）を決める。
-            const submitBrand = isNewBrand ? row.newBrand : row.brand
-            const submitName = master ? master.name : isNewName ? row.newName : ''
-            const submitId = master ? master.id : ''
-            return (
-              <div key={row.id} className="card p-4">
-                <div className="mb-2 flex items-center justify-between">
-                  <span className="text-xs" style={{ color: 'var(--color-ember-hot)', fontWeight: 700 }}>フレーバー {i + 1}</span>
-                  <button type="button" onClick={() => removeRow(row.id)} className="text-xs" style={{ color: 'var(--color-ash-dim)' }}>削除</button>
-                </div>
-
-                {/* submit 用の hidden（メーカー＋味の選択、または新規入力を反映） */}
-                <input type="hidden" name="flavor_id" value={submitId} />
-                <input type="hidden" name="flavor_brand" value={submitBrand} />
-                <input type="hidden" name="flavor_name" value={submitName} />
-
-                {/* メーカー（ブランド）を先に選ぶ → 味が絞り込まれる（プルダウンが長くなりすぎない） */}
-                <div className="grid gap-3 sm:grid-cols-2">
-                  <div className="field">
-                    <label className="text-xs" style={{ color: 'var(--color-ash-dim)' }}>メーカー</label>
-                    <select
-                      value={row.brand}
-                      onChange={(e) =>
-                        // ブランドを変えたら、味の選択はリセットする。
-                        update(row.id, { brand: e.target.value, flavorId: '', newName: '' })
-                      }
-                    >
-                      <option value="">選択してください</option>
-                      {brands.map((b) => (
-                        <option key={b} value={b}>{b}</option>
-                      ))}
-                      {canAddFlavor && <option value={NEW}>リストにない（新規追加）</option>}
-                    </select>
-                  </div>
-
-                  <div className="field">
-                    <label className="text-xs" style={{ color: 'var(--color-ash-dim)' }}>味</label>
-                    {isNewBrand ? (
-                      <input
-                        value={row.newName}
-                        onChange={(e) => update(row.id, { newName: e.target.value })}
-                        placeholder="フレーバー名（例：ダブルアップル）"
-                      />
-                    ) : (
-                      <select
-                        value={row.flavorId}
-                        disabled={!row.brand}
-                        onChange={(e) => update(row.id, { flavorId: e.target.value, newName: '' })}
-                      >
-                        <option value="">{row.brand ? '選択してください' : '先にメーカーを選択'}</option>
-                        {brandFlavors.map((f) => (
-                          <option key={f.id} value={f.id}>{f.name}</option>
-                        ))}
-                        {canAddFlavor && <option value={NEW}>リストにない（新規追加）</option>}
-                      </select>
-                    )}
-                  </div>
-                </div>
-
-                {/* 新規追加の入力欄（管理者のみ） */}
-                {canAddFlavor && isNewBrand && (
-                  <div className="mt-3 field">
-                    <input
-                      value={row.newBrand}
-                      onChange={(e) => update(row.id, { newBrand: e.target.value })}
-                      placeholder="メーカー名（例：AL FAKHER）"
-                    />
-                  </div>
-                )}
-                {canAddFlavor && !isNewBrand && isNewName && (
-                  <div className="mt-3 field">
-                    <input
-                      value={row.newName}
-                      onChange={(e) => update(row.id, { newName: e.target.value })}
-                      placeholder="フレーバー名（例：ダブルアップル）"
-                    />
-                  </div>
-                )}
-
-                <div className="mt-3 grid gap-3 sm:grid-cols-[110px_1fr]">
-                  <div className="field flex items-center gap-1" title="このフレーバーの使用量（グラム）">
-                    <input name="flavor_ratio" defaultValue={row.ratio} inputMode="decimal" placeholder="使用量" className="min-w-0 flex-1" />
-                    <span className="shrink-0 text-sm" style={{ color: 'var(--color-ash-dim)' }}>g</span>
-                  </div>
-                  {/* 購入リンクは管理者のみ設定可。非管理者は既存値をそのまま保持（編集不可）。 */}
-                  {canAddFlavor ? (
-                    <div className="field">
-                      <input name="flavor_url" defaultValue={row.url} placeholder="購入リンク（任意 / アフィリエイトURL）" />
-                    </div>
-                  ) : (
-                    <input type="hidden" name="flavor_url" value={row.url} />
-                  )}
-                </div>
-              </div>
-            )
-          })}
-        </div>
-        <button type="button" onClick={addRow} className="btn btn-ghost mt-3 text-sm">＋ フレーバーを追加</button>
-        <p className="mt-2 text-xs leading-relaxed" style={{ color: 'var(--color-ash-dim)' }}>
-          💡 量はグラム推奨ですが、スケールがなければ目安でOK（ボウル1杯 ≒ 15〜20g、ひとつまみ ≒ 2〜3g）。
-          比率が伝わればOKなので、迷ったら「多め／少なめ」を説明欄に添えてください。
-        </p>
       </div>
 
       <div className="field">

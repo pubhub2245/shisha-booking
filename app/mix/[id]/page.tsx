@@ -19,13 +19,11 @@ import {
   getMixNames,
   getOnsiteContext,
   getRegionRepLabel,
-  getComboBySlug,
 } from '@/lib/queries'
 import { getCurrentUser } from '@/lib/auth'
 import { LikeButton } from '@/components/like-button'
 import { BookmarkButton } from '@/components/bookmark-button'
 import { MadeButton, type MadeThemeContext } from '@/components/made-button'
-import { FIRST_THEME, THEME_PATH, isThemeCombo } from '@/lib/theme'
 import { rankNextCandidates, describeDiff, diffMeaning } from '@/lib/method-diff'
 import { SmokedButton } from '@/components/smoked-button'
 import { RecommendButton } from '@/components/recommend-button'
@@ -54,7 +52,6 @@ import { SectionTabs, type SectionTab } from '@/components/section-tabs'
 import { unlockPassed, isActivelyLocked, isSectionLocked, LOCK_FEATURE_ENABLED } from '@/lib/lock'
 import { SITE_URL, BRAND } from '@/lib/site'
 import { goHref } from '@/lib/go'
-import { comboKey, comboSlug } from '@/lib/combo'
 import type { MixWithRelations, MixAuthor } from '@/lib/types/database'
 
 export const dynamic = 'force-dynamic'
@@ -90,12 +87,12 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { id } = await params
   const mix = await getMixById(id)
-  if (!mix) return { title: `ミックスが見つかりません — ${BRAND.full}` }
+  if (!mix) return { title: `作り方が見つかりません — ${BRAND.full}` }
   const flavorLine = (mix.mix_flavors ?? []).map((f) => f.name).join(' × ')
   // 盛り方写真があればOG画像に使う。無ければブランド既定の動的OG画像（opengraph-image）へフォールバック。
   const images = mix.pack_photo_url ? [{ url: mix.pack_photo_url }] : undefined
-  const heading = flavorLine || mix.title || 'ミックス'
-  const desc = mix.description ?? (mix.title ? `${mix.title}｜${flavorLine}` : flavorLine) ?? 'シーシャのミックスレシピ'
+  const heading = flavorLine || mix.title || '作り方'
+  const desc = mix.description ?? (mix.title ? `${mix.title}｜${flavorLine}` : flavorLine) ?? 'シーシャの作り方'
   return {
     title: `${heading} — ${BRAND.full}`,
     description: desc,
@@ -134,43 +131,40 @@ export default async function MixDetail({
     getOnsiteContext(mix),
     getRegionRepLabel(id),
   ])
-  // 同じ組み合わせに何通りの作り方があるか。1件しかないのに combo へ送ると
-  // combo 側が mix へ redirect して同じページに戻る（自己ループ）ため、件数で出し分ける。
-  const siblingCount =
-    (await getComboBySlug(comboSlug(mix.combo_key || comboKey(mix.mix_flavors ?? []))))?.methods.length ?? 1
+  // ---- そのフレーバーの中での文脈 ----
+  // 作り方は必ずフレーバー1つに対するものなので、combo_key はそのままフレーバーのキーになる。
+  // 「前に作った別の作り方」と「次に試すと差が分かる作り方」を、同じフレーバーの中から拾う。
+  const [hub, myMade] = await Promise.all([
+    getThemeOverview(mix.combo_key),
+    getMyThemeMade(mix.combo_key),
+  ])
+  // 旧データには複数フレーバーの記録が残っている。いまの煙道は1フレーバーしか扱わないので、
+  // そういう作り方はフレーバーのページに属さない（導線を出さない）。削除はしない。
+  const isSingleFlavor = (mix.mix_flavors ?? []).length === 1
+  const flavorId = isSingleFlavor ? (mix.mix_flavors ?? [])[0]?.flavor_id ?? null : null
+  const flavorName = (mix.mix_flavors ?? [])[0]?.name ?? 'このフレーバー'
 
-  // ---- 第一テーマ（今月の煙道検証）の文脈 ----
-  // テーマ内の作り方を開いているときだけ、「前に作った別の作り方」と「次に試すと差が分かる作り方」を用意する。
-  // どちらも記録したあとに返すために使う（記録して何も返らないなら2台目は起きない）。
-  const inTheme = isThemeCombo(mix.combo_key)
-  const [themeOverview, myThemeMade] = inTheme
-    ? await Promise.all([getThemeOverview(FIRST_THEME.comboKey), getMyThemeMade(FIRST_THEME.comboKey)])
-    : [null, []]
-
-  let themeContext: MadeThemeContext | undefined
-  if (inTheme && themeOverview) {
-    const label = (m: { id: string; title: string | null }) => m.title?.trim() || `作り方 ${m.id.slice(0, 4)}`
-    const madeIds = new Set(myThemeMade.map((r) => r.mixId))
-    // 基準点＝直近に作った「別の」作り方。これが無いうちは比較を聞かない（1台目は比較できない）
-    const baselineRow = myThemeMade.find((r) => r.mixId !== mix.id)
-    const baselineMix = baselineRow ? themeOverview.methods.find((m) => m.id === baselineRow.mixId) : null
-    const [top] = rankNextCandidates(mix, themeOverview.methods, {
-      madeIds,
-      makerCount: (mixId) => themeOverview.stats.get(mixId)?.makerCount ?? 0,
-    })
-    themeContext = {
-      baseline: baselineMix ? { mixId: baselineMix.id, label: label(baselineMix) } : null,
-      next: top
-        ? {
-            id: top.method.id,
-            label: label(top.method),
-            diff: top.diffs.map(describeDiff).join('／'),
-            meaning: diffMeaning(top.diffs[0]),
-          }
-        : null,
-      themePath: THEME_PATH,
-      themeTitle: '今月の煙道検証',
-    }
+  const methodName = (m: { id: string; title: string | null }) => m.title?.trim() || `作り方 ${m.id.slice(0, 4)}`
+  const madeIds = new Set(myMade.map((r) => r.mixId))
+  // 基準点＝直近に作った「別の」作り方。これが無いうちは比較を聞かない（1台目は比較できない）
+  const baselineRow = myMade.find((r) => r.mixId !== mix.id)
+  const baselineMix = baselineRow ? hub.methods.find((m) => m.id === baselineRow.mixId) : null
+  const [topNext] = rankNextCandidates(mix, hub.methods, {
+    madeIds,
+    makerCount: (mid) => hub.stats.get(mid)?.makerCount ?? 0,
+  })
+  const themeContext: MadeThemeContext = {
+    baseline: baselineMix ? { mixId: baselineMix.id, label: methodName(baselineMix) } : null,
+    next: topNext
+      ? {
+          id: topNext.method.id,
+          label: methodName(topNext.method),
+          diff: topNext.diffs.map(describeDiff).join('／'),
+          meaning: diffMeaning(topNext.diffs[0]),
+        }
+      : null,
+    themePath: flavorId ? `/flavor/${flavorId}` : '/',
+    themeTitle: `${flavorName}のページ`,
   }
   const mixLabel = mix.title?.trim() || 'この作り方'
 
@@ -222,7 +216,7 @@ export default async function MixDetail({
   const mixUrl = `${SITE_URL}/mix/${mix.id}`
   const flavorLine = flavors.map((f) => f.name).join(' × ')
   // 表示名＝フレーバー名。title は任意の一言（あれば添える）
-  const headingLine = flavorLine || mix.title || 'ミックス'
+  const headingLine = flavorLine || mix.title || '作り方'
   const taglineSuffix = mix.title ? `（${mix.title}）` : ''
   // 王道に選ばれていれば、その"自慢"をシェア文面に載せる（バイラルの起点）
   const shareText = isRep
@@ -275,7 +269,7 @@ export default async function MixDetail({
         )}
       </div>
 
-      {/* 投稿直後：図鑑に追加されたことを伝える（同じ組み合わせの別解も示す） */}
+      {/* 登録直後：同じフレーバーに他の作り方があることを伝える */}
       {posted === '1' && (
         <div
           className="mt-4 rounded-xl border px-4 py-3"
@@ -288,11 +282,11 @@ export default async function MixDetail({
             {headingLine}
             {ratioLine ? ` ・ ${ratioLine}` : ''}
           </p>
-          {siblingCount > 1 && (
+          {hub.methods.length > 1 && flavorId && (
             <p className="mt-1.5 text-xs" style={{ color: 'var(--color-ash-dim)' }}>
-              この組み合わせには現在{' '}
-              <Link href={`/combo/${comboSlug(mix.combo_key || comboKey(flavors))}`} style={{ color: 'var(--color-ember-hot)', fontWeight: 700 }}>
-                {siblingCount}通りの作り方
+              このフレーバーには現在{' '}
+              <Link href={`/flavor/${flavorId}`} style={{ color: 'var(--color-ember-hot)', fontWeight: 700 }}>
+                {hub.methods.length}通りの作り方
               </Link>{' '}
               があります。
             </p>
@@ -386,13 +380,13 @@ export default async function MixDetail({
         )}
 
         {/* 別解が無いときは出さない（1件のみだと combo→mix へ戻され自己ループになる） */}
-        {siblingCount > 1 && (
+        {hub.methods.length > 1 && flavorId && (
           <Link
-            href={`/combo/${comboSlug(mix.combo_key || comboKey(flavors))}`}
+            href={`/flavor/${flavorId}`}
             className="mt-2 inline-block text-sm"
             style={{ color: 'var(--color-ember-hot)', fontWeight: 600 }}
           >
-            ほかの作り方を見る（{siblingCount - 1}） →
+            ほかの作り方を見る（{hub.methods.length - 1}） →
           </Link>
         )}
 
@@ -402,7 +396,7 @@ export default async function MixDetail({
             style={{ borderColor: 'rgb(178 59 46 / 0.35)', background: 'rgb(178 59 46 / 0.06)' }}
           >
             <p className="text-sm" style={{ fontWeight: 800 }}>
-              🎉 あなたのミックスが <span style={{ color: '#b23b2e' }}>{repLabel}系で人気</span> の作り方になっています。
+              🎉 あなたの作り方が <span style={{ color: '#b23b2e' }}>{repLabel}系で人気</span> の作り方になっています。
             </p>
             <p className="mt-1 text-xs" style={{ color: 'var(--color-ash)' }}>
               よく吸われている作り方です。ぜひSNSで共有しましょう。
@@ -483,9 +477,15 @@ export default async function MixDetail({
         </p>
       )}
 
-      {/* ---------- FLAVORS + AFFILIATE ---------- */}
+      {/* ---------- FLAVOR + AFFILIATE ---------- */}
       <section className="mt-8">
-        <h2 className="mb-3 text-sm eyebrow">Flavors — 使用フレーバー</h2>
+        <h2 className="mb-3 text-sm eyebrow">Flavor — フレーバー</h2>
+        {!isSingleFlavor && (
+          <p className="mb-2 text-xs" style={{ color: 'var(--color-ash-dim)' }}>
+            これは複数フレーバーで記録された古い作り方です。いまの煙道は1つのフレーバーだけを扱うため、
+            フレーバーのページには並びません。
+          </p>
+        )}
         <div className="card divide-y" style={{ borderColor: 'var(--line)' }}>
           {flavors.map((f) => (
             <div key={f.id} className="flex items-center gap-4 p-4" style={{ borderColor: 'var(--line)' }}>
@@ -829,7 +829,7 @@ export default async function MixDetail({
       {/* ---------- RELATED ---------- */}
       {related.length > 0 && (
         <section className="mt-12">
-          <h2 className="mb-3 text-sm eyebrow">Related — 似た系統のミックス</h2>
+          <h2 className="mb-3 text-sm eyebrow">Related — 似た系統の作り方</h2>
           <div className="grid gap-5 sm:grid-cols-2">
             {related.map((m) => (
               <MixCard key={m.id} mix={m} liked={likedIds.has(m.id)} isAuthed={!!user} />

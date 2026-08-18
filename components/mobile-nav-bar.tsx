@@ -20,8 +20,8 @@ const CENTER = '/record'
 export function MobileNavBar({ isAuthed }: { isAuthed: boolean }) {
   const pathname = usePathname()
   const items: Item[] = [
-    { href: '/', icon: '📖', label: '図鑑' },
-    { href: '/theme', icon: '検', label: '検証' },
+    { href: '/', icon: '🍃', label: 'フレーバー' },
+    { href: '/theme', icon: '検', label: '今月' },
     { href: CENTER, icon: '＋', label: '記録' },
     { href: '/search', icon: '🔍', label: '検索' },
     isAuthed ? { href: '/mypage', icon: '👤', label: 'マイ煙道' } : { href: '/login', icon: '👤', label: 'ログイン' },

@@ -5,7 +5,7 @@ import { getCurrentUser } from '@/lib/auth'
 import { MixForm, type MixFormInitial } from '@/components/mix-form'
 
 export const dynamic = 'force-dynamic'
-export const metadata = { title: 'ミックスを編集 — 煙道' }
+export const metadata = { title: '作り方を編集 — 煙道' }
 
 export default async function EditMixPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -59,10 +59,10 @@ export default async function EditMixPage({ params }: { params: Promise<{ id: st
   return (
     <div className="wrap max-w-2xl py-10">
       <Link href={`/mix/${id}`} className="text-sm" style={{ color: 'var(--color-ash-dim)' }}>
-        ← ミックスにもどる
+        ← 作り方にもどる
       </Link>
       <h1 className="mt-4 text-3xl" style={{ fontWeight: 800 }}>
-        ミックスを編集
+        作り方を編集
       </h1>
       <MixForm
         mode="edit"
