@@ -25,9 +25,9 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { id } = await params
   const flavor = await getFlavorById(id)
-  if (!flavor) return { title: 'フレーバーが見つかりません — 煙道' }
+  if (!flavor) return { title: 'フレーバーが見つかりません' }
   return {
-    title: `${flavor.brand} ${flavor.name} の作り方 — 煙道`,
+    title: `${flavor.brand} ${flavor.name} の作り方`,
     description: `${flavor.brand} ${flavor.name} を、どう作るか。実際に作られた作り方を比べられます。`,
   }
 }

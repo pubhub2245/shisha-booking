@@ -89,7 +89,7 @@ export function SmokedButton({
         style={{
           borderColor: 'var(--color-seal)',
           background: logged ? 'transparent' : 'var(--color-seal)',
-          color: logged ? 'var(--color-seal)' : '#fbf8f0',
+          color: logged ? 'var(--color-seal)' : 'var(--on-fill)',
           fontWeight: 800,
         }}
       >

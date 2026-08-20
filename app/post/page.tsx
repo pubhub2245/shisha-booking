@@ -6,7 +6,7 @@ import { MixForm, type MixFormInitial } from '@/components/mix-form'
 
 export const dynamic = 'force-dynamic'
 
-export const metadata = { title: '作り方を登録 — 煙道' }
+export const metadata = { title: '作り方を登録' }
 
 /** 何も指定が無いときの初期値。フレーバーだけ差し替えて使う。 */
 const EMPTY: MixFormInitial = {

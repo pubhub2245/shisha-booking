@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { IconOrb, type OrbPreset } from '@/components/icon-orb'
 
-export const metadata = { title: '店舗の方へ — 煙道' }
+export const metadata = { title: '店舗の方へ' }
 
 const benefits: { icon: string; preset: OrbPreset; title: string; body: string }[] = [
   {

@@ -7,7 +7,7 @@ import { relativeTime } from '@/lib/time'
 import type { MixAuthor } from '@/lib/types/database'
 
 export const dynamic = 'force-dynamic'
-export const metadata = { title: '通知 — 煙道' }
+export const metadata = { title: '通知' }
 
 function actorName(a: MixAuthor | null): string {
   return a?.display_name || (a?.username ? `@${a.username}` : '誰か')

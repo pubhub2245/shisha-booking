@@ -4,7 +4,7 @@ import { FlavorSearch } from '@/components/flavor-search'
 
 export const dynamic = 'force-dynamic'
 export const metadata = {
-  title: 'フレーバー図鑑 — 煙道',
+  title: 'フレーバー図鑑',
   description: 'シーシャのフレーバーを一覧。ブランド別に探して、作り方や購入リンクをチェック。',
 }
 

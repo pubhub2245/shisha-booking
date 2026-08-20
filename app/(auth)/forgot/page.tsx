@@ -4,7 +4,7 @@ import { ForgotForm } from './forgot-form'
 import { EMAIL_ENABLED } from '@/lib/site'
 
 export const dynamic = 'force-dynamic'
-export const metadata = { title: 'パスワード再設定 — 煙道' }
+export const metadata = { title: 'パスワード再設定' }
 
 export default function ForgotPage() {
   return (

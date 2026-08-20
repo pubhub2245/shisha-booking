@@ -3,6 +3,7 @@ import { getCurrentUser } from '@/lib/auth'
 import { getUnreadNotificationCount } from '@/lib/queries'
 import { signOut } from '@/actions/auth'
 import { BRAND } from '@/lib/site'
+import { IconSearch, IconBell } from '@/components/nav-icons'
 
 export async function SiteHeader() {
   const user = await getCurrentUser()
@@ -19,27 +20,13 @@ export async function SiteHeader() {
       }}
     >
       <div className="wrap flex h-16 items-center justify-between gap-4">
-        <Link href="/" className="flex items-center gap-2.5" aria-label={`${BRAND.full} ホーム`}>
-          <span
-            aria-hidden
-            className="brand-mark seal-stamp flex h-8 w-8 items-center justify-center rounded-md text-lg"
-            style={{
-              background: 'var(--color-seal)',
-              color: '#fbf8f0',
-              boxShadow: '0 3px 10px -5px rgb(178 59 46 / 0.6), 0 0 0 1px rgb(178 59 46 / 0.25) inset',
-            }}
-            title={`${BRAND.mark}（${BRAND.name}）`}
-          >
-            {BRAND.mark}
-          </span>
-          <span className="flex items-baseline gap-1.5">
-            <span className="brand-mark text-xl">{BRAND.name}</span>
-            <span
-              className="brand-mark"
-              style={{ fontSize: '0.6rem', letterSpacing: '0.22em', color: 'var(--color-ember-hot)' }}
-            >
-              {BRAND.nameEn}
-            </span>
+        {/* ロゴ。赤い角丸に白抜きの「煙」はやめた。暗い地の上では印そのものが安く見える。
+            代わりに字の左へ一本の煙を立てる。下が火の色、上へ行くほど消える。 */}
+        <Link href="/" className="mark" aria-label={`${BRAND.full} ホーム`}>
+          <span className="mark-flue" aria-hidden />
+          <span className="flex items-baseline gap-2">
+            <span className="mark-name">{BRAND.name}</span>
+            <span className="mark-en">{BRAND.nameEn}</span>
           </span>
         </Link>
 
@@ -57,20 +44,20 @@ export async function SiteHeader() {
           <Link
             href="/search"
             aria-label="検索"
-            className="hidden h-9 w-9 items-center justify-center rounded-full text-lg transition-colors hover:bg-[var(--accent-tint)] md:flex"
+            className="hidden h-9 w-9 items-center justify-center rounded-full transition-colors hover:bg-[var(--accent-tint)] md:flex"
             style={{ color: 'var(--color-ash)' }}
           >
-            🔍
+            <IconSearch />
           </Link>
           {user ? (
             <>
               <Link
                 href="/notifications"
                 aria-label="通知"
-                className="relative flex h-9 w-9 items-center justify-center rounded-full text-lg transition-colors hover:bg-[var(--accent-tint)]"
+                className="relative flex h-9 w-9 items-center justify-center rounded-full transition-colors hover:bg-[var(--accent-tint)]"
                 style={{ color: 'var(--color-ash)' }}
               >
-                🔔
+                <IconBell />
                 {unread > 0 && (
                   <span
                     className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[0.6rem] text-white"

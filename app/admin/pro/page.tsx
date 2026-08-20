@@ -5,7 +5,7 @@ import { getPendingProApplications } from '@/lib/queries'
 import { reviewProApplication } from '@/actions/pro'
 
 export const dynamic = 'force-dynamic'
-export const metadata = { title: 'プロ認証の審査 — 煙道' }
+export const metadata = { title: 'プロ認証の審査' }
 
 function snsUrl(type: string, handle: string): string {
   const h = handle.trim()

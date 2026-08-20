@@ -7,7 +7,7 @@ import { flavorLine } from '@/lib/mix'
 import { relativeTime } from '@/lib/time'
 
 export const dynamic = 'force-dynamic'
-export const metadata = { title: '王道の認定 — 煙道' }
+export const metadata = { title: '王道の認定' }
 
 export default async function AdminOrthodoxyPage() {
   const user = await getCurrentUser()

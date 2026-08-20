@@ -1,7 +1,7 @@
 import { legalEmail, paidSalesEnabled } from '@/lib/legal'
 
 export const dynamic = 'force-dynamic'
-export const metadata = { title: 'プライバシーポリシー — 煙道' }
+export const metadata = { title: 'プライバシーポリシー' }
 
 export default function PrivacyPage() {
   const email = legalEmail()

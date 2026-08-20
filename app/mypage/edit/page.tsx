@@ -7,7 +7,7 @@ import { ProfileForm } from '../profile-form'
 import { ProApplicationForm } from '../pro-application'
 
 export const dynamic = 'force-dynamic'
-export const metadata = { title: 'アカウント設定 — 煙道' }
+export const metadata = { title: 'アカウント設定' }
 
 export default async function ProfileEditPage() {
   const user = await getCurrentUser()

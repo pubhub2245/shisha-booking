@@ -1,7 +1,7 @@
 import { paidSalesEnabled } from '@/lib/legal'
 
 export const dynamic = 'force-dynamic'
-export const metadata = { title: '利用規約 — 煙道' }
+export const metadata = { title: '利用規約' }
 
 export default function TermsPage() {
   const paid = paidSalesEnabled()

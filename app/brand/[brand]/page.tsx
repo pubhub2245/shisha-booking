@@ -11,7 +11,7 @@ export async function generateMetadata({ params }: { params: Promise<{ brand: st
   const { brand } = await params
   const name = decodeURIComponent(brand)
   return {
-    title: `${name} のフレーバー一覧 — 煙道`,
+    title: `${name} のフレーバー一覧`,
     description: `${name} のシーシャフレーバーと、その作り方のまとめ。`,
   }
 }

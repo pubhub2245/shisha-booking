@@ -7,7 +7,7 @@ import { MixCard } from '@/components/mix-card'
 export const dynamic = 'force-dynamic'
 
 export const metadata: Metadata = {
-  title: '検索 — 煙道',
+  title: '検索',
   description: '作り方・フレーバーを検索。',
 }
 

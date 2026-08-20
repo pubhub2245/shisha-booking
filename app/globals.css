@@ -1,85 +1,74 @@
 @import "tailwindcss";
 
 /* ============================================================
-   煙道 — シーシャ ミックス図鑑
-   Design : 和（washi paper × 墨 sumi × 苔 moss-green × 朱 vermilion seal）
-   職人・研鑽・落款の佇まい。トークン名は据え置き、値だけ刷新。
+   煙道 ENDO
+   Design : 炭。サイト全体が、火の入ったボウルの中の暗さ。
+
+   地の色は想像で決めていない。ヒーローの実写コマを明度で層に分けて平均を取り、
+   その値をそのまま持ってきている（影も中間も温かい炭色、一番明るいのが煙）。
+   だから写真とページが同じ世界に見える。素材を差し替えたら、ここも採り直す。
+
+   ここは「暗い＝黒＋琥珀＋高コントラスト明朝」という、どこにでもある
+   "シネマティック"の型を避けている。地は純黒ではなく冷たい炭色、
+   常用のアクセントは煙道の緑のまま、橙は「実際に火がある所」だけに出す。
+
+   明暗の切り替えは持たない。この製品の世界は暗い方ひとつ。
    ============================================================ */
 
 @theme inline {
-  /* --- Base（生成り / 和紙） --- */
-  --color-smoke-950: #f3ede1;  /* page bg（生成り） */
-  --color-smoke-900: #efe7d8;  /* input bg */
-  --color-smoke-850: #fbf8f0;  /* card（白練） */
-  --color-smoke-800: #ece4d3;
-  --color-smoke-700: #e1d8c5;
-  --color-smoke-600: #cec3ac;
+  /* --- 地（炭。実写コマの影から採った冷たい暗さ。純黒にはしない） --- */
+  --color-smoke-950: #0d0c0a;  /* page bg */
+  --color-smoke-900: #141310;  /* input bg */
+  --color-smoke-850: #191712;  /* card */
+  --color-smoke-800: #211f19;
+  --color-smoke-700: #2c2921;
+  --color-smoke-600: #3b3830;
 
-  /* --- Accent（苔・常磐の和グリーン） --- */
-  --color-ember:       #3f7d5f;  /* primary（苔緑） */
-  --color-ember-hot:   #2f6147;  /* text 用の濃いめ */
-  --color-ember-deep:  #a83a2c;  /* エラー等の警告色（朱寄り） */
-  --color-coal:        #52916f;  /* 補助グリーン */
+  /* --- アクセント（煙道の緑。煙の翡翠寄りに振る） --- */
+  --color-ember:       #4f9d78;  /* primary（面） */
+  --color-ember-hot:   #7ecfa6;  /* 暗地の上の文字用 */
+  --color-ember-deep:  #e8663c;  /* 警告・熱 */
+  --color-coal:        #52916f;
 
-  /* --- 朱（落款・日本代表の判） --- */
-  --color-seal:        #b23b2e;
+  /* --- 火（実際に熱がある所にだけ出す。飾りには使わない） --- */
+  --color-seal:        #e8663c;
 
-  /* --- Text（墨） --- */
-  --color-cream:      #201e18;  /* 主要テキスト（墨） */
-  --color-ash:        #5c5748;  /* 補助 */
-  --color-ash-dim:    #928b79;  /* さらに淡い */
+  /* --- 文字（煙の色） --- */
+  --color-cream:      #e9e5db;  /* 主要テキスト */
+  --color-ash:        #aeaaa0;  /* 補助（地の上で 8.4:1） */
+  --color-ash-dim:    #8a867c;  /* さらに淡い（地の上で 5.4:1） */
 
-  /* --- Fonts（見出しは明朝、本文はゴシック） --- */
+  /* --- 文字として使うときの緑 --- */
+  --color-ember-text: #5fb68b;
+  --color-coal-text:  #5fb68b;
+
+  /* --- Fonts（見出しは明朝、本文はゴシック、ラベルは等幅） --- */
   --font-display: var(--font-shippori-mincho), "Shippori Mincho", "Yu Mincho", "YuMincho", "Hiragino Mincho ProN", "Noto Serif JP", serif;
   --font-jp: var(--font-noto-sans-jp), system-ui, sans-serif;
+  --font-label: var(--font-mplus-code), ui-monospace, "SFMono-Regular", Menlo, monospace;
 
   --max-w-site: 1120px;
 }
 
 :root {
-  --line: rgb(33 30 24 / 0.11);
-  --line-strong: rgb(33 30 24 / 0.19);
-  --accent-tint: rgb(63 125 95 / 0.10);
-  /* 藍（リンク・補助アクセントの差し色） */
-  --color-indigo: #2f5876;
-  /* 金（箔のヘアライン／特別バッジ） */
-  --foil-gold: #b48a3f;
-  /* 半透明の紙色（ヘッダー/ボトムナビ等） */
-  --surface-blur: rgb(243 237 225 / 0.82);
-  --surface-blur-strong: rgb(243 237 225 / 0.93);
+  --line: rgb(233 229 219 / 0.10);
+  --line-strong: rgb(233 229 219 / 0.18);
+  /* 押せるものの境界線。--line-strong は 1.5:1 程度しか出ず、
+     UI境界に必要な 3:1 を満たさないため専用の値を持つ。 */
+  --line-ui: #74706a;
+  --accent-tint: rgb(79 157 120 / 0.14);
+  --surface: var(--color-smoke-950);
+  /* 塗りボタンのラベル色。暗地では塗りが明るいので墨に反転する */
+  --on-fill: #0d0c0a;
+  /* イージングはこの2本だけを使う */
+  --ease-out: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  --color-indigo: #7ea6c8;
+  --foil-gold: #d8b366;
+  --surface-blur: rgb(13 12 10 / 0.78);
+  --surface-blur-strong: rgb(13 12 10 / 0.94);
 }
 
-/* ============================================================ Dark mode
-   端末がダーク設定のときだけトークンの値を差し替える（参照側は変更不要）。 */
-@media (prefers-color-scheme: dark) {
-  :root {
-    --color-smoke-950: #16130d; /* page bg（濃墨） */
-    --color-smoke-900: #1d190f; /* 補助面 */
-    --color-smoke-850: #231e15; /* card / input surface */
-    --color-smoke-800: #2a2419;
-    --color-smoke-700: #372f20;
-    --color-smoke-600: #4a4130;
-
-    --color-ember:     #4f9d78; /* 苔緑（やや明るめ） */
-    --color-ember-hot: #7cc6a2; /* 暗地に映えるテキスト用アクセント */
-    --color-coal:      #52916f;
-    --color-ember-deep:#e0714a;
-
-    --color-seal:      #d85742; /* 朱（暗地で映える） */
-
-    --color-cream:   #ece6da; /* 主要テキスト（生成り明色） */
-    --color-ash:     #b0a894;
-    --color-ash-dim: #837c6b;
-
-    --line: rgb(255 255 255 / 0.10);
-    --line-strong: rgb(255 255 255 / 0.18);
-    --accent-tint: rgb(79 157 120 / 0.16);
-    --color-indigo: #7ea6c8;   /* 藍（暗地で映える明るめ） */
-    --foil-gold: #d8b366;      /* 金（宵に映える箔） */
-    --surface-blur: rgb(22 19 13 / 0.82);
-    --surface-blur-strong: rgb(22 19 13 / 0.93);
-  }
-}
 
 /* ============================================================ Base */
 * { box-sizing: border-box; }
@@ -93,8 +82,8 @@ html {
 
 body {
   background-color: var(--color-smoke-950);
-  /* 和紙のかすかな繊維感（グレイン） */
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+  /* 炭の粒。紙の繊維ではなく、暗い所に乗る細かいノイズ */
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.05'/%3E%3C/svg%3E");
   color: var(--color-cream);
   font-family: var(--font-jp);
   font-weight: 400;
@@ -112,7 +101,7 @@ body {
 }
 
 /* 選択は朱（落款の色）で和らしく */
-::selection { background: var(--color-seal); color: #fbf8f0; }
+::selection { background: var(--color-seal); color: var(--on-fill); }
 
 a { color: inherit; text-decoration: none; }
 
@@ -123,9 +112,9 @@ a { color: inherit; text-decoration: none; }
 .skip-link {
   position: fixed; left: 8px; top: -60px; z-index: 200;
   background: var(--color-smoke-850); color: var(--color-cream);
-  border: 1px solid var(--line-strong); border-radius: 10px;
+  border: 1px solid var(--line-ui); border-radius: 10px;
   padding: 8px 14px; font-size: 0.85rem; font-weight: 700;
-  transition: top .15s ease;
+  transition: top .15s var(--ease-out);
 }
 .skip-link:focus { top: 8px; }
 
@@ -150,8 +139,9 @@ h1, h2, h3, h4 {
 }
 
 .eyebrow {
-  font-family: var(--font-display);
-  font-weight: 600;
+  /* 英字キッカーは等幅に。台帳の見出しの佇まいになる */
+  font-family: var(--font-label);
+  font-weight: 500;
   letter-spacing: 0.2em;
   text-transform: uppercase;
   font-size: 0.7rem;
@@ -174,7 +164,7 @@ h1, h2, h3, h4 {
   background: var(--color-smoke-850);
   border: 1px solid var(--line);
   border-radius: 14px;
-  transition: border-color .2s ease, transform .2s ease, box-shadow .2s ease;
+  transition: border-color .2s var(--ease-out), transform .2s var(--ease-out), box-shadow .2s var(--ease-out);
   box-shadow: 0 1px 2px rgb(35 32 26 / 0.03);
 }
 .card-hover:hover {
@@ -182,7 +172,7 @@ h1, h2, h3, h4 {
   transform: translateY(-2px);
   box-shadow: 0 12px 28px -18px rgb(35 32 26 / 0.28);
 }
-.orb { transition: transform .25s cubic-bezier(.2,.7,.2,1); }
+.orb { transition: transform .25s var(--ease-out); }
 .card-hover:hover .orb { transform: scale(1.08) rotate(-4deg); }
 
 /* ---------- Buttons ---------- */
@@ -194,7 +184,7 @@ h1, h2, h3, h4 {
   font-weight: 600;
   border-radius: 999px;
   padding: 11px 22px;
-  transition: transform .15s ease, background .2s ease, border-color .2s ease, opacity .2s;
+  transition: transform .15s var(--ease-out), background .2s var(--ease-out), border-color .2s var(--ease-out), opacity .2s var(--ease-out);
   cursor: pointer;
   white-space: nowrap;
   line-height: 1;
@@ -202,7 +192,7 @@ h1, h2, h3, h4 {
 .btn:active { transform: translateY(1px) scale(0.99); }
 .btn-ember {
   background: var(--color-ember);
-  color: #fbf8f0;
+  color: var(--on-fill);
   box-shadow: 0 6px 16px -10px rgb(47 97 71 / 0.55);
 }
 .btn-ember:hover { filter: brightness(1.06); }
@@ -213,7 +203,7 @@ h1, h2, h3, h4 {
   align-items: center;
   gap: 6px;
   background: var(--color-seal);
-  color: #fbf8f0;
+  color: var(--on-fill);
   border-radius: 7px;
   padding: 4px 11px;
   font-family: var(--font-display);
@@ -230,7 +220,7 @@ h1, h2, h3, h4 {
 .btn-ghost {
   background: transparent;
   color: var(--color-cream);
-  border: 1px solid var(--line-strong);
+  border: 1px solid var(--line-ui);
 }
 .btn-ghost:hover { border-color: var(--color-ember); color: var(--color-ember); }
 
@@ -242,10 +232,10 @@ h1, h2, h3, h4 {
   font-size: 0.78rem;
   padding: 5px 12px;
   border-radius: 999px;
-  border: 1px solid var(--line-strong);
+  border: 1px solid var(--line-ui);
   color: var(--color-ash);
   background: transparent;
-  transition: all .18s ease;
+  transition: border-color .18s var(--ease-out), color .18s var(--ease-out), background .18s var(--ease-out);
 }
 .chip-active,
 a.chip:hover {
@@ -266,14 +256,14 @@ a.chip:hover {
   color-scheme: light dark;
   width: 100%;
   background: var(--color-smoke-850);
-  border: 1px solid var(--line-strong);
+  border: 1px solid var(--line-ui);
   border-radius: 12px;
   color: var(--color-cream);
   padding: 11px 14px;
   font-family: inherit;
   font-size: 0.95rem;
   outline: none;
-  transition: border-color .2s ease, box-shadow .2s ease;
+  transition: border-color .2s var(--ease-out), box-shadow .2s var(--ease-out);
 }
 .field input:focus,
 .field select:focus,
@@ -299,7 +289,7 @@ a.chip:hover {
   from { opacity: 0; transform: translateY(12px); }
   to { opacity: 1; transform: none; }
 }
-.fade-up { animation: fadeUp .5s cubic-bezier(.2,.7,.2,1) both; }
+.fade-up { animation: fadeUp .5s var(--ease-out) both; }
 
 /* 遊び心：ふわふわ浮遊＆グラデーションの揺らぎ（動きが苦手な人には無効化） */
 @keyframes floatY {
@@ -481,7 +471,8 @@ ruby rt {
   border-top: 2px solid var(--color-seal);
   background: var(--color-smoke-850);
   color: var(--color-ash);
-  font-size: 0.76rem;
+  font-family: var(--font-label);
+  font-size: 0.72rem;
   letter-spacing: 0.04em;
 }
 
@@ -499,7 +490,7 @@ ruby rt {
   background-position: 0 100%;
   background-repeat: no-repeat;
   background-size: 0 1.5px;
-  transition: background-size .28s cubic-bezier(.2,.7,.2,1);
+  transition: background-size .28s var(--ease-out);
   padding-bottom: 2px;
 }
 .brush-underline:hover, .brush-underline:focus-visible { background-size: 100% 1.5px; }
@@ -519,7 +510,7 @@ ruby rt {
   55%  { transform: scale(0.86) rotate(-2deg); opacity: 1; }
   100% { transform: scale(1) rotate(-2deg); opacity: 1; }
 }
-.stamp-press { animation: stampPress .34s cubic-bezier(.2,.8,.2,1) both; }
+.stamp-press { animation: stampPress .34s var(--ease-out) both; }
 
 /* ---------- 序列の漢数字（番付・STEP 等） ---------- */
 .rank-kanji {
@@ -557,4 +548,1036 @@ ruby rt {
 @media (prefers-reduced-motion: reduce) {
   .brush-underline { transition: none; }
   .stamp-press { animation: none; }
+}
+
+/* ============================================================ 品質フロア
+   触り心地の土台。見た目は変えず、指・キーボード・電池・目に効く部分。 */
+
+/* ---------- 指で押せる大きさ（44px）----------
+   指で操作する端末のときだけ効かせる。本文中のリンクは対象外にしている。
+   （本文リンクまで inline-flex にすると行の途中で折り返せなくなり、
+     行の高さが 44px に膨らんで文章のレイアウトが壊れるため） */
+@media (pointer: coarse) {
+  button,
+  [role="button"],
+  input[type="submit"],
+  input[type="button"],
+  select,
+  summary,
+  .btn,
+  a.btn,
+  a.chip,
+  .chip,
+  nav a,
+  header a,
+  footer a,
+  .skip-link {
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  /* 縦積み・折り返しが必要なものは、上の一括指定を打ち消して元の並びに戻す */
+  nav a.flex-col,
+  nav a[class*="flex-col"],
+  header a.flex-col,
+  footer a[class*="flex-col"] {
+    display: flex;
+    flex-direction: column;
+  }
+  /* フッターのリンク群は横に折り返して並ぶので、高さだけ確保して並びは維持する */
+  footer a {
+    display: inline-flex;
+    align-items: center;
+  }
+  /* 文章の中や見出し脇の小さなテキストリンクは、見た目を動かさずに
+     指で押せる範囲だけ広げる（余白を足して同じだけ外側へ引き戻す）。 */
+  header a:not(.btn),
+  footer a:not(.btn),
+  a.text-sm:not(.btn):not(.chip),
+  a.text-xs:not(.btn):not(.chip) {
+    /* 見た目を動かさずに、指で押せる高さだけ 44px 以上にする
+       （足した余白と同じだけ外へ引き戻す） */
+    padding-block: 13px;
+    margin-block: -13px;
+  }
+  /* 押せる高さを足したせいで、ヘッダーの語が折り返ってはいけない。
+     「煙道」が2行になるようなら、それは指のための修正がブランドを壊している。 */
+  header a { white-space: nowrap; }
+  /* ブランドの並び（印＋煙道＋ENDO）は中央寄せにも縮小にもしない */
+  header a[aria-label$="ホーム"] {
+    display: flex;
+    justify-content: flex-start;
+    flex-shrink: 0;
+  }
+}
+
+/* ---------- 動きを止める2系統 ----------
+   (a) タブが裏に回ったら止める。animation-play-state は継承しないので、
+       全称セレクタと擬似要素まで明示的に指定する。 */
+body.paused *,
+body.paused *::before,
+body.paused *::after {
+  animation-play-state: paused !important;
+}
+
+/* (b) 画面の外にあるものは動かさない。
+       IntersectionObserver が data-inview を付け外しし、
+       ループするアニメは「data-inview が付いているときだけ」定義される。 */
+@media (prefers-reduced-motion: no-preference) {
+  /* 既存の .float / .text-grad-anim は、画面に入っている間だけ動く */
+  .float { animation: none; }
+  .float[data-inview] { animation: floatY 4s var(--ease-in-out) infinite; }
+  .text-grad-anim { animation: none; }
+  .text-grad-anim[data-inview] { animation: hueShift 5s var(--ease-in-out) infinite; }
+}
+
+/* ---------- 動きが苦手な人への配慮を最後まで ----------
+   要素と擬似要素の両方を止め、遅延をゼロにし、
+   振り付けされたものは最終状態で見せる。 */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    transition-delay: 0ms !important;
+    scroll-behavior: auto !important;
+  }
+  .reveal { opacity: 1 !important; transform: none !important; }
+}
+
+/* ---------- 等幅ラベル（記録・台帳の質感）----------
+   ブランド名・件数・日付・IDなど「記録された値」に使う。 */
+.label-mono {
+  font-family: var(--font-label);
+  font-feature-settings: "palt" 0;
+  letter-spacing: 0.04em;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- 文字の行はベースラインで揃える ---------- */
+.baseline-row {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* ============================================================ 一本の煙（このサイトの印）
+   ページの左端を縦に貫く一筋。スクロールに合わせて自分を描く。
+   駆動は components/smoke-thread.tsx 側。ここは置き場所と見え方だけ。 */
+.smoke-thread {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -6px;
+  width: 24px;
+  pointer-events: none;
+  color: var(--color-smoke-600);
+  opacity: 0.9;
+  /* 帯の地の上も通り抜けて、一本のまま続いて見えるようにする */
+  z-index: 2;
+}
+.smoke-thread svg { display: block; height: 100%; width: 100%; }
+/* 上端と下端は静かに消える。線が"始まって終わる"のではなく、通り過ぎていく */
+.smoke-thread {
+  -webkit-mask-image: linear-gradient(180deg, transparent 0, #000 6%, #000 92%, transparent 100%);
+  mask-image: linear-gradient(180deg, transparent 0, #000 6%, #000 92%, transparent 100%);
+}
+/* 装飾がコンテンツとぶつかる狭い画面・低い画面では出さない */
+@media (max-width: 380px), (max-height: 480px) {
+  .smoke-thread { display: none; }
+}
+
+/* ============================================================ 全幅の帯
+   中央寄せのコンテナの中から、地の色だけ画面いっぱいに広げる。
+   body に overflow-x: clip があるので、スクロールバー分のはみ出しは切られる。 */
+.band {
+  position: relative;
+  margin-inline: calc(50% - 50vw);
+  padding-inline: calc(50vw - 50%);
+}
+.band-deep { background: var(--color-smoke-900); }
+/* 帯の中身は地の上に。煙の線（z-index:2）はさらにその上を通る */
+.band > * { position: relative; z-index: 1; }
+
+/* 帯の左肩に立てる朱の縦罫（落款の縁） */
+.band-rule { position: relative; padding-left: 18px; }
+.band-rule::before {
+  content: "";
+  position: absolute;
+  left: 0; top: 2px; bottom: 2px;
+  width: 3px;
+  border-radius: 3px;
+  background: var(--color-seal);
+  opacity: 0.9;
+}
+
+/* ============================================================ 横に流れる一列
+   カードの格子ではなく、端が切れて「続きがある」と分かる並べ方。 */
+.rail {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  scroll-snap-type: x proximity;
+  padding-bottom: 10px;
+  /* 端で切れて続きがあることを見せる */
+  margin-inline: calc(-1 * clamp(16px, 4vw, 40px));
+  padding-inline: clamp(16px, 4vw, 40px);
+  scrollbar-width: thin;
+}
+.rail > * {
+  scroll-snap-align: start;
+  flex: 0 0 auto;
+  min-width: 186px;
+}
+.rail:focus-visible { outline: 2px solid var(--color-seal); outline-offset: 4px; }
+
+/* ============================================================ 縦に並ぶ三段（壱・弐・参）
+   横並び3カラムをやめ、道を一歩ずつ進む形にする。左の罫が煙の線と呼応する。 */
+.steps { display: flex; flex-direction: column; gap: 0; }
+.step {
+  display: grid;
+  grid-template-columns: 44px 1fr;
+  align-items: baseline;
+  gap: 0 14px;
+  padding: 14px 0;
+  position: relative;
+}
+.step + .step::before {
+  content: "";
+  position: absolute;
+  left: 21px; top: 0;
+  width: 1px; height: 14px;
+  background: var(--line-strong);
+}
+.step-n {
+  grid-row: span 2;
+  align-self: center;
+  justify-self: center;
+  font-family: var(--font-display);
+  font-weight: 800;
+  color: var(--color-seal);
+  font-size: 1.35rem;
+  line-height: 1;
+}
+
+/* ============================================================ 立ちのぼる煙のヒーロー
+   「煙道」という名前を、そのまま画面にする。
+   煙は「静かにぼかした円」を重ねたもの。動かすのは transform と opacity だけ。
+   filter そのものはアニメートしない（合成器に乗らず毎フレーム描き直しになるため）。 */
+
+.smoke-stage {
+  --fire: 0;
+  --drift-x: 0px;
+  --drift-y: 0px;
+  position: relative;
+  isolation: isolate;
+  padding-block: clamp(52px, 9vw, 104px) clamp(56px, 8vw, 96px);
+}
+
+.smoke-field {
+  position: absolute;
+  inset: -14% -6% -4%;
+  z-index: -1;
+  pointer-events: none;
+  overflow: hidden;
+  /* 上と下は静かに消す。切れ目が出ないように */
+  -webkit-mask-image: radial-gradient(120% 92% at 50% 78%, #000 30%, transparent 100%);
+  mask-image: radial-gradient(120% 92% at 50% 78%, #000 30%, transparent 100%);
+  transform: translate3d(var(--drift-x), var(--drift-y), 0);
+  transition: transform .5s var(--ease-out);
+}
+
+.puff {
+  position: absolute;
+  bottom: -12%;
+  width: clamp(150px, 26vw, 300px);
+  /* 円ではなく縦長の楕円。煙は上に伸びながらほどけていく */
+  aspect-ratio: 1 / 1.35;
+  border-radius: 50%;
+  /* 一枚ごとに静的にぼかす。ここは動かさない */
+  filter: blur(26px);
+  opacity: 0;
+  will-change: transform, opacity;
+  background: radial-gradient(
+    circle at 50% 55%,
+    rgb(120 112 96 / 0.30) 0%,
+    rgb(120 112 96 / 0.16) 42%,
+    transparent 70%
+  );
+  animation: puffRise var(--dur, 17s) linear infinite;
+  animation-delay: calc(var(--n, 0) * -1.35s);
+}
+
+/* 立ちのぼりの軌跡。左右にゆらぎながら上へ抜けていく */
+@keyframes puffRise {
+  0%   { transform: translate3d(0, 10%, 0) scale(.44, .55) rotate(0deg); opacity: 0; }
+  14%  { opacity: calc(.62 + .38 * var(--fire)); }
+  50%  { transform: translate3d(var(--sway, 26px), -50%, 0) scale(.92, 1.35) rotate(5deg); }
+  80%  { opacity: calc(.26 + .5 * var(--fire)); }
+  100% { transform: translate3d(calc(var(--sway, 26px) * -.7), -120%, 0) scale(1.4, 2.3) rotate(-4deg); opacity: 0; }
+}
+
+/* 一枚ごとに出どころ・速さ・揺れ幅を変える。同じ動きが並ぶと作り物に見えるため */
+.puff.p0 { left: 12%; --dur: 19s; --sway: 34px; }
+.puff.p1 { left: 28%; --dur: 15s; --sway: -26px; width: clamp(120px, 20vw, 230px); }
+.puff.p2 { left: 44%; --dur: 22s; --sway: 18px; }
+.puff.p3 { left: 58%; --dur: 16s; --sway: -32px; width: clamp(170px, 30vw, 340px); }
+.puff.p4 { left: 71%; --dur: 20s; --sway: 28px; }
+.puff.p5 { left: 84%; --dur: 17s; --sway: -20px; width: clamp(110px, 18vw, 210px); }
+.puff.p6 { left: 3%;  --dur: 24s; --sway: 22px; }
+
+/* 細い筋。丸い塊だけだと霧に見えるので、ほどけていく一筋を混ぜる */
+.wisp {
+  position: absolute;
+  bottom: -8%;
+  width: clamp(30px, 5vw, 56px);
+  height: clamp(220px, 34vw, 420px);
+  border-radius: 999px;
+  filter: blur(11px);
+  opacity: 0;
+  will-change: transform, opacity;
+  transform-origin: 50% 100%;
+  background: linear-gradient(
+    to top,
+    rgb(120 112 96 / 0.30) 0%,
+    rgb(120 112 96 / 0.16) 45%,
+    transparent 92%
+  );
+  animation: wispRise var(--dur, 21s) linear infinite;
+  animation-delay: calc(var(--n, 0) * -3.4s);
+}
+@keyframes wispRise {
+  0%   { transform: translate3d(0, 22%, 0) scaleY(.34) scaleX(.9) rotate(0deg); opacity: 0; }
+  16%  { opacity: calc(.5 + .5 * var(--fire)); }
+  55%  { transform: translate3d(var(--sway, 20px), -34%, 0) scaleY(.9) scaleX(1.15) rotate(4deg); }
+  82%  { opacity: calc(.18 + .42 * var(--fire)); }
+  100% { transform: translate3d(calc(var(--sway, 20px) * -1.1), -104%, 0) scaleY(1.35) scaleX(1.7) rotate(-6deg); opacity: 0; }
+}
+.wisp.w0 { left: 21%; --dur: 23s; --sway: 30px; }
+.wisp.w1 { left: 49%; --dur: 19s; --sway: -24px; }
+.wisp.w2 { left: 76%; --dur: 26s; --sway: 22px; }
+
+@media (prefers-color-scheme: dark) {
+  .wisp {
+    background: linear-gradient(
+      to top,
+      rgb(206 196 174 / 0.20) 0%,
+      rgb(206 196 174 / 0.10) 45%,
+      transparent 92%
+    );
+  }
+}
+
+/* 火が入ると、煙が濃く・速くなる */
+.smoke-stage.is-lit .puff,
+.smoke-stage.is-lit .wisp { animation-duration: calc(var(--dur, 17s) * .72); }
+.smoke-stage.is-lit .smoke-field { filter: saturate(1.05); }
+
+/* 暗地では煙をわずかに明るく。暗い地に暗い煙は沈むため */
+@media (prefers-color-scheme: dark) {
+  .puff {
+    background: radial-gradient(
+      circle at 50% 55%,
+      rgb(196 186 164 / 0.16) 0%,
+      rgb(196 186 164 / 0.09) 42%,
+      transparent 70%
+    );
+  }
+}
+
+.smoke-content { position: relative; }
+
+/* ---- 火を入れる ---- */
+.fire { margin-top: 22px; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+
+.fire-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 11px;
+  padding: 10px 20px 10px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--line-ui);
+  background: transparent;
+  color: var(--color-cream);
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  /* 長押しでスクロール・選択・コンテキストメニューが始まらないようにする */
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  transition: border-color .3s var(--ease-out), color .3s var(--ease-out);
+}
+/* 溜まっていく熾り。幅ではなく scaleX を動かす（行の幅を揺らさない） */
+.fire-btn::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform-origin: left center;
+  transform: scaleX(var(--fire));
+  background: linear-gradient(90deg, rgb(224 113 74 / 0.22), rgb(224 113 74 / 0.06));
+  pointer-events: none;
+}
+.fire-btn:hover { border-color: var(--color-seal); }
+.smoke-stage.is-lit .fire-btn { border-color: var(--color-seal); color: var(--color-seal); cursor: default; }
+
+.fire-coal { position: relative; display: inline-block; width: 14px; height: 14px; }
+.fire-glow {
+  position: absolute; inset: 0;
+  border-radius: 999px;
+  background: radial-gradient(circle, var(--color-ember-deep) 0 36%, rgb(224 113 74 / 0.4) 62%, transparent 74%);
+  opacity: calc(0.18 + 0.82 * var(--fire));
+  transform: scale(calc(0.7 + 0.4 * var(--fire)));
+}
+
+.fire-status {
+  min-height: 1.3em;
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--color-ember-text);
+}
+
+/* ---- 動きが苦手な人への配慮 ---- */
+@media (prefers-reduced-motion: reduce) {
+  .puff { animation: none; opacity: .34; transform: translate3d(0, -40%, 0) scale(1.1, 1.7); }
+  .wisp { animation: none; opacity: .3; transform: translate3d(0, -34%, 0) scaleY(1) scaleX(1.2); }
+  .smoke-field { transition: none; transform: none; }
+}
+.smoke-stage.is-still .puff { animation: none; opacity: .34; transform: translate3d(0, -40%, 0) scale(1.1, 1.7); }
+.smoke-stage.is-still .wisp { animation: none; opacity: .3; transform: translate3d(0, -34%, 0) scaleY(1) scaleX(1.2); }
+
+/* 画面の外では煙を止める（MotionGuards が data-inview を付け外しする） */
+.smoke-field .puff,
+.smoke-field .wisp { animation-play-state: paused; }
+.smoke-field[data-inview] .puff,
+.smoke-field[data-inview] .wisp { animation-play-state: running; }
+
+/* 狭い画面では枚数を減らして軽くする */
+@media (max-width: 560px) {
+  .puff.p5, .puff.p6, .wisp.w2 { display: none; }
+  .puff { filter: blur(20px); }
+  .wisp { filter: blur(9px); }
+}
+
+/* ============================================================ ヒーローの茶室
+   ヒーローだけを深い暗さにし、写真を敷けるようにする。
+   写真の上に文字を置く以上、可読性は運任せにしない。次の3層で守る。
+     ① 全体に常時かかる柔らかいスクリム（どのコマも生のままにはしない）
+     ② 文字の帯だけを深く沈めるスクリム（暗くする、潰さない）
+     ③ 3層のテキストシャドウ（ボタンには付けない。汚れに見えるため）
+   写真が無いときは、地と煙だけで成立する（写真は"あれば強くなる"もので、前提ではない）。 */
+
+.hero-room {
+  /* ヘッダーの直下から茶室が始まる。上に紙色の帯を残さない */
+  margin-top: 0;
+  position: relative;
+  isolation: isolate;
+  /* 中央寄せのコンテナの中から、地だけ画面いっぱいに広げる */
+  margin-inline: calc(50% - 50vw);
+  padding-inline: calc(50vw - 50%);
+  /* 明暗どちらのテーマでも、ヒーローは常に茶室の暗さ */
+  background-color: #14110b;
+  color: #ece6da;
+  overflow: hidden;
+  /* 下に暗い床を残す。ここが無いと、地へ抜ける帯が写真の主題（盆と炭）の上に
+     重なって灰色に濁る。抜ける帯は「暗いところ」で終わらせる。 */
+  padding-block-end: clamp(64px, 8vw, 112px);
+}
+
+/* 写真。--hero-photo に URL を入れると出る。無ければ何も描かれない */
+.hero-photo {
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  /* 敷く写真はここで決める（部品に直書きしない）。
+     横長のコマをそのまま縦画面に敷くと主題が切れるので、狭い画面では
+     主題を残して切り出した別のコマに差し替える。＝アートディレクション。 */
+  --hero-photo: url("/hero.webp");
+  /* 写真があれば一番上の層に乗る。無ければこの層は飛ばされ、
+     下の「炭が一点だけ灯っている」下地だけが残る。差し替えても壊れない。 */
+  background-image:
+    var(--hero-photo, none),
+    radial-gradient(ellipse 46% 36% at 50% 88%, rgb(168 58 44 / .16) 0%, transparent 70%),
+    radial-gradient(ellipse 90% 70% at 50% 100%, rgb(60 48 34 / .55) 0%, transparent 72%);
+  background-size: cover, auto, auto;
+  background-position: center 62%, center, center;
+  background-repeat: no-repeat;
+  background-color: #14110b;
+}
+@media (max-width: 640px) {
+  .hero-photo {
+    --hero-photo: url("/hero-portrait.webp");
+    background-position: center center, center, center;
+  }
+}
+.hero-photo::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  /* ① 常時のスクリム。中央は生かし、周辺を沈める */
+  background:
+    radial-gradient(ellipse 120% 88% at 50% 82%, rgb(20 17 11 / 0) 22%, rgb(20 17 11 / .72) 100%),
+    linear-gradient(180deg, rgb(20 17 11 / .55) 0%, rgb(20 17 11 / .12) 46%, rgb(20 17 11 / .68) 100%);
+}
+/* ② 文字の帯だけを深く沈める。76% で消し切って四隅は生かす */
+.hero-room .smoke-content::before {
+  content: "";
+  position: absolute;
+  inset: -6% -4%;
+  z-index: -1;
+  pointer-events: none;
+  background: radial-gradient(
+    ellipse 74% 66% at 50% 48%,
+    rgb(12 10 6 / .62) 0%,
+    rgb(12 10 6 / .40) 46%,
+    rgb(12 10 6 / 0) 76%
+  );
+}
+
+/* 縦画面は写真の主題が文字の真後ろに来る。②をもう一段深く広く敷く。
+   （どこを深くするかは .hero-audit.mjs の実測で決めた。目分量ではない） */
+@media (max-width: 640px) {
+  .hero-room .smoke-content::before {
+    inset: -10% -8%;
+    background: radial-gradient(
+      ellipse 96% 78% at 50% 50%,
+      rgb(12 10 6 / .80) 0%,
+      rgb(12 10 6 / .62) 54%,
+      rgb(12 10 6 / 0) 86%
+    );
+  }
+}
+
+/* ③ 3層のテキストシャドウ。写真がどんなコマでも輪郭が残る */
+.hero-room .smoke-content {
+  text-shadow:
+    0 1px 2px rgb(8 6 4 / .95),
+    0 3px 12px rgb(8 6 4 / .78),
+    0 10px 44px rgb(8 6 4 / .80);
+}
+.hero-room .fire-btn { text-shadow: none; }
+
+/* ヒーローの中は常に暗地向けの色に固定する（サイト全体のテーマとは独立） */
+.hero-room h1,
+.hero-room .smoke-content { color: #ece6da; }
+.hero-room .smoke-content p { color: #c9c2b2; }        /* 地に対して 9.8:1 以上 */
+.hero-room .lead-line { color: #7cc6a2; }               /* 8.6:1 以上 */
+.hero-room .fire-btn { color: #ece6da; border-color: #8c8574; }
+.hero-room .fire-btn:hover { border-color: #e05b46; }
+.hero-room.is-lit .fire-btn,
+.hero-room .smoke-stage.is-lit .fire-btn { border-color: #e05b46; color: #e05b46; }
+.hero-room .fire-status { color: #7cc6a2; }
+
+/* 写真の中で本物の煙が立っている以上、CSS の煙は「もう一本」ではなく
+   「火を入れると濃くなる層」に徹する。常時は薄く沈めておく。
+   ここを強いままにすると、写真の上に灰色の靄がかかって全部が濁る。 */
+.hero-room .smoke-field {
+  opacity: calc(0.26 + 0.6 * var(--fire, 0));
+  transition: opacity 240ms var(--ease-out, ease-out);
+}
+
+/* 暗地なので、煙は明るい側に振る */
+.hero-room .puff {
+  background: radial-gradient(
+    circle at 50% 55%,
+    rgb(214 205 184 / 0.20) 0%,
+    rgb(214 205 184 / 0.10) 42%,
+    transparent 70%
+  );
+}
+.hero-room .wisp {
+  background: linear-gradient(
+    to top,
+    rgb(220 211 190 / 0.24) 0%,
+    rgb(220 211 190 / 0.12) 45%,
+    transparent 92%
+  );
+}
+
+/* 茶室から figure へ抜ける境目。硬い線にしない */
+.hero-room::after {
+  content: "";
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  height: 56px;
+  pointer-events: none;
+  /* 前半は写真を生かし、最後だけで地に着地する。
+     ここを長く緩くすると、写真の主題の上に灰色の靄がかかって濁る。 */
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    color-mix(in srgb, var(--color-smoke-950) 22%, transparent) 58%,
+    var(--color-smoke-950) 100%
+  );
+}
+
+/* ヒーローの見出しのアクセント。暗地の上で 8.6:1 以上 */
+.hero-room .hero-accent { color: #7cc6a2; }
+
+/* ============================================================
+   炭の部屋（v3・2026-08-19）
+   ここから下が、地を暗い方ひとつに切り替えたあとの層。
+   古い和柄ユーティリティ（青海波・麻の葉・落款スタンプ等）は
+   他ページがまだ使っているので消さない。トップと外枠では使わない。
+   ============================================================ */
+
+/* ---------- ページ全体の"環境" ----------
+   セクションが積み重なっているのではなく、ひとつの暗い部屋の中を
+   下りていくように見せる。固定の層をひとつだけ置き、ゆっくり呼吸させる。 */
+.room {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 70% 50% at 50% -10%, rgb(232 102 60 / .07) 0%, transparent 70%),
+    radial-gradient(ellipse 90% 60% at 50% 110%, rgb(79 157 120 / .05) 0%, transparent 70%);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .room { animation: room-breathe 72s var(--ease-in-out) -18s infinite; }
+}
+@keyframes room-breathe {
+  0%, 100% { opacity: .85; transform: translate3d(0, 0, 0) scale(1); }
+  50%      { opacity: 1;   transform: translate3d(0, -1.5%, 0) scale(1.04); }
+}
+
+/* ---------- 署名要素：熱の目盛り ----------
+   「同じフレーバーを、何通りで作ったか」を、縦の線の束で示す。
+   数字を読ませるのではなく、束の厚みで一目に分からせる。
+   セクションの罫にも、フレーバーの件数にも、同じ文法を使う。
+   これがこのサイトだけの記号。 */
+.gauge {
+  display: inline-flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 14px;
+  vertical-align: -2px;
+}
+.gauge i {
+  display: block;
+  width: 2px;
+  border-radius: 1px;
+  background: var(--color-ember);
+  height: calc(38% + 62% * var(--h, 1));
+  opacity: calc(.42 + .58 * var(--h, 1));
+}
+.gauge.is-hot i { background: var(--color-seal); }
+.gauge-lg { height: 22px; gap: 3px; }
+.gauge-lg i { width: 3px; }
+
+/* 目盛りをそのまま罫にしたもの。セクションの頭に置く */
+.gauge-rule {
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  height: 10px;
+  margin-bottom: 14px;
+}
+.gauge-rule i {
+  display: block;
+  width: 2px;
+  border-radius: 1px;
+  background: var(--color-ash-dim);
+  opacity: .5;
+}
+.gauge-rule i:nth-child(1) { height: 40% }
+.gauge-rule i:nth-child(2) { height: 70% }
+.gauge-rule i:nth-child(3) { height: 100%; background: var(--color-seal); opacity: .9 }
+.gauge-rule i:nth-child(4) { height: 62% }
+.gauge-rule i:nth-child(5) { height: 34% }
+
+/* ---------- ロゴ ----------
+   赤い角丸に白抜きの「煙」をやめる。暗い地の上では、印そのものが安く見える。
+   代わりに、字の左に細い一本の煙（＝署名要素と同じ縦線）を立てる。 */
+.mark {
+  display: inline-flex;
+  align-items: center;
+  gap: 11px;
+  white-space: nowrap;
+}
+.mark-flue {
+  display: block;
+  width: 2px;
+  height: 26px;
+  border-radius: 2px;
+  flex: none;
+  background: linear-gradient(to top, var(--color-seal) 0%, var(--color-ember) 46%, transparent 100%);
+}
+.mark-name {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.32rem;
+  letter-spacing: 0.06em;
+  color: var(--color-cream);
+  line-height: 1;
+}
+.mark-en {
+  font-family: var(--font-label);
+  font-size: 0.6rem;
+  letter-spacing: 0.3em;
+  color: var(--color-ash-dim);
+  line-height: 1;
+  padding-top: 3px;
+}
+
+/* ---------- スクロールで駒送りするヒーロー ---------- */
+.scrub {
+  position: relative;
+  /* 高さ＝スクロールの距離。秒ではなく vh で決める */
+  height: 460vh;
+  margin-inline: calc(50% - 50vw);
+  background: #090806;
+}
+.scrub-stage {
+  position: sticky;
+  top: 0;
+  height: 100svh;
+  overflow: hidden;
+  isolation: isolate;
+}
+.scrub-poster,
+.scrub-video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: -3;
+}
+.scrub-poster {
+  background: #090806 center/cover no-repeat;
+  transition: opacity .6s var(--ease-out);
+}
+.scrub-video {
+  opacity: 0;
+  transition: opacity .6s var(--ease-out);
+  /* 自前の合成レイヤーに載せ、再描画をページ側に引きずらせない */
+  transform: translateZ(0);
+}
+.scrub-stage.video-ready .scrub-video { opacity: 1 }
+.scrub-stage.video-ready .scrub-poster { opacity: 0 }
+
+/* 常時のスクリム。どのコマも生のまま文字の後ろに来させない */
+.scrub-scrim {
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 118% 88% at 50% 46%, rgb(9 8 6 / 0) 34%, rgb(9 8 6 / .66) 100%),
+    linear-gradient(180deg, rgb(9 8 6 / .58) 0%, rgb(9 8 6 / .10) 42%, rgb(9 8 6 / .72) 100%);
+}
+
+/* ---------- 帯（キャプション） ---------- */
+.beat {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  align-content: center;
+  pointer-events: none;
+  opacity: 0;
+  text-shadow:
+    0 1px 2px rgb(5 4 3 / .95),
+    0 3px 12px rgb(5 4 3 / .80),
+    0 10px 44px rgb(5 4 3 / .82);
+}
+.beat > * { pointer-events: auto }
+/* 帯ごとのスクリム。その帯が出ている間だけ、その場所だけを沈める */
+.beat::before {
+  content: "";
+  position: absolute;
+  inset: -6% -4%;
+  z-index: -1;
+  pointer-events: none;
+  opacity: calc(.3 + .7 * var(--k, 1));
+  background: radial-gradient(
+    ellipse 72% 60% at var(--sx, 32%) 50%,
+    rgb(5 4 3 / .70) 0%,
+    rgb(5 4 3 / .48) 46%,
+    rgb(5 4 3 / 0) 78%
+  );
+}
+.beat-inner {
+  max-width: var(--max-w-site);
+  margin: 0 auto;
+  width: 100%;
+  padding-inline: clamp(16px, 4vw, 40px);
+}
+.beat h1, .beat h2 { color: #eceadf }
+.beat p { color: #c9cdc6 }
+/* 見出しと本文の折り返し幅。inline style で持つと、狭い画面で上書きできない */
+.beat-h { max-width: min(40rem, 62vw) }
+.beat .lede { max-width: 34ch }
+@media (max-width: 760px) {
+  /* 縦画面には横に逃げ場が無い。幅の上限を外し、行の頭で折らせる */
+  .beat-h { max-width: 100% }
+  .beat .lede { max-width: 100% }
+}
+
+/* 語ごとに立ち上がる。--k（0→1）だけで駆動し、巻き戻すとほどける */
+.w {
+  display: inline-block;
+  --kc: clamp(0, (var(--k, 0) - var(--th, 0)) * 2.8, 1);
+  opacity: var(--kc);
+  transform: translateY(calc((1 - var(--kc)) * 14px));
+}
+.beat .lede { --ks: clamp(0, (var(--k, 0) - .5) * 3.2, 1); opacity: var(--ks) }
+.beat .after { --kb: clamp(0, (var(--k, 0) - .68) * 4, 1); opacity: var(--kb) }
+
+/* 読み込み中の輪。止まったままにはしない */
+.scrub-ring {
+  position: absolute;
+  right: clamp(16px, 4vw, 40px);
+  bottom: clamp(20px, 5vh, 44px);
+  width: 34px; height: 34px;
+  color: var(--color-ash-dim);
+  opacity: .7;
+  transition: opacity .4s var(--ease-out);
+}
+.scrub-stage.video-ready .scrub-ring,
+.scrub-stage.video-failed .scrub-ring { opacity: 0 }
+.scrub-ring circle { transform: rotate(-90deg); transform-origin: 50% 50% }
+
+/* スクロールを促す小さな印 */
+.scrub-cue {
+  position: absolute;
+  left: 50%;
+  bottom: clamp(18px, 4vh, 38px);
+  transform: translateX(-50%);
+  font-family: var(--font-label);
+  font-size: .62rem;
+  letter-spacing: .28em;
+  color: var(--color-ash-dim);
+  opacity: calc(1 - var(--p, 0) * 6);
+  pointer-events: none;
+}
+
+/* ---------- 静止ヒーロー（スマホ・動きが苦手な設定・短い画面） ---------- */
+.still {
+  position: relative;
+  margin-inline: calc(50% - 50vw);
+  min-height: min(84svh, 620px);
+  display: grid;
+  align-items: center;
+  overflow: hidden;
+  background: #090806 center/cover no-repeat;
+  isolation: isolate;
+}
+.still-scrim {
+  position: absolute; inset: 0; z-index: -1; pointer-events: none;
+  background:
+    radial-gradient(ellipse 110% 78% at 50% 48%, rgb(5 4 3 / .58) 0%, rgb(5 4 3 / .34) 52%, rgb(5 4 3 / 0) 84%),
+    linear-gradient(180deg, rgb(9 8 6 / .55) 0%, rgb(9 8 6 / .12) 40%, rgb(9 8 6 / .88) 100%);
+}
+.still .beat-inner { padding-block: clamp(48px, 10vh, 96px) }
+@media (max-width: 640px) {
+  /* 横長のコマをそのまま縦画面に敷かない。主題を残した別の切り出しに替える */
+  .still { background-image: image-set(url("/hero-still-portrait.webp") 1x) !important }
+}
+.still h1 { color: #eceadf }
+.still p { color: #c9cdc6 }
+.still-copy {
+  text-shadow:
+    0 1px 2px rgb(5 4 3 / .95),
+    0 3px 12px rgb(5 4 3 / .80),
+    0 10px 44px rgb(5 4 3 / .82);
+}
+
+/* 静止に落とす門。CSS と JS で文字ごと一致させること
+   （片方だけ変えると、片側だけ資産を読む／片側だけ真っ白になる）。
+
+   スマホを門から外した。この製品では「スクロールで火が入る」こと自体が中身なので、
+   一番多い閲覧環境でそれが出ないのは設計として間違っている。
+   代わりに、縦画面には縦に切り出した別の動画（約0.7MB）を配る。
+   残す門は2つだけ：動きが苦手な設定と、寝かせたスマホ（縦に旅をする余地が無い）。 */
+.scrub { display: block }
+.still { display: none }
+@media (prefers-reduced-motion: reduce),
+       (orientation: landscape) and (pointer: coarse) and (max-height: 560px) {
+  .scrub { display: none }
+  .still { display: grid }
+}
+
+/* 縦画面の器の高さ。短くしすぎると、一つ目の帯を読み切る前に次へ行ってしまう
+   （340vh で実際にそうなった。フリック試験で 120px 刻み2回しか読めなかった）。
+   秒ではなくスクロール距離で決めること。 */
+@media (max-width: 760px) {
+  .scrub { height: 440vh }
+}
+
+/* 短い画面では、小さなスクロール表示は置き場所が無い */
+@media (max-height: 560px) {
+  .scrub-cue, .scrub-ring { display: none }
+}
+
+/* 縦画面：文字は下寄せ。主題（並んだ器）を上に見せてから読ませる */
+@media (max-width: 760px) {
+  .beat { align-content: end; padding-bottom: 16vh }
+  .beat::before {
+    inset: -4% -6% -10%;
+    background: radial-gradient(
+      ellipse 92% 52% at 50% 78%,
+      rgb(5 4 3 / .80) 0%,
+      rgb(5 4 3 / .58) 48%,
+      rgb(5 4 3 / 0) 86%
+    );
+  }
+}
+
+/* ---------- セクション ---------- */
+.sect { position: relative; z-index: 1 }
+.sect + .sect { margin-top: clamp(56px, 9vw, 104px) }
+
+/* ============================================================
+   ヒーローの下（v3・2026-08-19）
+   ここまで作らないと「上だけ凝ったサイト」になる。実際になっていた。
+   決まりは2つ：隣り合うセクションで骨格を重ねない／どのセクションにも
+   入場の振り付けと、囁くくらいの生きた動きを一つだけ置く。
+   ============================================================ */
+
+/* ---------- 入場。IntersectionObserver が .in を一度だけ付ける ---------- */
+[data-rise] > * {
+  opacity: 0;
+  transform: translateY(14px);
+  transition: opacity .62s var(--ease-out), transform .62s var(--ease-out);
+}
+[data-rise].in > *          { opacity: 1; transform: none }
+[data-rise].in > *:nth-child(2) { transition-delay: .07s }
+[data-rise].in > *:nth-child(3) { transition-delay: .14s }
+[data-rise].in > *:nth-child(4) { transition-delay: .21s }
+[data-rise].in > *:nth-child(5) { transition-delay: .28s }
+[data-rise].in > *:nth-child(6) { transition-delay: .35s }
+/* 入場が済んだら遅延を必ず外す。ここを忘れると、以後のホバーが
+   延々とずれ続ける。:nth-child はクラス相当なので同じ強さで打ち消す */
+[data-rise].in.done > *:nth-child(n) { transition-delay: 0s }
+
+@media (prefers-reduced-motion: reduce) {
+  [data-rise] > * { opacity: 1; transform: none; transition: none }
+  [data-rise].in > *:nth-child(n) { transition-delay: 0s }
+}
+
+/* ---------- セクションの頭 ---------- */
+.sect-head { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; }
+.sect-lede { margin-top: 6px; font-size: .8rem; color: var(--color-ash); max-width: 46ch; }
+
+/* ---------- 変えられる五つ（等分に区切られた一列。ここだけの骨格） ---------- */
+.axes {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  margin-top: 18px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  overflow: hidden;
+  background: linear-gradient(180deg, rgb(255 255 255 / .022), transparent 60%);
+}
+.axis {
+  padding: 20px 16px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  border-left: 1px solid var(--line);
+  position: relative;
+}
+.axis:first-child { border-left: 0 }
+.axis-fig { color: var(--color-ash); line-height: 0 }
+.axis-k { font-family: var(--font-display); font-weight: 700; font-size: .95rem; letter-spacing: .06em; }
+.axis-d { font-size: .72rem; line-height: 1.75; color: var(--color-ash-dim); }
+/* 生きた動き：五つのうち一つだけ、順ぐりに火が入る */
+@media (prefers-reduced-motion: no-preference) {
+  .axes[data-inview] .axis::after {
+    content: "";
+    position: absolute; left: 0; right: 0; bottom: 0; height: 2px;
+    background: var(--color-seal);
+    opacity: 0;
+    animation: axis-heat 20s var(--ease-in-out) infinite;
+  }
+  .axes[data-inview] .axis:nth-child(1)::after { animation-delay: -20s }
+  .axes[data-inview] .axis:nth-child(2)::after { animation-delay: -16s }
+  .axes[data-inview] .axis:nth-child(3)::after { animation-delay: -12s }
+  .axes[data-inview] .axis:nth-child(4)::after { animation-delay: -8s }
+  .axes[data-inview] .axis:nth-child(5)::after { animation-delay: -4s }
+}
+@keyframes axis-heat {
+  0%, 14%, 100% { opacity: 0 }
+  5%            { opacity: .85 }
+}
+@media (max-width: 720px) {
+  .axes { grid-template-columns: 1fr 1fr }
+  .axis { border-top: 1px solid var(--line) }
+  .axis:nth-child(-n+2) { border-top: 0 }
+  .axis:nth-child(odd) { border-left: 0 }
+  .axis:last-child { grid-column: 1 / -1 }
+}
+
+/* ---------- 縦の道（壱・弐・参）。左に一本、火から立ちのぼる線を通す ---------- */
+.path { position: relative; padding-left: 42px; }
+.path::before {
+  content: "";
+  position: absolute; left: 13px; top: 10px; bottom: 10px;
+  width: 1px;
+  background: linear-gradient(to top, var(--color-seal) 0%, var(--line-strong) 32%, var(--line-strong) 78%, transparent 100%);
+}
+.path-step { position: relative; padding: 18px 0; }
+.path-step::before {
+  content: "";
+  position: absolute; left: -35px; top: 26px;
+  width: 9px; height: 9px; border-radius: 999px;
+  background: var(--color-smoke-950);
+  border: 1px solid var(--line-ui);
+}
+.path-step:first-child::before { background: var(--color-seal); border-color: transparent; }
+.path-n {
+  font-family: var(--font-display);
+  font-size: .7rem; letter-spacing: .3em;
+  color: var(--color-ash-dim);
+}
+.path-t { display: block; margin-top: 4px; font-size: 1.02rem; font-weight: 700; }
+.path-d { display: block; margin-top: 3px; font-size: .76rem; color: var(--color-ash); }
+
+/* ---------- 帯の中の言い切り ---------- */
+.claim {
+  font-family: var(--font-display);
+  font-size: clamp(1.05rem, 2.4vw, 1.5rem);
+  line-height: 1.85;
+  letter-spacing: .05em;
+  /* ch は継承フォントで解決される。ここは明朝を自分で指定しているので正しく効く */
+  max-width: 24ch;
+  text-wrap: balance;
+}
+.claim em { font-style: normal; color: var(--color-ember-hot); }
+
+/* ---------- フッター ---------- */
+.foot-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.5fr);
+  gap: clamp(24px, 5vw, 64px);
+  align-items: start;
+}
+@media (max-width: 720px) { .foot-grid { grid-template-columns: 1fr } }
+.foot-links { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px 18px; }
+@media (max-width: 720px) { .foot-links { grid-template-columns: 1fr 1fr } }
+.foot-links a { font-size: .78rem; color: var(--color-ash); padding-block: 5px; }
+.foot-links a:hover { color: var(--color-cream) }
+
+/* ---------- 静止ヒーローにも、囁くくらいの生きた動きを一つ ---------- */
+.still-ember {
+  position: absolute; inset: 0; z-index: -1; pointer-events: none;
+  background: radial-gradient(ellipse 34% 26% at 62% 62%, rgb(232 102 60 / .16) 0%, transparent 72%);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .still-ember { animation: ember-breathe 9s var(--ease-in-out) -3s infinite }
+}
+@keyframes ember-breathe {
+  0%, 100% { opacity: .55 }
+  50%      { opacity: 1 }
 }

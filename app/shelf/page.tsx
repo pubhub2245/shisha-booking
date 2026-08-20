@@ -7,7 +7,7 @@ import type { Flavor } from '@/lib/types/database'
 
 export const dynamic = 'force-dynamic'
 export const metadata = {
-  title: 'マイフレーバー — 煙道',
+  title: 'マイフレーバー',
   description: '持っているフレーバーを登録すると、いま手元で試せる作り方が表示されます。',
 }
 

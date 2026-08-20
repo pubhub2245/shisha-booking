@@ -1,0 +1,11 @@
+import { chromium } from 'playwright'
+const b = await chromium.launch({ executablePath:'/opt/pw-browsers/chromium', args:['--no-sandbox'] })
+const ctx = await b.newContext({ viewport:{width:390,height:844}, isMobile:true, hasTouch:true, deviceScaleFactor:2 })
+await ctx.addCookies([{name:'age_ok',value:'1',url:'http://localhost:3000'}])
+const p = await ctx.newPage()
+p.on('console', m => { if(m.type()==='error') console.log('CONSOLE:', m.text()) })
+p.on('pageerror', e => console.log('PAGEERROR:', e.message))
+p.on('requestfailed', r => console.log('REQFAIL:', r.url().slice(0,120), r.failure()?.errorText))
+await p.goto('http://localhost:3000/', {waitUntil:'networkidle'}); await p.waitForTimeout(3000)
+await p.evaluate(()=>window.scrollTo(0,2000)); await p.waitForTimeout(1500)
+await b.close()

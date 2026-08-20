@@ -10,7 +10,7 @@ import { flavorLine } from '@/lib/mix'
 
 export const dynamic = 'force-dynamic'
 export const metadata = {
-  title: '地域別ランキング — 煙道',
+  title: '地域別ランキング',
   description:
     '地方ごとの作り方＆お店ランキング。旅行先で一番美味しいシーシャ屋さんを見つけよう。都会だけが有利にならない、地域対抗の図鑑。',
 }

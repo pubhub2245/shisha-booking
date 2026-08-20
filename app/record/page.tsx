@@ -10,7 +10,7 @@ import { formatJaDate } from '@/lib/time'
 import type { MixWithRelations } from '@/lib/types/database'
 
 export const dynamic = 'force-dynamic'
-export const metadata: Metadata = { title: '今日の一台を記録 — 煙道' }
+export const metadata: Metadata = { title: '今日の一台を記録' }
 
 const label = (m: { id: string; title: string | null; mix_flavors?: { name: string }[] | null }) =>
   flavorLine(m.mix_flavors) || m.title?.trim() || `作り方 ${m.id.slice(0, 4)}`

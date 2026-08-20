@@ -3,7 +3,7 @@ import type { Metadata } from 'next'
 import { IconOrb, type OrbPreset } from '@/components/icon-orb'
 
 export const metadata: Metadata = {
-  title: '創設メンバー募集 — 煙道',
+  title: '創設メンバー募集',
   description:
     '日本のシーシャに、まだ「美味しい作り方」の標準はありません。その基準を最初に作る側になりませんか。煙道 創設メンバー（作り手）を募集しています。',
 }

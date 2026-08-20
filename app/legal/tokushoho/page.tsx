@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { legalInfo, paidSalesEnabled } from '@/lib/legal'
 
 export const dynamic = 'force-dynamic'
-export const metadata = { title: '特定商取引法に基づく表記 — 煙道' }
+export const metadata = { title: '特定商取引法に基づく表記' }
 
 /**
  * 特定商取引法に基づく表記。

@@ -22,7 +22,7 @@ import { InviteButton } from '@/components/invite-button'
 import { EndoLog } from '@/components/endo-log'
 
 export const dynamic = 'force-dynamic'
-export const metadata = { title: 'マイ煙道 — 煙道' }
+export const metadata = { title: 'マイ煙道' }
 
 function MixGrid({
   mixes,

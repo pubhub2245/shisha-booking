@@ -4,7 +4,7 @@ import { getCurrentUser } from '@/lib/auth'
 import { ResetForm } from './reset-form'
 
 export const dynamic = 'force-dynamic'
-export const metadata = { title: '新しいパスワードの設定 — 煙道' }
+export const metadata = { title: '新しいパスワードの設定' }
 
 export default async function ResetPasswordPage() {
   // メールのリンク→/auth/callback で回復セッションが確立された状態で来る

@@ -87,14 +87,14 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { id } = await params
   const mix = await getMixById(id)
-  if (!mix) return { title: `作り方が見つかりません — ${BRAND.full}` }
+  if (!mix) return { title: `作り方が見つかりません` }
   const flavorLine = (mix.mix_flavors ?? []).map((f) => f.name).join(' × ')
   // 盛り方写真があればOG画像に使う。無ければブランド既定の動的OG画像（opengraph-image）へフォールバック。
   const images = mix.pack_photo_url ? [{ url: mix.pack_photo_url }] : undefined
   const heading = flavorLine || mix.title || '作り方'
   const desc = mix.description ?? (mix.title ? `${mix.title}｜${flavorLine}` : flavorLine) ?? 'シーシャの作り方'
   return {
-    title: `${heading} — ${BRAND.full}`,
+    title: `${heading}`,
     description: desc,
     openGraph: { title: heading, description: desc, ...(images ? { images } : {}) },
     twitter: { card: 'summary_large_image', title: heading, description: desc, ...(images ? { images } : {}) },

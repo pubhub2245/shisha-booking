@@ -23,7 +23,7 @@ import { hmsOption, charcoalLabel, packOption } from '@/lib/heat'
 import type { Flavor } from '@/lib/types/database'
 
 export const dynamic = 'force-dynamic'
-export const metadata = { title: 'お店の管理 — 煙道' }
+export const metadata = { title: 'お店の管理' }
 
 type FlavorWithCount = Flavor & { count: number }
 

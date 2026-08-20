@@ -8,7 +8,7 @@ import { EmptyState } from '@/components/empty-state'
 
 export const dynamic = 'force-dynamic'
 export const metadata: Metadata = {
-  title: '王道 — 煙道',
+  title: '王道',
   description:
     '実際に吸われ、再現されながら育ってきた「まずこれ」と言える作り方。煙道が確認して認定した王道の一覧です。',
 }

@@ -6,7 +6,7 @@ import { FIRST_THEME } from '@/lib/theme'
 import { buildDesignSpace, DIFF_AXES } from '@/lib/method-diff'
 
 export const dynamic = 'force-dynamic'
-export const metadata = { title: '第一テーマの進捗 — 煙道' }
+export const metadata = { title: '第一テーマの進捗' }
 
 /**
  * 第一テーマの段階指標（docs/第一テーマ_設計再構成.md §12）。

@@ -4,7 +4,7 @@ import { getCurrentUser } from '@/lib/auth'
 import { AuthForm } from '../auth-form'
 
 export const dynamic = 'force-dynamic'
-export const metadata = { title: 'ログイン — 煙道' }
+export const metadata = { title: 'ログイン' }
 
 export default async function LoginPage({
   searchParams,
