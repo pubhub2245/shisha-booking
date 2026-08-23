@@ -6,7 +6,8 @@ import { redirect } from 'next/navigation'
 import { headers } from 'next/headers'
 import { trackServerEvent } from '@/lib/analytics-server'
 
-export type AuthState = { error: string } | { notice: string } | null
+/** email は失敗したときに入力欄へ戻すためだけに持つ。入れないと打ち直しになる */
+export type AuthState = { error: string; email?: string } | { notice: string } | null
 
 /** リクエストヘッダから現在のオリジン（https://host）を組み立てる */
 async function currentOrigin(): Promise<string> {
@@ -19,16 +20,16 @@ async function currentOrigin(): Promise<string> {
 export async function signIn(_prev: AuthState, formData: FormData): Promise<AuthState> {
   const email = String(formData.get('email') ?? '').trim()
   const password = String(formData.get('password') ?? '')
-  if (!email || !password) return { error: 'メールアドレスとパスワードを入力してください。' }
+  if (!email || !password) return { error: 'メールアドレスとパスワードを入力してください。', email }
 
   const supabase = await createClient()
   const { error } = await supabase.auth.signInWithPassword({ email, password })
   if (error) {
     const msg = error.message.toLowerCase()
     if (msg.includes('not confirmed') || msg.includes('confirm')) {
-      return { error: 'メール確認が未完了です。届いた確認メールのリンクをクリックしてからログインしてください。' }
+      return { error: 'メール確認が未完了です。届いた確認メールのリンクをクリックしてからログインしてください。', email }
     }
-    return { error: 'ログインに失敗しました。メールアドレスとパスワードをご確認ください。' }
+    return { error: 'ログインに失敗しました。メールアドレスとパスワードをご確認ください。', email }
   }
 
   revalidatePath('/', 'layout')
