@@ -131,7 +131,7 @@ describe('heat', () => {
   })
 
   it('heatEventMeta falls back for unknown', () => {
-    expect(heatEventMeta('add').icon).toBe('➕')
+    expect(heatEventMeta('add').icon).toBe('＋')
     expect(heatEventMeta('zzz').v).toBe('other')
   })
 })
