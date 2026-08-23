@@ -1401,11 +1401,14 @@ body.paused *::after {
    代わりに、縦画面には縦に切り出した別の動画（約0.7MB）を配る。
    残す門は2つだけ：動きが苦手な設定と、寝かせたスマホ（縦に旅をする余地が無い）。 */
 .scrub { display: block }
-.still { display: none }
+/* 隠すのは「スクロール駆動と対で置いた控え」だけ。
+   .still そのものを隠すと、単体で出しているヒーロー（ログイン後のトップ）まで
+   消える。実際に消えて本番が真っ黒になった（2026-08-20）。 */
+.still-gate { display: none }
 @media (prefers-reduced-motion: reduce),
        (orientation: landscape) and (pointer: coarse) and (max-height: 560px) {
   .scrub { display: none }
-  .still { display: grid }
+  .still-gate { display: grid }
 }
 
 /* 縦画面の器の高さ。短くしすぎると、一つ目の帯を読み切る前に次へ行ってしまう
@@ -1445,8 +1448,13 @@ body.paused *::after {
    入場の振り付けと、囁くくらいの生きた動きを一つだけ置く。
    ============================================================ */
 
-/* ---------- 入場。IntersectionObserver が .in を一度だけ付ける ---------- */
-[data-rise] > * {
+/* ---------- 入場。IntersectionObserver が .in を一度だけ付ける ----------
+
+   既定は「見えている」。隠すのは JS が data-armed を付けた物だけにする。
+   以前は [data-rise] > * を無条件に opacity:0 にしていたので、
+   JS が動かない・観測が回らない状況では本文が丸ごと消えていた。
+   見せるために JS を必要とする作りにしない。 */
+[data-rise][data-armed] > * {
   opacity: 0;
   transform: translateY(14px);
   transition: opacity .62s var(--ease-out), transform .62s var(--ease-out);
@@ -1462,7 +1470,7 @@ body.paused *::after {
 [data-rise].in.done > *:nth-child(n) { transition-delay: 0s }
 
 @media (prefers-reduced-motion: reduce) {
-  [data-rise] > * { opacity: 1; transform: none; transition: none }
+  [data-rise] > *, [data-rise][data-armed] > * { opacity: 1; transform: none; transition: none }
   [data-rise].in > *:nth-child(n) { transition-delay: 0s }
 }
 

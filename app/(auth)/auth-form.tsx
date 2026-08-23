@@ -10,6 +10,8 @@ export function AuthForm({ mode, next }: { mode: 'login' | 'signup'; next?: stri
   const [state, action, pending] = useActionState<AuthState, FormData>(fn, null)
 
   const error = state && 'error' in state ? state.error : null
+  // 失敗しても打ち直しにならないよう、送ったアドレスを戻す
+  const lastEmail = state && 'error' in state ? state.email ?? '' : ''
   const notice = state && 'notice' in state ? state.notice : null
 
   return (
@@ -34,7 +36,15 @@ export function AuthForm({ mode, next }: { mode: 'login' | 'signup'; next?: stri
 
       <div className="field">
         <label>メールアドレス</label>
-        <input name="email" type="email" required autoComplete="email" placeholder="you@example.com" />
+        <input
+          key={lastEmail}
+          name="email"
+          type="email"
+          required
+          autoComplete="email"
+          defaultValue={lastEmail}
+          placeholder="you@example.com"
+        />
       </div>
       <div className="field">
         <label>パスワード</label>

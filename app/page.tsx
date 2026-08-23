@@ -147,6 +147,7 @@ export default async function Home() {
       {/* ログアウト時は静止ヒーローも用意する。五つの門のどれかに当たった人はこちらを見る */}
       {!user && (
         <StillHero
+          gated
           title="1つのフレーバーを、どう作るか。"
           lede="ボウル、詰め方、HMD、炭、火入れ。同じ葉から、これだけ違う一台ができます。"
           cta
@@ -342,10 +343,20 @@ export default async function Home() {
 }
 
 /** 動きを持たないヒーロー。飾りではなく、これ自体がひとつの版面 */
-function StillHero({ title, lede, cta }: { title: string; lede: string; cta?: boolean }) {
+/**
+ * 静止のヒーロー。使い道が2つあるので、どちらかを必ず選ぶこと。
+ *
+ * gated … スクロール駆動と対で置く控え。門（動きが苦手な設定・寝かせたスマホ）に
+ *         当たった時だけ出る。普段は隠れている
+ * 既定  … 単体で出す本番のヒーロー。常に出る
+ *
+ * ここを取り違えると画面が丸ごと消える。実際に消した：ログイン後のトップに
+ * gated 側の見た目で置いてしまい、本番で真っ黒になった（2026-08-20）。
+ */
+function StillHero({ title, lede, cta, gated }: { title: string; lede: string; cta?: boolean; gated?: boolean }) {
   return (
     <section
-      className="still"
+      className={gated ? 'still still-gate' : 'still'}
       style={{ backgroundImage: `image-set(url("${HERO.still}") 1x)` }}
     >
       <div className="still-ember" aria-hidden />

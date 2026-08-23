@@ -38,6 +38,9 @@ export function MotionGuards() {
     //     付けっぱなしにするのは、戻ってきたときに消えないようにするため。
     //     入場が終わったら .done を足して段差の遅延を外す（外さないと以後の
     //     ホバーが延々とずれる）。
+    //     隠すのは「まだ画面の外にある物」だけ。既に見えている物は隠さず、
+    //     そのまま .in を付けて終わりにする。こうしておくと、観測が回らない
+    //     状況（裏タブ・JS の失敗）でも、開いた瞬間に見える範囲は必ず読める。
     let rise: IntersectionObserver | null = null
     const timers: number[] = []
     if ('IntersectionObserver' in window) {
@@ -53,7 +56,17 @@ export function MotionGuards() {
         },
         { rootMargin: '0px 0px -12% 0px' },
       )
-      document.querySelectorAll('[data-rise]').forEach((el) => rise!.observe(el))
+      const vh = window.innerHeight
+      document.querySelectorAll<HTMLElement>('[data-rise]').forEach((el) => {
+        const top = el.getBoundingClientRect().top
+        if (top < vh) {
+          // 開いた時点で見えている。隠さずそのまま出す
+          el.classList.add('in', 'done')
+          return
+        }
+        el.setAttribute('data-armed', '')
+        rise!.observe(el)
+      })
     }
 
     // (b) 画面外
