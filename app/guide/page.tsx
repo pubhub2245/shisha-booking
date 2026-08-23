@@ -1,5 +1,6 @@
 import Link from 'next/link'
-import { IconOrb, type OrbPreset } from '@/components/icon-orb'
+import { IconOrb } from '@/components/icon-orb'
+import { LineIcon, type IconName } from '@/components/line-icons'
 import { HMS_OPTIONS, hmsBowls } from '@/lib/heat'
 import { HmsIcon } from '@/components/hms-icon'
 import { BowlIcon } from '@/components/bowl-icon'
@@ -13,16 +14,15 @@ export const metadata = {
 }
 
 /** 目指すところ（4本柱） */
-const goals: { icon: string; preset: OrbPreset; title: string; body: string }[] = [
-  { icon: '💨', preset: 'green', title: '吸いやすい', body: '軽く吸える。詰まらず、抵抗が少ない。' },
-  { icon: '✅', preset: 'amber', title: '焦げていない', body: 'イガらっぽさ・雑味がない。' },
-  { icon: '🍬', preset: 'violet', title: '味がある', body: 'フレーバー本来の甘さ・香りが立つ。' },
-  { icon: '☁️', preset: 'blue', title: '煙が出る', body: 'もくもくと満足感のある煙量。' },
+const goals: { icon: IconName; title: string; body: string }[] = [
+  { icon: 'draw', title: '吸いやすい', body: '軽く吸える。詰まらず、抵抗が少ない。' },
+  { icon: 'noburn', title: '焦げていない', body: 'イガらっぽさ・雑味がない。' },
+  { icon: 'taste', title: '味がある', body: 'フレーバー本来の甘さ・香りが立つ。' },
+  { icon: 'smoke', title: '煙が出る', body: 'もくもくと満足感のある煙量。' },
 ]
 
 type Section = {
   id: string
-  icon: string
   title: string
   lead?: string
   points: { h: string; body: string }[]
@@ -32,7 +32,6 @@ type Section = {
 const sections: Section[] = [
   {
     id: 'prep',
-    icon: '🍃',
     title: 'フレーバーの下準備',
     lead: '味と燃え方は、盛る前の一手間で大きく変わる。',
     points: [
@@ -43,7 +42,6 @@ const sections: Section[] = [
   },
   {
     id: 'pack',
-    icon: '🥣',
     title: '盛り方',
     lead: '「かまぼこ」を一周させるイメージ。',
     points: [
@@ -53,7 +51,6 @@ const sections: Section[] = [
   },
   {
     id: 'management',
-    icon: '🌡️',
     title: '熱管理の考え方',
     lead: '「熱風がどこから入ってくるか」を常に意識する。',
     points: [
@@ -63,7 +60,6 @@ const sections: Section[] = [
   },
   {
     id: 'foil',
-    icon: '🪙',
     title: 'アルミホイル',
     lead: '保温性とエアフローはトレードオフ。',
     points: [
@@ -73,7 +69,6 @@ const sections: Section[] = [
   },
   {
     id: 'heat',
-    icon: '🔥',
     title: '熱入れ・むらし',
     lead: 'ここで味の8割が決まる。',
     points: [
@@ -87,7 +82,6 @@ const sections: Section[] = [
   },
   {
     id: 'serve',
-    icon: '⏱️',
     title: '提供のタイミング',
     points: [
       { h: '3口ルール', body: '普通の吸い方で3回吸って、味に変化がなくなったら（＝安定したら）提供のサイン。' },
@@ -95,7 +89,6 @@ const sections: Section[] = [
   },
   {
     id: 'mix',
-    icon: '🧩',
     title: '作り方の基本',
     lead: 'メインの味を「補完」するイメージで組む。',
     points: [
@@ -129,7 +122,6 @@ export default function GuidePage() {
         これは<b>唯一の正解ではなく出発点</b>——ここを土台に、投稿レシピの熱管理カーブと合わせて読むと、一気に再現度が上がります。
       </p>
       {/* 「道」＝型の三段。固定の正解に見せず、上達の階段として提示する */}
-      <div className="kaisen mt-5" aria-hidden><span className="seal-dot" /></div>
       <div className="mt-5 grid grid-cols-3 gap-2 text-center">
         {[
           { n: '基本の型', d: 'この図鑑で学ぶ土台' },
@@ -150,10 +142,10 @@ export default function GuidePage() {
         <p className="mt-1 text-sm" style={{ color: 'var(--color-ash-dim)' }}>
           この4つが揃っていれば「美味しい1台」。すべての工程はここに向かっている。
         </p>
-        <div className="mt-4 grid grid-cols-2 gap-3">
+        <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
           {goals.map((g) => (
             <div key={g.title} className="card flex items-center gap-3 p-4">
-              <IconOrb preset={g.preset} size={42}>{g.icon}</IconOrb>
+              <IconOrb size={42}><LineIcon name={g.icon} size={21} /></IconOrb>
               <div className="min-w-0">
                 <h3 className="text-sm" style={{ fontWeight: 700 }}>{g.title}</h3>
                 <p className="mt-0.5 text-xs leading-snug" style={{ color: 'var(--color-ash)' }}>{g.body}</p>
@@ -170,15 +162,15 @@ export default function GuidePage() {
           {sections.map((s, i) => (
             <li key={s.id}>
               <a href={`#${s.id}`} className="hover:underline">
-                {i + 1}. {s.icon} {s.title}
+                {i + 1}. {s.title}
               </a>
             </li>
           ))}
           <li>
-            <a href="#profiles" className="hover:underline">{sections.length + 1}. 🌡️ 温度で変わる味</a>
+            <a href="#profiles" className="hover:underline">{sections.length + 1}. 温度で変わる味</a>
           </li>
           <li>
-            <a href="#hms-bowl" className="hover:underline">{sections.length + 2}. 🪨 HMD × ボウルの相性</a>
+            <a href="#hms-bowl" className="hover:underline">{sections.length + 2}. HMD × ボウルの相性</a>
           </li>
         </ol>
       </nav>
@@ -195,7 +187,7 @@ export default function GuidePage() {
                 {i + 1}
               </span>
               <h2 className="text-lg" style={{ fontWeight: 700 }}>
-                <span aria-hidden className="mr-1.5">{s.icon}</span>{s.title}
+                {s.title}
               </h2>
             </div>
             {s.lead && (
@@ -223,7 +215,7 @@ export default function GuidePage() {
               {sections.length + 1}
             </span>
             <h2 className="text-lg" style={{ fontWeight: 700 }}>
-              <span aria-hidden className="mr-1.5">🌡️</span>フレーバーの味の出方（温度で変わる）
+              フレーバーの味の出方（温度で変わる）
             </h2>
           </div>
           <p className="mt-2 text-sm" style={{ color: 'var(--color-ash-dim)' }}>
@@ -270,7 +262,7 @@ export default function GuidePage() {
               {sections.length + 2}
             </span>
             <h2 className="text-lg" style={{ fontWeight: 700 }}>
-              <span aria-hidden className="mr-1.5">🪨</span>HMD × ボウルの相性
+              HMD × ボウルの相性
             </h2>
           </div>
           <p className="mt-2 text-sm" style={{ color: 'var(--color-ash-dim)' }}>
@@ -279,7 +271,7 @@ export default function GuidePage() {
           <div className="mt-4 flex flex-col gap-3">
             {HMS_OPTIONS.filter((o) => o.v !== 'other' && (hmsBowls(o.v).length > 0 || o.bowlNote)).map((o) => (
               <div key={o.v} className="rounded-lg border p-4" style={{ borderColor: 'var(--line)' }}>
-                <Link href={`/hms/${o.v}`} className="flex items-center gap-2.5 hover:underline">
+                <Link href={`/hms/${o.v}`} className="-my-1 flex min-h-11 items-center gap-2.5 py-1 hover:underline">
                   <span style={{ color: 'var(--color-ember-hot)' }}><HmsIcon type={o.icon} size={30} /></span>
                   <span className="text-sm" style={{ fontWeight: 700 }}>{o.l}</span>
                   {o.en && <span className="text-xs" style={{ color: 'var(--color-ash-dim)' }}>{o.en}</span>}

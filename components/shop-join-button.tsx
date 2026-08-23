@@ -56,7 +56,7 @@ export function ShopJoinButton({
         className="btn btn-ghost text-sm"
         title="申請を取り消す"
       >
-        🕓 承認待ち（取消）
+        承認待ち（取消）
       </button>
     )
   }

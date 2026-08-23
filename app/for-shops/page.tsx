@@ -1,36 +1,31 @@
 import Link from 'next/link'
-import { IconOrb, type OrbPreset } from '@/components/icon-orb'
+import { IconOrb } from '@/components/icon-orb'
 
 export const metadata = { title: '店舗の方へ' }
 
-const benefits: { icon: string; preset: OrbPreset; title: string; body: string }[] = [
+const benefits: { icon: string; title: string; body: string }[] = [
   {
-    icon: '🎯',
-    preset: 'green',
+    icon: '名',
     title: '指名で選ばれる',
     body: '「このお店の作り方で吸いたい」を作る。お店の作り方が載り、試す人が増えます。',
   },
   {
-    icon: '📈',
-    preset: 'amber',
+    icon: '客',
     title: '集客につながる',
     body: 'あなたのお店の作り方の発信元としてエリア・SNSリンクを掲載。来店の動機を生み出します。',
   },
   {
-    icon: '📖',
-    preset: 'violet',
+    icon: '書',
     title: 'ノウハウが資産に',
     body: '作り方ノートを蓄積。将来的にはレシピ・ノウハウの販売で新たな収益も。',
   },
   {
-    icon: '🫙',
-    preset: 'green',
+    icon: '棚',
     title: '在庫棚で来店を生む',
     body: '今ある（吸える）フレーバーを登録。「このお店ならこれが吸える」で、フレーバー検索から来店につながります。',
   },
   {
-    icon: '📱',
-    preset: 'amber',
+    icon: '札',
     title: '店頭QRがメニュー表に',
     body: 'QRを置くだけで、お客さんはスマホで今日の在庫を閲覧。更新すればそのまま在庫管理にもなります。',
   },
@@ -59,7 +54,7 @@ export default function ForShops() {
       <div className="mt-10 grid gap-5 sm:grid-cols-3">
         {benefits.map((b) => (
           <div key={b.title} className="card p-6">
-            <IconOrb preset={b.preset} size={52}>{b.icon}</IconOrb>
+            <IconOrb size={52}><span className="font-display" style={{ fontWeight: 700 }}>{b.icon}</span></IconOrb>
             <h3 className="mt-4 text-base" style={{ fontWeight: 700 }}>{b.title}</h3>
             <p className="mt-2 text-sm" style={{ color: 'var(--color-ash)' }}>{b.body}</p>
           </div>

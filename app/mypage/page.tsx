@@ -146,9 +146,9 @@ export default async function MyPage() {
 
       {/* サブアクション */}
       <div className="mt-3 flex flex-wrap items-center gap-2">
-        <Link href="/shelf" className="btn btn-ghost text-sm">🫙 マイフレーバー</Link>
+        <Link href="/shelf" className="btn btn-ghost text-sm">マイフレーバー</Link>
         <InviteButton />
-        <Link href="/mypage/edit" className="btn btn-ghost text-sm">⚙️ 設定</Link>
+        <Link href="/mypage/edit" className="btn btn-ghost text-sm">設定</Link>
       </div>
 
       {/* ---------- 今月の煙道検証：次の1台 ----------
@@ -233,8 +233,8 @@ export default async function MyPage() {
             {myShops.map((s) => (
               <div key={s.id} className="card flex items-center justify-between gap-3 p-4">
                 <Link href={`/shop/${s.id}`} className="flex min-w-0 items-center gap-2">
-                  {s.role === 'owner' && <span aria-hidden title="オーナー">👑</span>}
-                  <span className="truncate text-sm" style={{ fontWeight: 700 }}>🏠 {s.name}</span>
+                  {s.role === 'owner' && <span className="chip" title="オーナー" style={{ padding: '0 6px', fontSize: '0.62rem' }}>主</span>}
+                  <span className="truncate text-sm" style={{ fontWeight: 700 }}>{s.name}</span>
                   {s.area && <span className="shrink-0 text-xs" style={{ color: 'var(--color-ash-dim)' }}>{s.area}</span>}
                 </Link>
                 <Link href={`/shop/${s.id}/manage`} className="btn btn-ghost shrink-0 text-xs">在庫・管理</Link>
@@ -264,14 +264,14 @@ export default async function MyPage() {
       <div className="divider my-10" />
 
       <section>
-        <h2 className="mb-4 text-lg" style={{ fontWeight: 700 }}>🔖 保存した作り方（{bookmarked.length}）</h2>
+        <h2 className="mb-4 text-lg" style={{ fontWeight: 700 }}>保存した作り方（{bookmarked.length}）</h2>
         <MixGrid mixes={bookmarked} likedIds={likedIds} emptyText="保存した作り方はまだありません。" />
       </section>
 
       <div className="divider my-10" />
 
       <section>
-        <h2 className="mb-4 text-lg" style={{ fontWeight: 700 }}>❤️ いいねした作り方（{liked.length}）</h2>
+        <h2 className="mb-4 text-lg" style={{ fontWeight: 700 }}>いいねした作り方（{liked.length}）</h2>
         <MixGrid mixes={liked} likedIds={likedIds} emptyText="いいねした作り方はまだありません。" />
       </section>
     </div>

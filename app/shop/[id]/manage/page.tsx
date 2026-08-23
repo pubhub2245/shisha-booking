@@ -67,8 +67,7 @@ export default async function ShopManagePage({ params }: { params: Promise<{ id:
     <div className="wrap max-w-3xl py-10">
       <Link href={`/shop/${shop.id}`} className="text-sm" style={{ color: 'var(--color-ash-dim)' }}>← お店のページ</Link>
       <p className="eyebrow mt-4">Shop management</p>
-      <h1 className="mt-2 flex items-center gap-2 text-3xl" style={{ fontWeight: 800 }}>
-        <span aria-hidden>🏠</span> {shop.name}
+      <h1 className="mt-2 flex items-center gap-2 text-3xl" style={{ fontWeight: 800 }}>{shop.name}
       </h1>
       <p className="mt-2 text-sm" style={{ color: 'var(--color-ash)' }}>
         在庫棚を更新すれば、店頭QRメニューにそのまま反映されます。{isOwner ? 'オーナー権限で店舗情報・スタッフ承認もできます。' : '（在庫の編集ができます）'}
@@ -78,7 +77,7 @@ export default async function ShopManagePage({ params }: { params: Promise<{ id:
       <section className="card mt-8 p-6">
         <div className="flex items-baseline justify-between gap-2">
           <h2 className="flex items-center gap-2 text-lg" style={{ fontWeight: 800 }}>
-            🍵 賄いシーシャの記録
+            賄いシーシャの記録
           </h2>
           <span className="text-xs" style={{ color: 'var(--color-ash-dim)' }}>{makanai.length}件</span>
         </div>
@@ -107,8 +106,8 @@ export default async function ShopManagePage({ params }: { params: Promise<{ id:
                   <span className="ml-auto text-xs" style={{ color: 'var(--color-ash-dim)' }}>{relativeTime(log.logged_at)}</span>
                 </div>
                 <div className="mt-1.5 flex flex-wrap gap-x-3 gap-y-0.5 text-xs" style={{ color: 'var(--color-ash)' }}>
-                  {log.steep_minutes != null && <span>♨️ 蒸らし {log.steep_minutes}分</span>}
-                  {log.steep_heat != null && <span>🔥 到達 {log.steep_heat}</span>}
+                  {log.steep_minutes != null && <span>蒸らし {log.steep_minutes}分</span>}
+                  {log.steep_heat != null && <span>到達 {log.steep_heat}</span>}
                   {log.hms_type && <span>{hmsOption(log.hms_type)?.l ?? log.hms_type}</span>}
                   {log.charcoal_type && <span>炭：{charcoalLabel(log.charcoal_type)}</span>}
                   {log.pack_style && <span>{packOption(log.pack_style)?.l ?? log.pack_style}</span>}
@@ -151,7 +150,7 @@ export default async function ShopManagePage({ params }: { params: Promise<{ id:
       {/* ---------- オーナー：参加申請の承認 ---------- */}
       {isOwner && pending.length > 0 && (
         <section className="card mt-8 p-6">
-          <h2 className="text-base" style={{ fontWeight: 700 }}>🕓 参加申請（{pending.length}）</h2>
+          <h2 className="text-base" style={{ fontWeight: 700 }}>参加申請（{pending.length}）</h2>
           <p className="mt-1 text-xs" style={{ color: 'var(--color-ash-dim)' }}>このお店で働くスタッフか確認して承認してください。</p>
           <ul className="mt-3 flex flex-col gap-2">
             {pending.map((m) => (
@@ -174,14 +173,14 @@ export default async function ShopManagePage({ params }: { params: Promise<{ id:
         <h2 className="text-base" style={{ fontWeight: 700 }}>所属スタッフ（{members.length}）</h2>
         {isOwner && (
           <p className="mt-1 text-xs" style={{ color: 'var(--color-ash-dim)' }}>
-            承認・在庫編集の管理権限はオーナー1人だけが持ちます。本来のオーナーが加わったら「👑 オーナーを譲渡」で引き継げます。
+            承認・在庫編集の管理権限はオーナー1人だけが持ちます。本来のオーナーが加わったら「オーナーを譲渡」で引き継げます。
           </p>
         )}
         <ul className="mt-3 flex flex-col gap-2">
           {members.map((m) => (
             <li key={m.user_id} className="flex items-center justify-between gap-3 rounded-xl border p-3" style={{ borderColor: 'var(--line)' }}>
               <div className="flex min-w-0 items-center gap-1.5">
-                {m.role === 'owner' && <span aria-hidden title="オーナー">👑</span>}
+                {m.role === 'owner' && <span className="chip" title="オーナー" style={{ padding: '0 6px', fontSize: '0.62rem' }}>主</span>}
                 <Link href={m.user?.username ? `/u/${m.user.username}` : '#'} className="truncate text-sm" style={{ fontWeight: 600 }}>
                   {m.user?.display_name || (m.user?.username ? `@${m.user.username}` : 'スタッフ')}
                 </Link>

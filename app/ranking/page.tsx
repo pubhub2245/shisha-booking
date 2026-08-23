@@ -11,7 +11,7 @@ export const metadata = {
   description: 'いいねが多い人気の作り方ランキング。週間・月間・全期間。',
 }
 
-const MEDALS = ['🥇', '🥈', '🥉']
+const MEDALS = ['壱', '弐', '参']
 const PERIODS = [
   { v: 'week', l: '週間' },
   { v: 'month', l: '月間' },
@@ -38,7 +38,7 @@ export default async function RankingPage({ searchParams }: { searchParams: Prom
       </h1>
       <p className="mt-2 mb-4 text-sm" style={{ color: 'var(--color-ash)' }}>
         みんなの「いいね」が多い順。迷ったら上位から試すのがおすすめ。
-        <span className="ml-1 text-xs" style={{ color: 'var(--color-ash-dim)' }}>（🌐 公開レシピをわずかに優先）</span>
+        <span className="ml-1 text-xs" style={{ color: 'var(--color-ash-dim)' }}>（公開レシピをわずかに優先）</span>
       </p>
 
       <RankingTabs current="ranking" />
@@ -57,11 +57,10 @@ export default async function RankingPage({ searchParams }: { searchParams: Prom
 
       {mixes.length === 0 ? (
         <EmptyState
-          icon="🏆"
           title={period === 'all' ? 'まだランキングデータがありません' : 'この期間の「いいね」はまだありません'}
           action={<Link href="/post" className="btn btn-ember">＋ 作り方を登録</Link>}
         >
-          作り方に👍が集まると、人気順に並びます。
+          作り方にいいねが集まると、人気順に並びます。
         </EmptyState>
       ) : (
         <>
@@ -84,7 +83,7 @@ export default async function RankingPage({ searchParams }: { searchParams: Prom
                   )}
                 </div>
                 <span className="shrink-0 text-sm" style={{ color: 'var(--color-ember-hot)', fontWeight: 700 }}>
-                  ❤️ {m.like_count}
+                  {m.like_count}
                 </span>
               </Link>
             ))}

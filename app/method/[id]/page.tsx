@@ -330,7 +330,7 @@ export default async function MixDetail({
               className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs"
               style={{ background: 'var(--accent-tint)', color: 'var(--color-ember-hot)', fontWeight: 800, border: '1px solid var(--color-ember)' }}
             >
-              🏅 {regionRep}で人気
+              {regionRep}で人気
             </Link>
           )}
           {/* 完全公開の充実レシピを称える（詳しい中身があり、ロックが効いていない）。
@@ -340,14 +340,14 @@ export default async function MixDetail({
               className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs"
               style={{ background: 'rgb(31 138 118 / 0.12)', color: 'var(--color-coal)', fontWeight: 800, border: '1px solid rgb(31 138 118 / 0.4)' }}
             >
-              🌐 フル公開レシピ
+              フル公開レシピ
             </span>
           )}
         </div>
         {activelyLocked && (
           <div className="mt-2 inline-flex flex-wrap items-center gap-1 rounded-full px-2.5 py-1 text-xs"
             style={{ background: 'var(--accent-tint)', color: 'var(--color-ember-hot)', fontWeight: 700 }}>
-            💎 有料ノート{mix.price != null ? ` ¥${mix.price}` : ''}
+            有料ノート{mix.price != null ? ` ¥${mix.price}` : ''}
             <span style={{ color: 'var(--color-ash-dim)', fontWeight: 400 }}>・一部ロック中（王道の選出対象外）</span>
           </div>
         )}
@@ -360,7 +360,7 @@ export default async function MixDetail({
         {LOCK_FEATURE_ENABLED && mix.premium && (mix.locked_sections ?? []).length > 0 && timeReleased && (
           <div className="mt-2 inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs"
             style={{ background: 'rgb(31 138 118 / 0.12)', color: 'var(--color-coal)', fontWeight: 700 }}>
-            🔓 時限公開で全公開済み
+            時限公開で全公開済み
           </div>
         )}
 
@@ -381,7 +381,7 @@ export default async function MixDetail({
             style={{ borderColor: 'rgb(178 59 46 / 0.35)', background: 'rgb(178 59 46 / 0.06)' }}
           >
             <p className="text-sm" style={{ fontWeight: 800 }}>
-              🎉 あなたの作り方が <span style={{ color: '#b23b2e' }}>{repLabel}系で人気</span> の作り方になっています。
+              あなたの作り方が <span style={{ color: '#b23b2e' }}>{repLabel}系で人気</span> の作り方になっています。
             </p>
             <p className="mt-1 text-xs" style={{ color: 'var(--color-ash)' }}>
               よく吸われている作り方です。ぜひSNSで共有しましょう。
@@ -439,7 +439,7 @@ export default async function MixDetail({
         <div className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm" style={{ color: 'var(--color-ash)' }}>
           {mix.author && <Avatar name={mix.author.display_name || mix.author.username} seed={mix.author.id} size={24} />}
           <span>by <AuthorLink author={mix.author} /></span>
-          <span style={{ color: 'var(--color-ash-dim)' }}>・ {relativeTime(mix.created_at)} ・ 👁 {mix.view_count}</span>
+          <span style={{ color: 'var(--color-ash-dim)' }}>・ {relativeTime(mix.created_at)} ・ 閲覧 {mix.view_count}</span>
         </div>
         <div className="mt-2">
           <CompletenessMeter mix={mix} />
@@ -573,11 +573,11 @@ export default async function MixDetail({
           {hasSetup &&
             (locked('setup') ? (
               <div className="mb-4">
-                <LockedNote mixId={mix.id} title="セットアップ" icon="🪨" price={mix.price} isAuthed={!!user} />
+                <LockedNote mixId={mix.id} title="セットアップ" price={mix.price} isAuthed={!!user} />
               </div>
             ) : (
             <div className="card mb-4 p-5">
-              <div className="mb-3 text-sm" style={{ fontWeight: 700 }}>🪨 セットアップ</div>
+              <div className="mb-3 text-sm" style={{ fontWeight: 700 }}>セットアップ</div>
               {hmsOption(mix.hms_type) && (
                 <div
                   className="mb-3 flex items-center gap-3 rounded-xl border p-3"
@@ -653,7 +653,7 @@ export default async function MixDetail({
                     className="w-full rounded-xl border object-cover"
                     style={{ maxHeight: 360, borderColor: 'var(--line)' }}
                   />
-                  <p className="mt-1 text-xs" style={{ color: 'var(--color-ash-dim)' }}>📷 投稿者による盛り方の写真</p>
+                  <p className="mt-1 text-xs" style={{ color: 'var(--color-ash-dim)' }}>投稿者による盛り方の写真</p>
                 </div>
               )}
               <dl className="grid grid-cols-2 gap-x-4 gap-y-3 text-sm sm:grid-cols-3">
@@ -687,13 +687,13 @@ export default async function MixDetail({
           {hasCurve &&
             (locked('heat_curve') ? (
               <div className="mb-4">
-                <LockedNote mixId={mix.id} title="熱管理カーブ" icon="🔥" price={mix.price} isAuthed={!!user} />
+                <LockedNote mixId={mix.id} title="熱管理カーブ" price={mix.price} isAuthed={!!user} />
               </div>
             ) : (
             <div className="card mb-4 p-5">
-              <div className="mb-1 text-sm" style={{ fontWeight: 700 }}>🔥 熱管理カーブ</div>
+              <div className="mb-1 text-sm" style={{ fontWeight: 700 }}>熱管理カーブ</div>
               <p className="mb-3 text-xs" style={{ color: 'var(--color-ash-dim)' }}>
-                横軸＝経過時間（分）、縦軸＝火力（0〜100）／点線＝炭イベント／🔥＝その時点の炭の個数と燃え具合（新・半・終）
+                横軸＝経過時間（分）、縦軸＝火力（0〜100）／点線＝炭イベント／炭＝その時点の炭の個数と燃え具合（新・半・終）
               </p>
               <HeatCurveChart points={mix.heat_curve ?? undefined} events={mix.heat_events ?? undefined} steepMinutes={mix.steep_minutes ?? undefined} steepHeat={mix.steep_heat ?? undefined} />
             </div>
@@ -701,12 +701,12 @@ export default async function MixDetail({
 
           {hasNotes &&
             (locked('heat_notes') ? (
-              <LockedNote mixId={mix.id} title="熱管理の補足・置き方" icon="📝" price={mix.price} isAuthed={!!user} />
+              <LockedNote mixId={mix.id} title="熱管理の補足・置き方" price={mix.price} isAuthed={!!user} />
             ) : (
           <div className="grid gap-4 sm:grid-cols-2">
             {mix.heat_management && (
               <div className="card p-5">
-                <div className="mb-2 text-sm" style={{ fontWeight: 700 }}>🔥 熱管理の補足</div>
+                <div className="mb-2 text-sm" style={{ fontWeight: 700 }}>熱管理の補足</div>
                 <p className="text-sm leading-relaxed" style={{ color: 'var(--color-ash)' }}>
                   {mix.heat_management}
                 </p>
@@ -714,7 +714,7 @@ export default async function MixDetail({
             )}
             {mix.placement_note && (
               <div className="card p-5">
-                <div className="mb-2 text-sm" style={{ fontWeight: 700 }}>🍃 フレーバーの置き方</div>
+                <div className="mb-2 text-sm" style={{ fontWeight: 700 }}>フレーバーの置き方</div>
                 <p className="text-sm leading-relaxed" style={{ color: 'var(--color-ash)' }}>
                   {mix.placement_note}
                 </p>
@@ -726,10 +726,10 @@ export default async function MixDetail({
           {/* 機材・ギア */}
           {hasGear &&
             (locked('gear') ? (
-              <div className="mt-4"><LockedNote mixId={mix.id} title="機材・ギア" icon="🛠" price={mix.price} isAuthed={!!user} /></div>
+              <div className="mt-4"><LockedNote mixId={mix.id} title="機材・ギア" price={mix.price} isAuthed={!!user} /></div>
             ) : (
               <div className="card mt-4 p-5">
-                <div className="mb-3 text-sm" style={{ fontWeight: 700 }}>🛠 機材・ギア</div>
+                <div className="mb-3 text-sm" style={{ fontWeight: 700 }}>機材・ギア</div>
                 <dl className="grid grid-cols-2 gap-x-4 gap-y-3 text-sm sm:grid-cols-3">
                   {[
                     { k: '本体・パイプ', v: mix.gear_stem },
@@ -752,18 +752,18 @@ export default async function MixDetail({
           {/* こだわり・核心 */}
           {hasSecrets &&
             (locked('secrets') ? (
-              <div className="mt-4"><LockedNote mixId={mix.id} title="こだわり・核心" icon="🔒" price={mix.price} isAuthed={!!user} /></div>
+              <div className="mt-4"><LockedNote mixId={mix.id} title="こだわり・核心" price={mix.price} isAuthed={!!user} /></div>
             ) : (
               <div className="mt-4 grid gap-4 sm:grid-cols-3">
                 {[
-                  { t: '下処理', v: mix.prep_note, icon: '🧪' },
-                  { t: 'この作り方の狙い', v: mix.ratio_reason, icon: '⚖️' },
-                  { t: '提供・吸い方のコツ', v: mix.serve_note, icon: '💨' },
+                  { t: '下処理', v: mix.prep_note },
+                  { t: 'この作り方の狙い', v: mix.ratio_reason },
+                  { t: '提供・吸い方のコツ', v: mix.serve_note },
                 ]
                   .filter((x) => x.v)
                   .map((x) => (
                     <div key={x.t} className="card p-5">
-                      <div className="mb-2 text-sm" style={{ fontWeight: 700 }}>{x.icon} {x.t}</div>
+                      <div className="mb-2 text-sm" style={{ fontWeight: 700 }}>{x.t}</div>
                       <p className="whitespace-pre-wrap text-sm leading-relaxed" style={{ color: 'var(--color-ash)' }}>{x.v}</p>
                     </div>
                   ))}
@@ -779,12 +779,12 @@ export default async function MixDetail({
         tabs={[
           !isSample && {
             id: 'onsite',
-            label: '📍 実地評価',
+            label: '実地評価',
             content: <OnsiteRating mixId={mix.id} ctx={onsite} isAuthed={!!user} />,
           },
           isRep && {
             id: 'naming',
-            label: '📛 公募ネーミング',
+            label: '公募ネーミング',
             content: (
               <MixNaming
                 mixId={mix.id}
@@ -797,7 +797,7 @@ export default async function MixDetail({
           },
           {
             id: 'comments',
-            label: `💬 コメント（${commentTotal}）`,
+            label: `コメント（${commentTotal}）`,
             content: (
               <div>
                 <CommentThread comments={comments} mixId={mix.id} isAuthed={!!user} currentUserId={user?.id} />

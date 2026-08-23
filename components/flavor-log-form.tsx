@@ -49,11 +49,11 @@ export function FlavorLogForm({
             <input type="date" name="logged_at" />
           </div>
           <div className="field">
-            <label>♨️ 蒸らし時間（分）</label>
+            <label>蒸らし時間（分）</label>
             <input name="steep_minutes" inputMode="decimal" placeholder="例：7" />
           </div>
           <div className="field">
-            <label>🔥 到達火力（1〜100）</label>
+            <label>到達火力（1〜100）</label>
             <input name="steep_heat" inputMode="numeric" placeholder="例：70" />
           </div>
           <div className="field">
@@ -114,7 +114,7 @@ export function FlavorLogForm({
 
         {shops.length > 0 && (
           <div className="field">
-            <label>🍵 賄いとしてお店に記録（任意）</label>
+            <label>賄いとしてお店に記録（任意）</label>
             <select name="shop_id" defaultValue="">
               <option value="">共有しない（自分だけの記録）</option>
               {shops.map((s) => (

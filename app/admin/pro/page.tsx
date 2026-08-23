@@ -56,7 +56,7 @@ export default async function AdminProPage() {
                   <dd style={{ fontWeight: 600 }}>
                     {app.shop_id ? (
                       <Link href={`/shop/${app.shop_id}`} style={{ color: 'var(--color-ember-hot)' }}>
-                        {app.shop_name} 🏠<span style={{ fontSize: '0.7rem', fontWeight: 400 }}>（所属確認済）</span>
+                        {app.shop_name} <span style={{ fontSize: '0.7rem', fontWeight: 400 }}>（所属確認済）</span>
                       </Link>
                     ) : (
                       app.shop_name
@@ -72,7 +72,7 @@ export default async function AdminProPage() {
                       rel="noopener noreferrer"
                       style={{ color: 'var(--color-ember-hot)', fontWeight: 600 }}
                     >
-                      {app.sns_handle} ↗
+                      {app.sns_handle} 
                     </a>
                   </dd>
                 </div>

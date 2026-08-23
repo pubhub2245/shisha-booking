@@ -13,7 +13,7 @@ import { IDEA_CATEGORIES, ideaCategory } from '@/lib/ideas'
 export const dynamic = 'force-dynamic'
 export const metadata: Metadata = {
   title: '意見箱',
-  description: 'アプリの改修要望を投稿して、みんなの👍👎で優先度を決めます。要望が多いものから改善します。',
+  description: 'アプリの改修要望を投稿して、みんなの賛成・反対で優先度を決めます。要望が多いものから改善します。',
 }
 
 const STATUS: Record<string, { l: string; color: string; bg: string }> = {
@@ -59,9 +59,9 @@ export default async function IdeasPage({
       <p className="eyebrow">Feedback</p>
       <h1 className="mt-2 text-3xl" style={{ fontWeight: 800 }}>意見箱</h1>
       <p className="mt-2 text-sm leading-relaxed" style={{ color: 'var(--color-ash)' }}>
-        「こう直してほしい」を投稿して、みんなの <b>👍</b> で優先度を決める場所です。
-        なんでも採用するとアプリが散らかるので、<b>要望が多い（👍が多い）ものから改善</b>していきます。反対は理由付きの 👎 で示せます。
-        賛否が割れたときは <b>コメントで議論</b>したり、<b>🤝 AIに中立の落とし所を提案</b>してもらえます。
+        「こう直してほしい」を投稿して、みんなの<b>賛成</b>で優先度を決める場所です。
+        なんでも採用するとアプリが散らかるので、<b>賛成が多いものから改善</b>していきます。反対は理由を添えて示せます。
+        賛否が割れたときは <b>コメントで議論</b>したり、<b>AIに中立の落とし所を提案</b>してもらえます。
       </p>
 
       <div className="mt-6">
@@ -71,14 +71,14 @@ export default async function IdeasPage({
       {/* 並び替え・絞り込み */}
       <div className="mt-8 flex flex-col gap-3">
         <div className="flex flex-wrap items-center gap-2">
-          <Link href={href({ sort: 'popular' })} className={`chip ${sort === 'popular' ? 'chip-active' : ''}`}>👍 人気</Link>
+          <Link href={href({ sort: 'popular' })} className={`chip ${sort === 'popular' ? 'chip-active' : ''}`}>人気</Link>
           <Link href={href({ sort: 'new' })} className={`chip ${sort === 'new' ? 'chip-active' : ''}`}>新着</Link>
           <Link href={href({ active: !activeOnly })} className={`chip ${activeOnly ? 'chip-active' : ''}`}>未対応のみ</Link>
         </div>
         <div className="flex flex-wrap gap-2">
           <Link href={href({ cat: '' })} className={`chip ${!cat ? 'chip-active' : ''}`}>すべて</Link>
           {IDEA_CATEGORIES.map((c) => (
-            <Link key={c.v} href={href({ cat: c.v })} className={`chip ${cat === c.v ? 'chip-active' : ''}`}>{c.icon} {c.l}</Link>
+            <Link key={c.v} href={href({ cat: c.v })} className={`chip ${cat === c.v ? 'chip-active' : ''}`}>{c.l}</Link>
           ))}
         </div>
       </div>
@@ -104,7 +104,7 @@ export default async function IdeasPage({
                       {st.l}
                     </span>
                     <span className="text-[0.68rem]" style={{ color: 'var(--color-ash-dim)', fontWeight: 600 }}>
-                      {ideaCategory(idea.category).icon} {ideaCategory(idea.category).l}
+                      {ideaCategory(idea.category).l}
                     </span>
                     <h2 className="text-base leading-snug" style={{ fontWeight: 700 }}>{idea.title}</h2>
                   </div>
@@ -114,7 +114,7 @@ export default async function IdeasPage({
                   {idea.downReasons.length > 0 && (
                     <details className="mt-2 rounded-lg border px-3 py-2" style={{ borderColor: 'var(--line)', background: 'var(--line)' }}>
                       <summary className="cursor-pointer text-xs" style={{ color: 'var(--color-ash)', fontWeight: 600 }}>
-                        🚫 反対の理由（{idea.downReasons.length}）
+                        反対の理由（{idea.downReasons.length}）
                       </summary>
                       <ul className="mt-2 flex flex-col gap-1">
                         {idea.downReasons.map((r, i) => (

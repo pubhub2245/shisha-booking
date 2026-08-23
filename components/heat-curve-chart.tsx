@@ -86,7 +86,7 @@ export function HeatCurveChart({
           <g>
             <rect x={padL} y={padT} width={Math.max(0, x(Math.min(steepMinutes, maxT)) - padL)} height={H - padT - padB} fill="rgb(31 138 118 / 0.10)" />
             <line x1={x(Math.min(steepMinutes, maxT))} x2={x(Math.min(steepMinutes, maxT))} y1={padT} y2={H - padB} stroke="var(--color-coal)" strokeWidth="1" strokeDasharray="2 2" opacity="0.6" />
-            <text x={padL + 3} y={padT + 9} fontSize="8" fill="var(--color-coal)" style={{ fontWeight: 700 }}>♨️蒸らし{steepMinutes}分</text>
+            <text x={padL + 3} y={padT + 9} fontSize="8" fill="var(--color-coal)" style={{ fontWeight: 700 }}>蒸らし{steepMinutes}分</text>
             {steepHeat && steepHeat > 0 && (
               <>
                 <line x1={padL} x2={x(Math.min(steepMinutes, maxT))} y1={y(steepHeat)} y2={y(steepHeat)} stroke="var(--color-coal)" strokeWidth="1" strokeDasharray="2 2" opacity="0.5" />
@@ -140,7 +140,7 @@ export function HeatCurveChart({
                       fill="var(--color-ember-hot)"
                       style={{ fontWeight: 700 }}
                     >
-                      🔥{p.coals}
+                      {p.coals}
                       {coalStateShort(p.coalState) ? ` ${coalStateShort(p.coalState)}` : ''}
                     </text>
                   ) : null

@@ -28,7 +28,7 @@ export function AuthForm({ mode, next }: { mode: 'login' | 'signup'; next?: stri
           className="rounded-xl border px-4 py-3 text-sm"
           style={{ borderColor: 'var(--color-ember)', background: 'var(--accent-tint)', color: 'var(--color-ember-hot)' }}
         >
-          ✉️ {notice}
+          {notice}
         </div>
       )}
 
@@ -53,7 +53,7 @@ export function AuthForm({ mode, next }: { mode: 'login' | 'signup'; next?: stri
           className="rounded-lg px-3 py-2 text-xs leading-relaxed"
           style={{ background: 'rgb(213 153 43 / 0.12)', color: '#b7791f' }}
         >
-          ⚠️ 現在はメール認証を使わない運用のため、<b>パスワードを忘れると再設定できません</b>。
+          現在はメール認証を使わない運用のため、<b>パスワードを忘れると再設定できません</b>。
           メールアドレスとパスワードは必ず控えておいてください。
         </p>
       )}

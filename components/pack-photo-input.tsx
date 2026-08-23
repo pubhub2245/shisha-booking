@@ -110,9 +110,7 @@ export function PackPhotoInput({ name = 'pack_photo_url', defaultValue = '' }: {
           disabled={busy}
           className="flex h-28 w-full flex-col items-center justify-center gap-1 rounded-xl border border-dashed text-sm"
           style={{ borderColor: 'var(--line-strong)', color: 'var(--color-ash)' }}
-        >
-          <span className="text-2xl" aria-hidden>📷</span>
-          {busy ? 'アップロード中…' : '盛り方の写真を追加'}
+        > {busy ? 'アップロード中…' : '盛り方の写真を追加'}
         </button>
       )}
       <input ref={fileRef} type="file" accept="image/*" onChange={onPick} className="hidden" />

@@ -20,7 +20,7 @@ export function ProApplicationForm({
   if (isPro) {
     return (
       <div className="card p-5 text-sm" style={{ color: 'var(--color-ash)' }}>
-        ✅ あなたは<b style={{ color: 'var(--color-ember-hot)' }}>認証済みプロ</b>です。名前の横に認証マークが表示されます。
+        あなたは<b style={{ color: 'var(--color-ember-hot)' }}>認証済みプロ</b>です。名前の横に認証マークが表示されます。
       </div>
     )
   }
@@ -29,7 +29,7 @@ export function ProApplicationForm({
   if (submitted && application?.status !== 'rejected') {
     return (
       <div className="card p-5 text-sm" style={{ color: 'var(--color-ash)' }}>
-        🕓 プロ認証を<b>審査中</b>です。運営がSNSアカウントと在籍を確認のうえ、承認をお知らせします。
+        プロ認証を<b>審査中</b>です。運営がSNSアカウントと在籍を確認のうえ、承認をお知らせします。
       </div>
     )
   }
@@ -75,7 +75,7 @@ export function ProApplicationForm({
         </p>
         <details className="mt-2 rounded-lg border p-3" style={{ borderColor: 'var(--line)' }}>
           <summary className="cursor-pointer text-xs" style={{ color: 'var(--color-ember-hot)', fontWeight: 600 }}>
-            🔗 プロフィールURLの取得方法
+            プロフィールURLの取得方法
           </summary>
           <div className="mt-2 flex flex-col gap-3 text-xs leading-relaxed" style={{ color: 'var(--color-ash)' }}>
             <div>

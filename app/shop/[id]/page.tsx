@@ -61,11 +61,11 @@ export default async function ShopPage({ params }: { params: Promise<{ id: strin
         <div className="flex items-start gap-3">
           <Avatar name={shop.name} seed={shop.id} size={52} />
           <div className="min-w-0 flex-1">
-            <span className="chip chip-active mb-2 inline-flex">🏠 店頭メニュー</span>
+            <span className="chip chip-active mb-2 inline-flex">店頭メニュー</span>
             <h1 className="truncate text-2xl" style={{ fontWeight: 800 }}>{shop.name}</h1>
             <div className="mt-1 flex flex-wrap items-center gap-x-3 text-sm" style={{ color: 'var(--color-ash-dim)' }}>
               {(shop.area || shop.prefecture) && (
-                <span>📍 {[shop.prefecture, shop.area].filter(Boolean).join('・')}</span>
+                <span>{[shop.prefecture, shop.area].filter(Boolean).join('・')}</span>
               )}
               {shop.url && (
                 <a href={shop.url} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--color-ember-hot)' }}>
@@ -94,7 +94,7 @@ export default async function ShopPage({ params }: { params: Promise<{ id: strin
                 className="inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs"
                 style={{ borderColor: 'var(--line-strong)', color: 'var(--color-ash)' }}
               >
-                {m.role === 'owner' && <span aria-hidden title="オーナー">👑</span>}
+                {m.role === 'owner' && <span className="chip" title="オーナー" style={{ padding: '0 6px', fontSize: '0.62rem' }}>主</span>}
                 <span>{m.user?.display_name || (m.user?.username ? `@${m.user.username}` : 'スタッフ')}</span>
                 {m.user?.is_pro && <VerifiedBadge size={12} />}
               </Link>
@@ -121,7 +121,7 @@ export default async function ShopPage({ params }: { params: Promise<{ id: strin
           className="mt-4 rounded-xl border p-4 text-sm"
           style={{ borderColor: 'rgb(178 59 46 / 0.30)', background: 'rgb(178 59 46 / 0.05)' }}
         >
-          <div className="flex items-center gap-2" style={{ fontWeight: 800 }}>📍 ご来店ありがとうございます</div>
+          <div className="flex items-center gap-2" style={{ fontWeight: 800 }}>ご来店ありがとうございます</div>
           <p className="mt-1 text-xs leading-relaxed" style={{ color: 'var(--color-ash)' }}>
             スタッフの作り方で実際に吸ったら、その作り方のページで <b>「実地評価」</b> を押してください。
             現地のGPSで確認された一票は、いいねより重く<b>王道の選出</b>に効きます。
@@ -144,7 +144,7 @@ export default async function ShopPage({ params }: { params: Promise<{ id: strin
               この中から好きなフレーバーを選んでください。タップでそのフレーバーの作り方が見られます。
             </p>
             <div className="mb-3 flex flex-wrap items-baseline justify-between gap-2">
-              <h2 className="text-lg" style={{ fontWeight: 700 }}>🍃 今あるフレーバー（{flavors.length}）</h2>
+              <h2 className="text-lg" style={{ fontWeight: 700 }}>今あるフレーバー（{flavors.length}）</h2>
               {invUpdatedAt && (
                 <span
                   className="rounded-full px-2 py-0.5 text-[0.68rem]"
@@ -155,7 +155,7 @@ export default async function ShopPage({ params }: { params: Promise<{ id: strin
                   }
                   title="在庫が最後に更新された時期の目安です"
                 >
-                  {invStale ? '⚠️ ' : '🕒 '}在庫更新 {relativeTime(invUpdatedAt)}
+                  在庫更新 {relativeTime(invUpdatedAt)}
                   {invStale && '（古い可能性）'}
                 </span>
               )}
@@ -177,7 +177,7 @@ export default async function ShopPage({ params }: { params: Promise<{ id: strin
           {combos.length > 0 && (
             <section className="mt-12">
               <h2 className="mb-3 text-lg" style={{ fontWeight: 700 }}>
-                🔥 この店の在庫で試せる作り方（{combos.length}）
+                この店の在庫で試せる作り方（{combos.length}）
               </h2>
               <div className="grid gap-2 sm:grid-cols-2">
                 {combos.slice(0, 12).map((combo) => (

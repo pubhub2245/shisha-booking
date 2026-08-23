@@ -30,7 +30,7 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
           placeholder="作り方・フレーバー・タグで検索"
           aria-label="検索"
           autoFocus
-          className="min-w-0 flex-1 rounded-xl border px-4 py-2.5 text-sm outline-none"
+          className="min-h-11 min-w-0 flex-1 rounded-xl border px-4 py-2.5 text-sm outline-none"
           style={{ background: 'var(--color-smoke-850)', borderColor: 'var(--line-strong)', color: 'var(--color-cream)' }}
         />
         <button type="submit" className="btn btn-ember shrink-0 text-sm">検索</button>

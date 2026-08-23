@@ -45,7 +45,7 @@ function VoteButton({ name, isAuthed }: { name: MixNameWithVotes; isAuthed: bool
           : { borderColor: 'var(--line-strong)', color: 'var(--color-ash)' }
       }
     >
-      👍 {votes}
+      {votes}
     </button>
   )
 }
@@ -90,16 +90,16 @@ export function MixNaming({
 
   return (
     <section className="mt-8">
-      <h2 className="mb-1 flex items-center gap-2 text-sm eyebrow">📛 公募ネーミング</h2>
+      <h2 className="mb-1 flex items-center gap-2 text-sm eyebrow">公募ネーミング</h2>
       <p className="mb-3 text-xs leading-relaxed" style={{ color: 'var(--color-ash)' }}>
-        王道に選ばれた一台の<b>愛称</b>を、みんなで決めましょう。案を出して👍が一番集まった名前が愛称になります。
+        王道に選ばれた一台の<b>愛称</b>を、みんなで決めましょう。案を出していいねが一番集まった名前が愛称になります。
       </p>
 
       {winner && (
         <div className="mb-3 rounded-xl border p-4 text-center" style={{ borderColor: 'rgb(178 59 46 / 0.35)', background: 'rgb(178 59 46 / 0.06)' }}>
           <div className="text-xs" style={{ color: 'var(--color-ash-dim)' }}>現在の愛称（最多得票）</div>
           <div className="mt-0.5 text-xl" style={{ fontWeight: 800 }}>「{winner.name}」</div>
-          <div className="mt-0.5 text-xs" style={{ color: 'var(--color-ash-dim)' }}>👍 {winner.votes}</div>
+          <div className="mt-0.5 text-xs" style={{ color: 'var(--color-ash-dim)' }}>{winner.votes}</div>
         </div>
       )}
 

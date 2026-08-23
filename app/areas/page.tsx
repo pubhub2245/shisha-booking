@@ -15,7 +15,7 @@ export const metadata = {
     '地方ごとの作り方＆お店ランキング。旅行先で一番美味しいシーシャ屋さんを見つけよう。都会だけが有利にならない、地域対抗の図鑑。',
 }
 
-const MEDALS = ['🥇', '🥈', '🥉']
+const MEDALS = ['壱', '弐', '参']
 
 export default async function AreasPage() {
   const [regions, nearby, likedIds, user] = await Promise.all([
@@ -47,7 +47,6 @@ export default async function AreasPage() {
 
       {regions.length === 0 ? (
         <EmptyState
-          icon="🗾"
           title="まだ地域別のデータがありません"
           action={<Link href="/shops" className="btn btn-ghost">お店一覧へ</Link>}
         >
@@ -59,7 +58,7 @@ export default async function AreasPage() {
           <div className="mt-5 flex flex-wrap gap-2">
             {regions.map((r) => (
               <a key={r.region} href={`#${r.region}`} className="chip">
-                {r.emoji} {r.region}
+                {r.region}
               </a>
             ))}
           </div>
@@ -68,7 +67,7 @@ export default async function AreasPage() {
             {regions.map((r) => (
               <section key={r.region} id={r.region} className="scroll-mt-20">
                 <h2 className="flex items-center gap-2 text-2xl" style={{ fontWeight: 800 }}>
-                  <span aria-hidden>{r.emoji}</span> {r.region}
+                  {r.region}
                 </h2>
 
                 {/* ---------- お店ランキング ---------- */}
@@ -91,12 +90,12 @@ export default async function AreasPage() {
                               <span className="truncate" style={{ fontWeight: 700 }}>{it.shop.name}</span>
                               {i === 0 && it.score > 0 && (
                                 <span className="shrink-0 rounded-full px-1.5 py-0.5 text-[0.62rem]" style={{ background: 'var(--accent-tint)', color: 'var(--color-ember-hot)', fontWeight: 800 }}>
-                                  🏅 地域No.1
+                                  地域No.1
                                 </span>
                               )}
                             </div>
                             <div className="mt-0.5 flex flex-wrap items-center gap-x-2 text-xs" style={{ color: 'var(--color-ash-dim)' }}>
-                              <span>📍 {it.shop.area || it.shop.prefecture}</span>
+                              <span>{it.shop.area || it.shop.prefecture}</span>
                               {it.onsite > 0 && (
                                 <span style={{ color: 'var(--color-ember-hot)', fontWeight: 700 }}>実地 {it.onsite}</span>
                               )}
@@ -126,7 +125,7 @@ export default async function AreasPage() {
                               className="absolute -top-2 left-3 z-10 rounded-full px-2 py-0.5 text-[0.62rem]"
                               style={{ background: 'linear-gradient(90deg, var(--color-ember), var(--color-ember-deep))', color: '#fff', fontWeight: 800, boxShadow: '0 4px 10px -4px rgb(224 85 42 / 0.6)' }}
                             >
-                              🏅 {r.region}の王道
+                              {r.region}の王道
                             </span>
                           )}
                           <MixCard mix={x.mix} liked={likedIds.has(x.mix.id)} isAuthed={!!user} />

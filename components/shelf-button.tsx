@@ -47,7 +47,7 @@ export function ShelfButton({
         fontWeight: 600,
       }}
     >
-      <span aria-hidden>{owned ? '🫙' : '＋'}</span>
+      <span aria-hidden>{owned ? '' : '＋'}</span>
       {owned ? 'マイフレーバーにあり' : 'マイフレーバーに追加'}
     </button>
   )

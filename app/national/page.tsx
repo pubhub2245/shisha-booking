@@ -16,7 +16,7 @@ export const metadata: Metadata = {
 /**
  * 王道の一覧。
  * source of truth は combo_orthodoxy（公式認定）のみ。
- * 旧 national_reps（👍・作った・実地評価の自動スコア）は運営内部の候補発見用として温存し、
+ * 旧 national_reps（いいね・作った・実地評価の自動スコア）は運営内部の候補発見用として温存し、
  * 一般ユーザー向けの王道判定には使わない（2つの王道制度を同時に見せないため）。
  */
 export default async function NationalTeamPage() {

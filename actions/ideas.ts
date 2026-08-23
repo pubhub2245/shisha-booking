@@ -27,13 +27,13 @@ export async function createIdea(_prev: IdeaState, formData: FormData): Promise<
     .select('id')
     .single()
   if (error || !inserted) return { error: '投稿に失敗しました。時間をおいて再度お試しください。' }
-  // 自分の投稿には自動で👍（改修希望のカウント）
+  // 自分の投稿には自動で賛成（改修希望のカウント）
   await supabase.from('idea_votes').upsert({ idea_id: inserted.id, user_id: user.id, value: 1 }, { onConflict: 'idea_id,user_id' })
   revalidatePath('/ideas')
   return { ok: true }
 }
 
-/** 投票（👍=1 / 👎=-1）。同じ値を再度押すと取り消し。👎には理由が必須。 */
+/** 投票（賛成=1 / 反対=-1）。同じ値を再度押すと取り消し。反対には理由が必須。 */
 export async function voteIdea(
   ideaId: number,
   value: 1 | -1,
@@ -59,7 +59,7 @@ export async function voteIdea(
     myVote = 0
   } else {
     const trimmed = (reason ?? '').trim().slice(0, 300)
-    // 反対（👎）には理由が必須
+    // 反対には理由が必須
     if (value === -1 && !trimmed) return { error: '反対する場合は理由を入力してください。' }
     await supabase
       .from('idea_votes')

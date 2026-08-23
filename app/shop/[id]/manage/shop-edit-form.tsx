@@ -84,7 +84,7 @@ export function ShopEditForm({ shop }: { shop: Shop }) {
           <select name="prefecture" defaultValue={shop.prefecture ?? ''}>
             <option value="">未設定</option>
             {REGIONS.map((r) => (
-              <optgroup key={r.key} label={`${r.emoji} ${r.key}`}>
+              <optgroup key={r.key} label={r.key}>
                 {r.prefs.map((p) => (
                   <option key={p} value={p}>{p}</option>
                 ))}
@@ -108,14 +108,14 @@ export function ShopEditForm({ shop }: { shop: Shop }) {
 
       {/* ---------- 実地評価用の位置情報 ---------- */}
       <div className="rounded-xl border p-4" style={{ borderColor: 'var(--line)' }}>
-        <div className="text-sm" style={{ fontWeight: 700 }}>📍 お店の位置（実地評価用）</div>
+        <div className="text-sm" style={{ fontWeight: 700 }}>お店の位置（実地評価用）</div>
         <p className="mt-1 text-xs leading-relaxed" style={{ color: 'var(--color-ash)' }}>
           この位置を基準に「お客さんが本当に来店したか」をGPSで判定します。
           <b>お店の中で</b>「現在地を登録」を押してください。来店したお客さんだけが、あなたの作り方を実地評価できるようになります。
         </p>
         <div className="mt-3 flex flex-wrap items-center gap-2">
           <button type="button" onClick={captureLocation} disabled={locating} className="btn btn-ghost text-sm">
-            {locating ? '📡 取得中…' : hasLoc ? '現在地で更新' : '現在地を登録'}
+            {locating ? '取得中…' : hasLoc ? '現在地で更新' : '現在地を登録'}
           </button>
           {hasLoc && (
             <button type="button" onClick={clearLocation} className="text-xs" style={{ color: 'var(--color-ash-dim)' }}>

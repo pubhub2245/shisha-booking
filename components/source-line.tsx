@@ -25,9 +25,7 @@ export function SourceLine({
             style={{ color: 'var(--color-ash)' }}
           >
             {s.label}
-          </a>
-          <span aria-hidden>↗</span>
-        </span>
+          </a> </span>
       ))}
     </p>
   )

@@ -338,7 +338,6 @@ export type RegionMix = { mix: MixWithRelations; score: number; onsite: number; 
 /** 1地方ぶんのランキング */
 export type RegionRanking = {
   region: string
-  emoji: string
   shops: ShopRankItem[]
   mixes: RegionMix[]
 }

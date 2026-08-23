@@ -121,7 +121,7 @@ export function IdeaVoteButtons({
       >
         ▼
       </button>
-      <span className="text-[0.6rem]" style={{ color: 'var(--color-ash-dim)' }}>👍{u} 👎{d}</span>
+      <span className="text-[0.6rem]" style={{ color: 'var(--color-ash-dim)' }}>賛成{u}・反対{d}</span>
 
       {reasonOpen && (
         <div

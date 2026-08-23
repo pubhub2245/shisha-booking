@@ -40,8 +40,7 @@ export default async function ShelfPage() {
   return (
     <div className="wrap max-w-3xl py-10">
       <p className="eyebrow">My Shelf</p>
-      <h1 className="mt-2 flex items-center gap-2 text-3xl" style={{ fontWeight: 800 }}>
-        <span aria-hidden>🫙</span> マイフレーバー
+      <h1 className="mt-2 flex items-center gap-2 text-3xl" style={{ fontWeight: 800 }}>マイフレーバー
       </h1>
       <p className="mt-2 text-sm" style={{ color: 'var(--color-ash)' }}>
         持っているフレーバーを選ぶと、<b>いま手元で試せる作り方</b>が下に表示されます。
@@ -50,7 +49,7 @@ export default async function ShelfPage() {
       {/* ---------- 手元で試せる作り方 ---------- */}
       <section className="mt-8">
         <h2 className="text-lg" style={{ fontWeight: 700 }}>
-          🔥 いま手元で試せる（{readyToTry.length}）
+          いま手元で試せる（{readyToTry.length}）
         </h2>
         {ownedCount === 0 ? (
           <div className="card mt-3 p-8 text-center">

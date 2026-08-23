@@ -5,7 +5,6 @@ import Link from 'next/link'
 export default function Error({ reset }: { error: Error & { digest?: string }; reset: () => void }) {
   return (
     <div className="wrap flex max-w-md flex-col items-center py-28 text-center">
-      <div className="text-5xl" aria-hidden>🌫️</div>
       <h1 className="mt-4 text-2xl" style={{ fontWeight: 800 }}>
         うまく表示できませんでした
       </h1>

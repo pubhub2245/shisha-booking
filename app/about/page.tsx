@@ -1,18 +1,18 @@
 import Link from 'next/link'
-import { IconOrb, type OrbPreset } from '@/components/icon-orb'
+import { IconOrb } from '@/components/icon-orb'
 
 export const metadata = {
   title: '煙道 ENDO について',
   description: '煙道（ENDO）は、1つのフレーバーをどう作るかを、みんなで試して比べる場所です。',
 }
 
-const features: { icon: string; preset: OrbPreset; title: string; body: string }[] = [
-  { icon: '試', preset: 'amber', title: '他人の作り方を試す', body: 'いつもの一台を、誰かのやり方に置き換えてみる。同じフレーバーでも、ボウル・詰め方・HMD・炭・火入れで一台は変わる。' },
-  { icon: '図', preset: 'green', title: 'フレーバー図鑑', body: 'フレーバーごとに、実際に作られた作り方が並ぶ。今夜の一台がここで決まる。' },
-  { icon: '比', preset: 'amber', title: '前の一台と比べる', body: '作ったら「前に作ったあれと比べてどうだったか」を残す。あなたの舌の中での比較が、そのまま蓄積される。' },
-  { icon: '技', preset: 'green', title: '作り方ノート', body: '熱管理カーブや炭のセットアップ、フレーバーの置き方まで。作り手が何を狙っているかまで残せる。' },
-  { icon: '代', preset: 'violet', title: '王道', body: '実際に作られ、吸われ、比べられた作り方の中から、煙道が確認して認定する。投稿数やいいねでは決まらない。' },
-  { icon: '店', preset: 'blue', title: '店舗も参加', body: 'お店として登録すれば、あなたの作り方が届き、来店のきっかけに。' },
+const features: { icon: string; title: string; body: string }[] = [
+  { icon: '試', title: '他人の作り方を試す', body: 'いつもの一台を、誰かのやり方に置き換えてみる。同じフレーバーでも、ボウル・詰め方・HMD・炭・火入れで一台は変わる。' },
+  { icon: '図', title: 'フレーバー図鑑', body: 'フレーバーごとに、実際に作られた作り方が並ぶ。今夜の一台がここで決まる。' },
+  { icon: '比', title: '前の一台と比べる', body: '作ったら「前に作ったあれと比べてどうだったか」を残す。あなたの舌の中での比較が、そのまま蓄積される。' },
+  { icon: '技', title: '作り方ノート', body: '熱管理カーブや炭のセットアップ、フレーバーの置き方まで。作り手が何を狙っているかまで残せる。' },
+  { icon: '代', title: '王道', body: '実際に作られ、吸われ、比べられた作り方の中から、煙道が確認して認定する。投稿数やいいねでは決まらない。' },
+  { icon: '店', title: '店舗も参加', body: 'お店として登録すれば、あなたの作り方が届き、来店のきっかけに。' },
 ]
 
 export default function AboutPage() {
@@ -35,7 +35,7 @@ export default function AboutPage() {
       <div className="mt-10 flex flex-col gap-4">
         {features.map((f) => (
           <div key={f.title} className="card card-wa flex items-center gap-4 p-5">
-            <IconOrb preset={f.preset} size={50}><span className="font-display" style={{ fontWeight: 700 }}>{f.icon}</span></IconOrb>
+            <IconOrb size={50}><span className="font-display" style={{ fontWeight: 700 }}>{f.icon}</span></IconOrb>
             <div>
               <h2 className="text-base" style={{ fontWeight: 700 }}>{f.title}</h2>
               <p className="mt-1 text-sm" style={{ color: 'var(--color-ash)' }}>{f.body}</p>

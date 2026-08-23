@@ -63,7 +63,7 @@ export function ShareBar({ url, text }: { url: string; text: string }) {
         className={base}
         style={quiet}
       >
-        <span aria-hidden>{copied ? '✅' : '🔗'}</span>
+        <span aria-hidden>{copied ? '✓' : ''}</span>
         {copied ? 'コピーしました' : 'リンク'}
       </button>
     </div>

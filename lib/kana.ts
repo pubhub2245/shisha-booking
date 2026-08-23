@@ -1,4 +1,4 @@
-// 検索の表記ゆれ吸収（ひらがな⇔カタカナ・大文字小文字）
+// 検索の表記ゆれ吸収（ひらがなカタカナ・大文字小文字）
 
 export function toHiragana(s: string): string {
   return s.replace(/[ァ-ヶ]/g, (c) => String.fromCharCode(c.charCodeAt(0) - 0x60))

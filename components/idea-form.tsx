@@ -21,9 +21,11 @@ export function IdeaForm({ isAuthed }: { isAuthed: boolean }) {
   if (!isAuthed) {
     return (
       <div className="card p-5 text-center text-sm" style={{ color: 'var(--color-ash)' }}>
-        意見を投稿するには{' '}
-        <Link href="/login?next=/ideas" style={{ color: 'var(--color-ember-hot)', fontWeight: 600 }}>ログイン</Link>
-        してください。投票（👍👎）も同様です。
+        <p>
+          意見を投稿するには{' '}
+          <Link href="/login?next=/ideas" style={{ color: 'var(--color-ember-hot)', fontWeight: 600 }}>ログイン</Link>
+          してください。投票も同様です。
+        </p>
       </div>
     )
   }
@@ -38,7 +40,7 @@ export function IdeaForm({ isAuthed }: { isAuthed: boolean }) {
           <label>カテゴリ</label>
           <select name="category" defaultValue="post">
             {IDEA_CATEGORIES.map((c) => (
-              <option key={c.v} value={c.v}>{c.icon} {c.l}</option>
+              <option key={c.v} value={c.v}>{c.l}</option>
             ))}
           </select>
         </div>

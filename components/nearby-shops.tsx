@@ -56,14 +56,14 @@ export function NearbyShops({ shops }: { shops: ShopRankItem[] }) {
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div>
             <h2 className="flex items-center gap-2 text-base" style={{ fontWeight: 800 }}>
-              🧭 現在地から近い高評価店
+              現在地から近い高評価店
             </h2>
             <p className="mt-0.5 text-xs" style={{ color: 'var(--color-ash)' }}>
               いる場所の周りで、評価の高いシーシャ屋を近い順に。旅行・出張先で使えます。
             </p>
           </div>
           <button type="button" onClick={findNearby} disabled={busy} className="btn btn-ember shrink-0 text-sm">
-            {busy ? '📡 探しています…' : '現在地から探す'}
+            {busy ? '探しています…' : '現在地から探す'}
           </button>
         </div>
 
@@ -83,7 +83,7 @@ export function NearbyShops({ shops }: { shops: ShopRankItem[] }) {
                   <div className="min-w-0 flex-1">
                     <div className="truncate text-sm" style={{ fontWeight: 700 }}>{it.shop.name}</div>
                     <div className="flex flex-wrap items-center gap-x-2 text-xs" style={{ color: 'var(--color-ash-dim)' }}>
-                      <span>📍 {[it.shop.prefecture, it.shop.area].filter(Boolean).join('・')}</span>
+                      <span>{[it.shop.prefecture, it.shop.area].filter(Boolean).join('・')}</span>
                       {it.onsite > 0 && <span style={{ color: 'var(--color-ember-hot)', fontWeight: 700 }}>実地 {it.onsite}</span>}
                       {it.topMix && <span className="truncate">代表作：{flavorLine(it.topMix.mix_flavors)}</span>}
                     </div>

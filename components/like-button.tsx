@@ -65,7 +65,7 @@ export function LikeButton({
       }}
     >
       <span className={pop ? 'like-pop' : ''} aria-hidden style={{ lineHeight: 1 }}>
-        {liked ? '❤️' : '🤍'}
+        {liked ? '' : ''}
       </span>
       <span style={{ fontWeight: 600 }}>{count}</span>
     </button>

@@ -30,9 +30,9 @@ export default async function ShopsPage() {
             <Link key={s.id} href={`/shop/${s.id}`} className="card card-hover p-5">
               <h2 className="truncate text-lg" style={{ fontWeight: 700 }}>{s.name}</h2>
               <div className="mt-1 flex flex-wrap items-center gap-x-3 text-xs" style={{ color: 'var(--color-ash-dim)' }}>
-                {s.area && <span>📍 {s.area}</span>}
-                <span>🍃 在庫 {s.flavor_count}種</span>
-                <span>👤 スタッフ {s.member_count}</span>
+                {s.area && <span>{s.area}</span>}
+                <span>在庫 {s.flavor_count}種</span>
+                <span>スタッフ {s.member_count}</span>
               </div>
               {s.description && (
                 <p className="mt-2 text-sm" style={{ color: 'var(--color-ash)', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>

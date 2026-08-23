@@ -6,8 +6,8 @@ import Link from 'next/link'
  */
 const TABS = [
   { key: 'national', href: '/national', label: '王道', hint: 'フレーバーごとの王道' },
-  { key: 'areas', href: '/areas', label: '📍 地域別', hint: '地方ごと・旅行先の名店' },
-  { key: 'ranking', href: '/ranking', label: '🔥 人気', hint: 'いいねが多い順' },
+  { key: 'areas', href: '/areas', label: '地域別', hint: '地方ごと・旅行先の名店' },
+  { key: 'ranking', href: '/ranking', label: '人気', hint: 'いいねが多い順' },
 ] as const
 
 export function RankingTabs({ current }: { current: 'national' | 'areas' | 'ranking' }) {

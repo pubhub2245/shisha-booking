@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import type { Metadata } from 'next'
-import { IconOrb, type OrbPreset } from '@/components/icon-orb'
+import { IconOrb } from '@/components/icon-orb'
 
 export const metadata: Metadata = {
   title: '創設メンバー募集',
@@ -8,28 +8,24 @@ export const metadata: Metadata = {
     '日本のシーシャに、まだ「美味しい作り方」の標準はありません。その基準を最初に作る側になりませんか。煙道 創設メンバー（作り手）を募集しています。',
 }
 
-const perks: { icon: string; preset: OrbPreset; title: string; body: string }[] = [
+const perks: { icon: string; title: string; body: string }[] = [
   {
     icon: '王',
-    preset: 'amber',
     title: '「王道」の冠を最初に獲れる',
     body: '実際に吸われ、再現された作り方を煙道が確認して王道に認定します。人が少ない今こそ、あなたの作り方が王道になる最短のタイミングです。',
   },
   {
-    icon: '🎖️',
-    preset: 'violet',
+    icon: '証',
     title: '創設メンバーの証',
     body: '初期に参加した作り手には「創設メンバー」バッジが付きます。この図鑑を最初に作った一人として、ずっと記録に残ります。',
   },
   {
-    icon: '📖',
-    preset: 'green',
+    icon: '集',
     title: 'あなたの作品集になる',
     body: 'プロフィールが実績付きの作品集に。累計いいね・作られた回数・王道の冠が数字で残り、あなたの腕の証明になります。',
   },
   {
-    icon: '🏠',
-    preset: 'blue',
+    icon: '店',
     title: 'お店への送客',
     body: '店舗を登録すれば、あなたの作り方から来店動機が生まれます。在庫棚・店頭QRメニューで「この店ならこれが吸える」を可視化。',
   },
@@ -57,7 +53,7 @@ export default function FoundersPage() {
       <div className="mt-10 grid gap-5 sm:grid-cols-2">
         {perks.map((p) => (
           <div key={p.title} className="card p-6">
-            <IconOrb preset={p.preset} size={52}>{p.icon}</IconOrb>
+            <IconOrb size={52}><span className="font-display" style={{ fontWeight: 700 }}>{p.icon}</span></IconOrb>
             <h3 className="mt-4 text-base" style={{ fontWeight: 700 }}>{p.title}</h3>
             <p className="mt-2 text-sm leading-relaxed" style={{ color: 'var(--color-ash)' }}>{p.body}</p>
           </div>
@@ -71,7 +67,7 @@ export default function FoundersPage() {
           <div key={s.n} className="card flex items-start gap-4 p-5">
             <div
               className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-sm"
-              style={{ background: 'var(--color-ember)', color: '#fff', fontWeight: 800 }}
+              style={{ background: 'var(--color-ember)', color: 'var(--on-fill)', fontWeight: 800 }}
             >
               {s.n}
             </div>

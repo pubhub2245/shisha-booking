@@ -17,7 +17,7 @@ export default async function AdminClicksPage() {
   return (
     <div className="wrap max-w-3xl py-10">
       <Link href="/mypage" className="text-sm" style={{ color: 'var(--color-ash-dim)' }}>← マイページ</Link>
-      <h1 className="mt-4 text-2xl" style={{ fontWeight: 800 }}>📊 送客クリック集計</h1>
+      <h1 className="mt-4 text-2xl" style={{ fontWeight: 800 }}>送客クリック集計</h1>
       <p className="mt-2 text-sm" style={{ color: 'var(--color-ash)' }}>
         購入・来店リンク（/go 経由）のクリック数。アフィリエイト提携の交渉材料になります。
       </p>

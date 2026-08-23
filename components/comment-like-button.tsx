@@ -50,7 +50,7 @@ export function CommentLikeButton({
       className="inline-flex items-center gap-1 text-xs transition-colors"
       style={{ color: liked ? 'var(--color-ember-hot)' : 'var(--color-ash-dim)', fontWeight: 600 }}
     >
-      <span aria-hidden>{liked ? '❤️' : '🤍'}</span>
+      <span aria-hidden>{liked ? '' : ''}</span>
       {count > 0 && count}
     </button>
   )

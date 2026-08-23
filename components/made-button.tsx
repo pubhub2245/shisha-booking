@@ -145,9 +145,7 @@ export function MadeButton({
           background: made ? 'var(--accent-tint)' : 'transparent',
           fontWeight: 700,
         }}
-      >
-        <span aria-hidden>🎉</span>
-        {made ? 'また作った' : 'この作り方で作った'}
+      > {made ? 'また作った' : 'この作り方で作った'}
         {count > 0 && <span>{count}</span>}
       </button>
 

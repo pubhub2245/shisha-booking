@@ -31,7 +31,7 @@ export function ReportButton({ mixId, isAuthed }: { mixId: string; isAuthed: boo
       className="text-xs transition-colors hover:text-[var(--color-ember-hot)]"
       style={{ color: 'var(--color-ash-dim)' }}
     >
-      {done ? '✓ 通報しました' : '⚠ 通報'}
+      {done ? '✓ 通報しました' : '通報'}
     </button>
   )
 }

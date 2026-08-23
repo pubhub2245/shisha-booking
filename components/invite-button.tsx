@@ -32,7 +32,7 @@ export function InviteButton({ className = 'btn btn-ghost text-sm' }: { classNam
 
   return (
     <button type="button" onClick={onClick} className={className}>
-      {copied ? '✓ リンクをコピーしました' : '🔗 友達に教える'}
+      {copied ? '✓ リンクをコピーしました' : '友達に教える'}
     </button>
   )
 }

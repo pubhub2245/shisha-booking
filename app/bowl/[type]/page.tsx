@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { LineIcon } from '@/components/line-icons'
 import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
 import { getMixesByBowlType, getLikedMixIds } from '@/lib/queries'
@@ -40,7 +41,7 @@ export default async function BowlTypePage({ params }: { params: Promise<{ type:
 
   return (
     <div className="wrap max-w-3xl py-10">
-      <Link href="/guide#hms-bowl" className="text-sm" style={{ color: 'var(--color-ash-dim)' }}>← 作り方ガイド（HMD×ボウル）</Link>
+      <Link href="/guide#hms-bowl" className="inline-flex min-h-11 items-center text-sm" style={{ color: 'var(--color-ash-dim)' }}>← 作り方ガイド（HMD×ボウル）</Link>
 
       <div className="mt-4 flex items-center gap-4">
         <span
@@ -69,7 +70,7 @@ export default async function BowlTypePage({ params }: { params: Promise<{ type:
       {/* 実例写真ギャラリー */}
       <section className="mt-8">
         <h2 className="mb-3 text-lg" style={{ fontWeight: 700 }}>
-          📷 みんなの{bowl.l}の盛り方
+          みんなの{bowl.l}の盛り方
         </h2>
         {photoMixes.length > 0 ? (
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
@@ -87,7 +88,7 @@ export default async function BowlTypePage({ params }: { params: Promise<{ type:
           </div>
         ) : (
           <div className="card flex flex-col items-center gap-3 p-8 text-center">
-            <span className="text-3xl" aria-hidden>📷</span>
+            <span style={{ color: 'var(--color-ash-dim)' }}><LineIcon name="camera" size={30} /></span>
             <p className="text-sm" style={{ color: 'var(--color-ash)' }}>
               まだ{bowl.l}の盛り方写真がありません。<br />あなたの投稿が最初の実例になるかも。
             </p>

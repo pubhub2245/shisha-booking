@@ -52,7 +52,7 @@ export function BookmarkButton({
         fontWeight: 600,
       }}
     >
-      <span aria-hidden>{saved ? '🔖' : '＋'}</span>
+      <span aria-hidden>{saved ? '' : '＋'}</span>
       {saved ? '保存済み' : '保存'}
     </button>
   )

@@ -172,7 +172,7 @@ export function OnsiteRating({
     <section>
       <div className="rounded-2xl border p-5" style={{ borderColor: 'rgb(178 59 46 / 0.30)', background: 'rgb(178 59 46 / 0.05)' }}>
         <div className="flex items-center justify-between gap-2">
-          <h2 className="flex items-center gap-2 text-base" style={{ fontWeight: 800 }}>📍 実地評価</h2>
+          <h2 className="flex items-center gap-2 text-base" style={{ fontWeight: 800 }}>実地評価</h2>
           <span className="rounded-full px-2.5 py-0.5 text-xs" style={{ background: 'var(--accent-tint)', color: 'var(--color-ember-hot)', fontWeight: 700 }}>
             {ctx.avg != null ? `★${ctx.avg.toFixed(1)}・` : ''}{count}人が評価
           </span>
@@ -201,7 +201,7 @@ export function OnsiteRating({
             </div>
           ) : state === 'waiting' ? (
             <div className="rounded-xl border px-4 py-3 text-sm" style={{ borderColor: 'var(--line-strong)' }}>
-              ✅ 来店を記録しました。<b>評価は{availableAt && now ? untilText(availableAt, now) : '24時間後'}から</b>つけられます。
+              来店を記録しました。<b>評価は{availableAt && now ? untilText(availableAt, now) : '24時間後'}から</b>つけられます。
               <div className="mt-0.5 text-xs" style={{ color: 'var(--color-ash-dim)' }}>
                 時間をおいて、このページからもう一度どうぞ。
               </div>
@@ -227,7 +227,7 @@ export function OnsiteRating({
             </div>
           ) : (
             <button type="button" onClick={checkin} disabled={busy} className="btn btn-ember text-sm">
-              {locating ? '📡 現在地を確認中…' : pending ? '記録中…' : '📍 お店で来店チェックイン'}
+              {locating ? '現在地を確認中…' : pending ? '記録中…' : 'お店で来店チェックイン'}
             </button>
           )}
         </div>

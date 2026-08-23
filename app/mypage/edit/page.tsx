@@ -41,9 +41,9 @@ export default async function ProfileEditPage() {
         <section className="mt-10">
           <h2 className="mb-2 text-sm" style={{ fontWeight: 700, color: 'var(--color-ash)' }}>管理メニュー</h2>
           <div className="card flex flex-col gap-2 p-4 text-sm">
-            <Link href="/admin/pro" style={{ color: 'var(--color-ember-hot)', fontWeight: 600 }}>🛡 プロ認証の審査</Link>
-            <Link href="/admin/clicks" style={{ color: 'var(--color-ember-hot)', fontWeight: 600 }}>📊 送客クリック集計</Link>
-            <Link href="/admin/reports" style={{ color: 'var(--color-ember-hot)', fontWeight: 600 }}>🛡 通報の管理</Link>
+            <Link href="/admin/pro" style={{ color: 'var(--color-ember-hot)', fontWeight: 600 }}>プロ認証の審査</Link>
+            <Link href="/admin/clicks" style={{ color: 'var(--color-ember-hot)', fontWeight: 600 }}>送客クリック集計</Link>
+            <Link href="/admin/reports" style={{ color: 'var(--color-ember-hot)', fontWeight: 600 }}>通報の管理</Link>
             <Link href="/admin/orthodoxy" style={{ color: 'var(--color-ember-hot)', fontWeight: 600 }}>王道の認定</Link>
           </div>
           <p className="mt-1.5 text-xs" style={{ color: 'var(--color-ash-dim)' }}>

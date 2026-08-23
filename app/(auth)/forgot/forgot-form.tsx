@@ -18,7 +18,7 @@ export function ForgotForm() {
       )}
       {notice && (
         <div className="rounded-xl border px-4 py-3 text-sm" style={{ borderColor: 'var(--color-ember)', background: 'var(--accent-tint)', color: 'var(--color-ember-hot)' }}>
-          ✉️ {notice}
+          {notice}
         </div>
       )}
       <div className="field">

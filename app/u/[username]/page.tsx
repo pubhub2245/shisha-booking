@@ -64,10 +64,10 @@ export default async function ProfilePage({ params }: { params: Promise<{ userna
                   className="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs"
                   style={{ background: 'linear-gradient(90deg, #a16207, #d4a017)', color: '#fff', fontWeight: 800 }}
                 >
-                  🎖️ 創設メンバー
+                  創設メンバー
                 </span>
               )}
-              {profile.is_shop && <span className="chip chip-active inline-flex">🏠 店舗スタッフ</span>}
+              {profile.is_shop && <span className="chip chip-active inline-flex">店舗スタッフ</span>}
             </div>
             <h1 className="flex items-center gap-1.5 text-2xl" style={{ fontWeight: 800 }}>
               <span className="truncate">{displayName}</span>
@@ -164,8 +164,8 @@ export default async function ProfilePage({ params }: { params: Promise<{ userna
             <div className="flex flex-wrap gap-2">
               {shops.map((s) => (
                 <Link key={s.id} href={`/shop/${s.id}`} className="chip chip-active inline-flex items-center gap-1">
-                  {s.role === 'owner' && <span aria-hidden>👑</span>}
-                  🏠 {s.name}
+                  {s.role === 'owner' && <span className="chip" title="オーナー" style={{ padding: '0 6px', fontSize: '0.62rem' }}>主</span>}
+                  {s.name}
                   {s.area ? <span style={{ opacity: 0.7 }}> ・{s.area}</span> : null}
                 </Link>
               ))}
@@ -181,7 +181,7 @@ export default async function ProfilePage({ params }: { params: Promise<{ userna
         return (
           <section className="mt-8">
             <h2 className="mb-3 flex items-center gap-1.5 text-lg" style={{ fontWeight: 700 }}>
-              📌 看板レシピ
+              看板レシピ
             </h2>
             <div className="rounded-2xl p-0.5" style={{ background: 'linear-gradient(135deg, var(--color-ember), #d4a017)' }}>
               <div className="rounded-[calc(1rem-1px)]" style={{ background: 'var(--surface)' }}>
@@ -195,7 +195,7 @@ export default async function ProfilePage({ params }: { params: Promise<{ userna
       {/* ---------- PHOTO GRID ---------- */}
       {mixes.some((m) => m.pack_photo_url) && (
         <section className="mt-8">
-          <h2 className="mb-3 text-lg" style={{ fontWeight: 700 }}>📷 写真</h2>
+          <h2 className="mb-3 text-lg" style={{ fontWeight: 700 }}>写真</h2>
           <div className="grid grid-cols-3 gap-1.5">
             {mixes
               .filter((m) => m.pack_photo_url)

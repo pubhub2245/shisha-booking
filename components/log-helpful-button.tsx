@@ -4,7 +4,7 @@ import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { toggleLogHelpful } from '@/actions/flavor-log'
 
-/** 公開研究メモの「👍 参考になった」ボタン（楽観更新）。 */
+/** 公開研究メモの「参考になった」ボタン（楽観更新）。 */
 export function LogHelpfulButton({
   logId,
   flavorId,
@@ -57,7 +57,7 @@ export function LogHelpfulButton({
         fontWeight: 600,
       }}
     >
-      👍 参考になった{count > 0 && ` ${count}`}
+      参考になった{count > 0 && ` ${count}`}
     </button>
   )
 }

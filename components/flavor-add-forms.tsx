@@ -6,7 +6,7 @@ import { addFlavor, bulkAddFlavors, type FlavorState } from '@/actions/flavors'
 function Msg({ state }: { state: FlavorState }) {
   if (!state) return null
   if ('error' in state && state.error) return <p className="mt-2 text-sm" style={{ color: 'var(--color-ember-hot)' }}>{state.error}</p>
-  if ('ok' in state && state.ok) return <p className="mt-2 text-sm" style={{ color: '#2ba088', fontWeight: 600 }}>✅ {state.ok}</p>
+  if ('ok' in state && state.ok) return <p className="mt-2 text-sm" style={{ color: '#2ba088', fontWeight: 600 }}>{state.ok}</p>
   return null
 }
 

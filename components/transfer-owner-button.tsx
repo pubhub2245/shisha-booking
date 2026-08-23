@@ -40,7 +40,7 @@ export function TransferOwnerButton({
         className="text-xs"
         style={{ color: 'var(--color-ember-hot)', fontWeight: 600 }}
       >
-        {pending ? '譲渡中…' : '👑 オーナーを譲渡'}
+        {pending ? '譲渡中…' : 'オーナーを譲渡'}
       </button>
       {err && <span className="text-[0.68rem]" style={{ color: 'var(--color-ember-deep)' }}>{err}</span>}
     </span>

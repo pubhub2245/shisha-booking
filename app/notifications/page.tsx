@@ -27,16 +27,16 @@ const VERB: Record<string, string> = {
 }
 
 const ICON: Record<string, string> = {
-  like: '❤️',
-  comment: '💬',
-  follow: '➕',
-  make: '🎉',
-  reply: '↩️',
+  like: '',
+  comment: '',
+  follow: '',
+  make: '',
+  reply: '',
   mention: '＠',
-  comment_like: '❤️',
-  idea_considering: '🔎',
-  idea_done: '✅',
-  idea_declined: '📮',
+  comment_like: '',
+  idea_considering: '',
+  idea_done: '',
+  idea_declined: '',
   national_selected: '王',
 }
 
@@ -54,7 +54,6 @@ export default async function NotificationsPage() {
 
       {items.length === 0 ? (
         <div className="card mt-6 p-10 text-center">
-          <div className="text-3xl" aria-hidden>🔔</div>
           <p className="mt-2 text-sm" style={{ color: 'var(--color-ash)' }}>
             通知はまだありません。<br />作り方を登録すると、いいねやコメントがここに届きます。
           </p>
@@ -90,13 +89,13 @@ export default async function NotificationsPage() {
                   ) : (
                     <div className="relative shrink-0">
                       <Avatar name={n.actor?.display_name || n.actor?.username || '?'} seed={n.actor_id || String(n.id)} size={40} />
-                      <span className="absolute -bottom-1 -right-1 text-sm" aria-hidden>{ICON[n.type] ?? '🔔'}</span>
+                      <span className="absolute -bottom-1 -right-1 text-sm" aria-hidden>{ICON[n.type] ?? ''}</span>
                     </div>
                   )}
                   <div className="min-w-0 flex-1">
                     {isSystem ? (
                       <p className="text-sm leading-snug" style={{ fontWeight: 700, color: 'var(--color-cream)' }}>
-                        🎉 あなたの作り方が王道に選ばれました！
+                        あなたの作り方が王道に選ばれました！
                       </p>
                     ) : (
                       <p className="text-sm leading-snug" style={{ color: 'var(--color-cream)' }}>

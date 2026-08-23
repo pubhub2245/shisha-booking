@@ -5,7 +5,7 @@ import type { ReactNode } from 'react'
  * 常に「次の一手」CTA を添えられるようにする。
  */
 export function EmptyState({
-  icon = '🫧',
+  icon = '',
   title,
   children,
   action,

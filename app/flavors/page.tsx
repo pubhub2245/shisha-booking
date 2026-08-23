@@ -37,7 +37,7 @@ export default async function FlavorsPage() {
         <>
           {popular.length > 0 && (
             <section className="mt-8">
-              <h2 className="mb-3 text-sm" style={{ fontWeight: 700, color: 'var(--color-ash)' }}>🔥 よく使われる</h2>
+              <h2 className="mb-3 text-sm" style={{ fontWeight: 700, color: 'var(--color-ash)' }}>よく使われる</h2>
               <div className="flex flex-wrap gap-2">
                 {popular.map((f) => (
                   <Link key={f.id} href={`/flavor/${f.id}`} className="chip chip-active">

@@ -78,7 +78,7 @@ export function IdeaComments({
         className="text-xs"
         style={{ color: 'var(--color-ash-dim)', fontWeight: 600 }}
       >
-        💬 コメント{count > 0 ? `（${count}）` : ''} {open ? '▲' : '▼'}
+        コメント{count > 0 ? `（${count}）` : ''} {open ? '▲' : '▼'}
       </button>
 
       {/* AI 仲裁案（あれば常に表示） */}
@@ -87,7 +87,7 @@ export function IdeaComments({
           className="mt-2 rounded-xl border p-3"
           style={{ borderColor: 'rgb(31 138 118 / 0.35)', background: 'rgb(31 138 118 / 0.08)' }}
         >
-          <p className="text-xs" style={{ color: '#2ba088', fontWeight: 800 }}>🤝 AIの仲裁案（落とし所）</p>
+          <p className="text-xs" style={{ color: '#2ba088', fontWeight: 800 }}>AIの仲裁案（落とし所）</p>
           <p className="mt-1 whitespace-pre-wrap text-sm leading-relaxed" style={{ color: 'var(--color-cream)' }}>
             {arbitration.summary}
           </p>
@@ -142,7 +142,7 @@ export function IdeaComments({
                 className="mt-2 rounded-lg px-3 py-1.5 text-xs"
                 style={{ background: 'rgb(31 138 118 / 0.15)', color: '#2ba088', fontWeight: 700 }}
               >
-                {arbPending ? '仲裁中…' : arbitration ? '🤝 もう一度AIに仲裁してもらう' : '🤝 AIに仲裁してもらう'}
+                {arbPending ? '仲裁中…' : arbitration ? 'もう一度AIに仲裁してもらう' : 'AIに仲裁してもらう'}
               </button>
               {arbErr && <p className="mt-1 text-xs" style={{ color: 'var(--color-ember-hot)' }}>{arbErr}</p>}
             </div>

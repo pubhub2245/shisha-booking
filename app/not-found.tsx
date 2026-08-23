@@ -3,7 +3,7 @@ import Link from 'next/link'
 export default function NotFound() {
   return (
     <div className="wrap flex max-w-md flex-col items-center py-28 text-center">
-      <div className="text-5xl">💨</div>
+      <div className="text-5xl"></div>
       <h1 className="mt-4 text-2xl" style={{ fontWeight: 800 }}>
         煙のように消えました
       </h1>

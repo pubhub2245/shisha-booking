@@ -188,15 +188,15 @@ export function windCoverLabel(v: boolean | null | undefined): string | null {
 }
 
 export const HEAT_EVENT_OPTIONS = [
-  { v: 'add', l: '炭を追加', icon: '➕' },
-  { v: 'remove', l: '炭を減らす', icon: '➖' },
-  { v: 'ash', l: '灰を落とす', icon: '🧹' },
-  { v: 'rotate', l: 'ローテーション', icon: '🔄' },
-  { v: 'other', l: 'その他', icon: '📍' },
+  { v: 'add', l: '炭を追加', icon: '＋' },
+  { v: 'remove', l: '炭を減らす', icon: '−' },
+  { v: 'ash', l: '灰を落とす', icon: '灰' },
+  { v: 'rotate', l: 'ローテーション', icon: '回' },
+  { v: 'other', l: 'その他', icon: '他' },
 ] as const
 
 export function heatEventMeta(v: string | null | undefined) {
-  return HEAT_EVENT_OPTIONS.find((o) => o.v === v) ?? { v: 'other', l: 'イベント', icon: '📍' }
+  return HEAT_EVENT_OPTIONS.find((o) => o.v === v) ?? { v: 'other', l: 'イベント', icon: '他' }
 }
 
 // カーブ比較用のライン色

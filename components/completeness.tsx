@@ -15,7 +15,7 @@ export function CompletenessBadge({ mix }: { mix: MixWithRelations }) {
           : undefined
       }
     >
-      {high ? '📝 作り方くわしい' : '作り方あり'}
+      {high ? '作り方くわしい' : '作り方あり'}
     </span>
   )
 }

@@ -72,19 +72,19 @@ export function MixForm({
   /** プロ認証者（＋管理者）のみ、一部を有料ノートにできる */
   canSell?: boolean
 }) {
-  // ロック機能は一時的に非表示（lib/lock.ts）。ここを false にすると 🔒 のチップ・価格・
+  // ロック機能は一時的に非表示（lib/lock.ts）。ここを false にすると のチップ・価格・
   // 時限公開の入力がまとめて消え、送信される premium も常に空になる。
   const canSell = LOCK_FEATURE_ENABLED && canSellProp
   const action0 = mode === 'edit' ? updateMix : createMix
   const [state, action, pending] = useActionState<MixFormState, FormData>(action0, null)
   const [charcoalType, setCharcoalType] = useState(initial?.charcoalType ?? '')
 
-  // 「大事にするポイント」＝投稿に載せる項目。選んだ項目だけ入力＆表示され、🔒でロックできる。
+  // 「大事にするポイント」＝投稿に載せる項目。選んだ項目だけ入力＆表示され、でロックできる。
   // ネーミング（特徴・ひとこと）も"大事にするポイント"の1要素として選べる（名前を大事にする人向け）。
   const LOCKABLE_KEYS = LOCKABLE_SECTIONS.map((s) => s.v) as string[]
   const ALL_SECTION_KEYS = MIX_DISPLAY_SECTIONS.map((s) => s.v)
   const chooserItems: { v: string; label: string; hint: string; lockable: boolean }[] = [
-    { v: 'title', label: '🏷 ネーミング・ひとこと', hint: 'この作り方の名前・特徴を添える', lockable: false },
+    { v: 'title', label: 'ネーミング・ひとこと', hint: 'この作り方の名前・特徴を添える', lockable: false },
     ...MIX_DISPLAY_SECTIONS.map((s) => ({ v: s.v, label: s.label, hint: s.hint, lockable: canSell && LOCKABLE_KEYS.includes(s.v) })),
   ]
   const initialShown =
@@ -275,10 +275,10 @@ export function MixForm({
 
       {/* 大事にするポイントの選択（載せる項目＋ロック項目） */}
       <div className="card flex flex-col gap-2 p-5">
-        <div className="text-base" style={{ fontWeight: 800 }}>🎯 あなたがシーシャ作りで大事にしているポイントは？</div>
+        <div className="text-base" style={{ fontWeight: 800 }}>あなたがシーシャ作りで大事にしているポイントは？</div>
         <p className="text-xs leading-relaxed" style={{ color: 'var(--color-ash-dim)' }}>
           選んだ項目を投稿に載せられます（フレーバーと味わいは常に表示）。
-          {canSell && <> 特に<b>こだわり／秘密</b>にしたい項目は <b>🔒</b> で<b>ロック（有料）</b>にもできます。</>}
+          {canSell && <> 特に<b>こだわり／秘密</b>にしたい項目は <b></b> で<b>ロック（有料）</b>にもできます。</>}
         </p>
         <div className="mt-2 flex flex-wrap gap-2">
           {chooserItems.map((s) => {
@@ -306,7 +306,7 @@ export function MixForm({
                         : { borderColor: 'var(--line-strong)', color: 'var(--color-ash-dim)' }
                     }
                   >
-                    {lockedSet.has(s.v) ? '🔒' : '🔓'}
+                    {lockedSet.has(s.v) ? '鍵' : '－'}
                   </button>
                 )}
               </span>
@@ -315,7 +315,7 @@ export function MixForm({
         </div>
         {canSell && (
           <div className="mt-2 rounded-lg px-3 py-2 text-xs leading-relaxed" style={{ background: 'var(--accent-tint)', color: 'var(--color-ash)' }}>
-            🔒 ロックした投稿は<b>王道・地方の王道の選出対象外</b>になります（標準＝みんなの図鑑は公開レシピで作るため）。
+            ロックした投稿は<b>王道・地方の王道の選出対象外</b>になります（標準＝みんなの図鑑は公開レシピで作るため）。
             ロックは核心の<b>「最後のひと工夫」だけ</b>に絞るのがおすすめ。
           </div>
         )}
@@ -356,7 +356,7 @@ export function MixForm({
       {/* ネーミング・ひとこと（チップで選んだときだけ入力欄が出る） */}
       {shown.has('title') && (
         <div className="field">
-          <label>🏷 ネーミング・ひとこと</label>
+          <label>ネーミング・ひとこと</label>
           <input name="title" defaultValue={initial?.title ?? ''} placeholder="例：王道スッキリ / しっかり冷やす版" maxLength={40} />
           <p className="mt-1 text-xs" style={{ color: 'var(--color-ash-dim)' }}>
             正式名はフレーバー名（{'例：ダブルアップル × ミント'}）です。名前・特徴を大事にしたいときに添えてください。
@@ -367,7 +367,7 @@ export function MixForm({
       <details open={hasAdvanced || shown.size > 0}>
         <summary className="cursor-pointer list-none [&::-webkit-details-marker]:hidden">
           <span className="inline-flex items-center gap-2 text-sm" style={{ color: 'var(--color-ember-hot)', fontWeight: 700 }}>
-            🔧 選んだ項目を入力する（任意）
+            選んだ項目を入力する（任意）
           </span>
           <span className="mt-1 block text-xs" style={{ color: 'var(--color-ash-dim)' }}>
             上で選んだポイントの中身を入力します。入力しても、上でチップを外した項目は投稿に表示されません。
@@ -436,7 +436,7 @@ export function MixForm({
         </div>
 
         <div className="field">
-          <label>🍶 フレーバーの盛り方</label>
+          <label>フレーバーの盛り方</label>
           <PackPicker name="pack_style" defaultValue={initial?.packStyle ?? ''} />
           <div className="mt-3">
             <span className="text-xs" style={{ color: 'var(--color-ash-dim)' }}>盛り方の写真（カバー・任意）</span>
@@ -455,7 +455,7 @@ export function MixForm({
 
       {/* 蒸らし */}
       <div className="field">
-        <label>♨️ 蒸らし</label>
+        <label>蒸らし</label>
         <div className="grid gap-3 sm:grid-cols-2">
           <div>
             <span className="text-xs" style={{ color: 'var(--color-ash-dim)' }}>時間（分）</span>
@@ -493,23 +493,23 @@ export function MixForm({
 
       {/* 熱管理カーブ */}
       <div>
-        <label className="mb-2 block text-sm" style={{ color: 'var(--color-ash)', fontWeight: 600 }}>🔥 熱管理カーブ（経過時間 × 火力 1〜100）＋ 炭イベント</label>
+        <label className="mb-2 block text-sm" style={{ color: 'var(--color-ash)', fontWeight: 600 }}>熱管理カーブ（経過時間 × 火力 1〜100）＋ 炭イベント</label>
         <HeatCurveEditor initialCurve={initial?.heatCurve ?? undefined} initialEvents={initial?.heatEvents ?? undefined} steepMinutes={Number(steepMin) || undefined} steepHeat={Number(steepHeat) || undefined} />
       </div>
 
       <div className="field">
-        <label>🔥 熱管理の補足メモ（任意）</label>
+        <label>熱管理の補足メモ（任意）</label>
         <textarea name="heat_management" defaultValue={initial?.heat} placeholder="例：序盤は控えめ、中盤に立ち上げる。灰の掃除タイミングなど。" maxLength={600} />
       </div>
 
       <div className="field">
-        <label>🍃 フレーバーの置き方</label>
+        <label>フレーバーの置き方</label>
         <textarea name="placement_note" defaultValue={initial?.placement} placeholder="例：ダブルアップルを底に厚め、ミントは表面に薄く散らす。" maxLength={600} />
       </div>
 
       {/* 機材・ギア（投稿映え） */}
       <div className="mt-2 rounded-xl border p-4" style={{ borderColor: 'var(--line)' }}>
-        <div className="text-sm" style={{ fontWeight: 700 }}>🛠 機材・ギア</div>
+        <div className="text-sm" style={{ fontWeight: 700 }}>機材・ギア</div>
         <p className="mt-0.5 text-xs" style={{ color: 'var(--color-ash-dim)' }}>書いてあるほど、他の人が同じ一台を再現できます。</p>
         <div className="mt-3 grid gap-3 sm:grid-cols-2">
           <div className="field"><label>本体・パイプ</label><input name="gear_stem" defaultValue={initial?.gearStem} placeholder="例：Wookah / Steamulation" maxLength={120} /></div>
@@ -522,10 +522,10 @@ export function MixForm({
 
       {/* こだわり・核心（ロック対象になりうる） */}
       <div className="mt-3 rounded-xl border p-4" style={{ borderColor: 'var(--line)' }}>
-        <div className="text-sm" style={{ fontWeight: 700 }}>💡 こだわり・核心</div>
+        <div className="text-sm" style={{ fontWeight: 700 }}>こだわり・核心</div>
         <p className="mt-0.5 text-xs" style={{ color: 'var(--color-ash-dim)' }}>
           {canSell ? (
-            <>あなたの「秘密」になる部分。上のチップの <b>🔒</b> で<b>この項目だけロック（有料）</b>にできます。</>
+            <>あなたの「秘密」になる部分。上のチップの <b></b> で<b>この項目だけロック（有料）</b>にできます。</>
           ) : (
             <>なぜその作り方なのか。試した人が同じ一台を再現できるかは、ここで決まります。</>
           )}

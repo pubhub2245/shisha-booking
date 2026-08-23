@@ -132,7 +132,7 @@ export function HeatCurveEditor({
             <g style={{ pointerEvents: 'none' }}>
               <rect x={padL} y={padT} width={Math.max(0, x(Math.min(steepMinutes, maxT)) - padL)} height={H - padT - padB} fill="rgb(31 138 118 / 0.10)" />
               <line x1={x(Math.min(steepMinutes, maxT))} x2={x(Math.min(steepMinutes, maxT))} y1={padT} y2={H - padB} stroke="var(--color-coal)" strokeWidth="1" strokeDasharray="2 2" opacity="0.6" />
-              <text x={padL + 3} y={padT + 9} fontSize="8" fill="var(--color-coal)" style={{ fontWeight: 700 }}>♨️蒸らし</text>
+              <text x={padL + 3} y={padT + 9} fontSize="8" fill="var(--color-coal)" style={{ fontWeight: 700 }}>蒸らし</text>
               {steepHeat && steepHeat > 0 && (
                 <>
                   <line x1={padL} x2={x(Math.min(steepMinutes, maxT))} y1={y(steepHeat)} y2={y(steepHeat)} stroke="var(--color-coal)" strokeWidth="1" strokeDasharray="2 2" opacity="0.5" />
@@ -167,7 +167,7 @@ export function HeatCurveEditor({
           ))}
         </svg>
         <p className="mt-1 text-xs" style={{ color: 'var(--color-ash-dim)' }}>
-          点をドラッグで火力・時間を調整／グラフ内をタップで点を追加／各時点の「🔥炭」に個数と燃え具合（新・半・終）を記録できます（任意）
+          点をドラッグで火力・時間を調整／グラフ内をタップで点を追加／各時点の「炭」の欄に個数と燃え具合（新・半・終）を記録できます（任意）
         </p>
         <p className="mt-1 text-[0.68rem] leading-relaxed" style={{ color: 'var(--color-ash-dim)' }}>
           ※ 火力は「弱(0-33)／中(33-66)／強(66-100)」の目安。炭の種類・個数・ボウル・部屋の気温で体感は変わるため、
@@ -229,7 +229,7 @@ export function HeatCurveEditor({
               </div>
               {/* キューブ炭の個数（任意・玄人向け） */}
               <div className="field flex items-center gap-1" title="この時点のキューブ炭の個数（任意）">
-                <span className="text-xs" style={{ color: 'var(--color-ash-dim)' }}>🔥炭</span>
+                <span className="text-xs" style={{ color: 'var(--color-ash-dim)' }}>炭</span>
                 <input
                   type="number" inputMode="numeric" min={0} max={20} step={1}
                   value={p.coals ?? ''} placeholder="—"

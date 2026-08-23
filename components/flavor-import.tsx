@@ -24,7 +24,7 @@ export function FlavorImport() {
 
   return (
     <section className="card p-5">
-      <h2 className="text-base" style={{ fontWeight: 700 }}>🌐 通販から自動取り込み（管理者）</h2>
+      <h2 className="text-base" style={{ fontWeight: 700 }}>通販から自動取り込み（管理者）</h2>
       <p className="mt-1 text-xs leading-relaxed" style={{ color: 'var(--color-ash-dim)' }}>
         Shopify製のシーシャ通販URLを入れて押すだけ。サーバーが全ブランドの商品名を取得して図鑑に追加します（既存は自動スキップ）。
       </p>
@@ -65,7 +65,7 @@ export function FlavorImport() {
         <p className="mt-2 text-sm" style={{ color: 'var(--color-ember-hot)' }}>{state.error}</p>
       )}
       {state && 'ok' in state && state.ok && (
-        <p className="mt-2 text-sm" style={{ color: '#2ba088', fontWeight: 600 }}>✅ {state.ok}</p>
+        <p className="mt-2 text-sm" style={{ color: '#2ba088', fontWeight: 600 }}>{state.ok}</p>
       )}
 
       <p className="mt-3 text-[0.68rem] leading-relaxed" style={{ color: 'var(--color-ash-dim)' }}>

@@ -5,7 +5,7 @@ import { comboKey, comboSlug, comboKeyFromSlug, flavorKey, isLegacyMultiFlavorKe
 import { mixQuality, mixCompleteness } from '@/lib/quality'
 import { searchVariants } from '@/lib/kana'
 import { TYPE_TAGS } from '@/lib/tags'
-import { REGIONS, regionOf, REGION_EMOJI, type RegionKey } from '@/lib/regions'
+import { REGIONS, regionOf, type RegionKey } from '@/lib/regions'
 import { mixSupportScore, shopSupportScore, openRankValue } from '@/lib/score'
 import { isActivelyLocked, isFullyOpen } from '@/lib/lock'
 import { jstMonthStartIso } from '@/lib/time'
@@ -1406,7 +1406,7 @@ const _getAreaRankingsCached = unstable_cache(
     const { data: shopRows } = await supabase.from('shops').select('*').not('prefecture', 'is', null)
     const shops = (shopRows ?? []) as Shop[]
 
-    // 2) 承認所属メンバー（お店 ↔ 作り手）
+    // 2) 承認所属メンバー（お店 作り手）
     const shopIds = shops.map((s) => s.id)
     const { data: memRows } = shopIds.length
       ? await supabase.from('shop_members').select('shop_id, user_id, role').eq('status', 'approved').in('shop_id', shopIds)
@@ -1553,7 +1553,7 @@ const _getAreaRankingsCached = unstable_cache(
         .map((x) => ({ mix: relById.get(x.mix.id)!, score: x.score, onsite: x.onsite, prefecture: x.prefecture }))
         .filter((x) => x.mix)
       if (shopList.length === 0 && mixList.length === 0) continue
-      result.push({ region: r.key, emoji: REGION_EMOJI.get(r.key) ?? '📍', shops: shopList, mixes: mixList })
+      result.push({ region: r.key, shops: shopList, mixes: mixList })
     }
     return result
   },
