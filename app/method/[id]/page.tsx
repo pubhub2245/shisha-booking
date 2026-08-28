@@ -36,7 +36,6 @@ import { HmsIcon } from '@/components/hms-icon'
 import { BowlIcon } from '@/components/bowl-icon'
 import { PackIcon } from '@/components/pack-icon'
 import { Avatar } from '@/components/avatar'
-import { CompletenessMeter } from '@/components/completeness'
 import { relativeTime, formatJaDate } from '@/lib/time'
 import { CommentForm } from '@/components/comment-form'
 import { CommentThread } from '@/components/comment-thread'
@@ -429,9 +428,6 @@ export default async function MixDetail({
           {mix.author && <Avatar name={mix.author.display_name || mix.author.username} seed={mix.author.id} size={24} />}
           <span>by <AuthorLink author={mix.author} /></span>
           <span style={{ color: 'var(--color-ash-dim)' }}>・ {relativeTime(mix.created_at)} ・ 閲覧 {mix.view_count}</span>
-        </div>
-        <div className="mt-2">
-          <CompletenessMeter mix={mix} />
         </div>
 
         {mix.taste_tags.length > 0 && (
