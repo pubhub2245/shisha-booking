@@ -5,7 +5,6 @@ import { BRAND } from '@/lib/site'
 const LINKS: { href: string; label: string }[] = [
   { href: '/', label: '図鑑' },
   { href: '/flavors', label: 'フレーバー' },
-  { href: '/theme', label: '今月の検証' },
   { href: '/guide', label: '作り方ガイド' },
   { href: '/post', label: '投稿する' },
   { href: '/shops', label: '店舗一覧' },

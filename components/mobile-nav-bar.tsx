@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { IconLeaf, IconSmoke, IconCoal, IconUser } from '@/components/nav-icons'
+import { IconLeaf, IconCoal, IconUser } from '@/components/nav-icons'
 
 type Item = { href: string; icon: React.ReactNode; label: string }
 
@@ -22,7 +22,6 @@ export function MobileNavBar({ isAuthed }: { isAuthed: boolean }) {
   const pathname = usePathname()
   const items: Item[] = [
     { href: '/', icon: <IconLeaf />, label: 'フレーバー' },
-    { href: '/theme', icon: <IconSmoke />, label: '今月' },
     { href: CENTER, icon: <IconCoal />, label: '記録' },
     isAuthed ? { href: '/mypage', icon: <IconUser />, label: 'マイ煙道' } : { href: '/login', icon: <IconUser />, label: 'ログイン' },
   ]

@@ -32,8 +32,6 @@ export async function SiteHeader() {
 
         <nav className="hidden items-center gap-6 text-sm md:flex" style={{ color: 'var(--color-ash)' }}>
           <Link href="/" className="brush-underline transition-colors hover:text-[var(--color-cream)]">フレーバー</Link>
-          {/* いま実際に進んでいる場所を、王道より前に置く（王道は現時点で0件） */}
-          <Link href="/theme" className="brush-underline transition-colors hover:text-[var(--color-cream)]" style={{ fontWeight: 700 }}>今月の検証</Link>
           <Link href="/guide" className="brush-underline transition-colors hover:text-[var(--color-cream)]">作り方</Link>
           {user && <Link href="/shelf" className="brush-underline transition-colors hover:text-[var(--color-cream)]">マイフレーバー</Link>}
         </nav>
