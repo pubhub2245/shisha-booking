@@ -90,7 +90,7 @@ export default async function Home() {
 
       {user ? (
         <StillHero
-          title="今日は、どれを作りますか。"
+          title="1つのフレーバーを、どう作るか。"
           lede="前に作った一台と、次の一台を、あなたの中で比べられます。"
         />
       ) : (
