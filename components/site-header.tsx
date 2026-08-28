@@ -34,8 +34,6 @@ export async function SiteHeader() {
           <Link href="/" className="brush-underline transition-colors hover:text-[var(--color-cream)]">フレーバー</Link>
           {/* いま実際に進んでいる場所を、王道より前に置く（王道は現時点で0件） */}
           <Link href="/theme" className="brush-underline transition-colors hover:text-[var(--color-cream)]" style={{ fontWeight: 700 }}>今月の検証</Link>
-          {/* 王道は「そのフレーバーで認定された作り方」。現時点では0件 */}
-          <Link href="/national" className="brush-underline transition-colors hover:text-[var(--color-cream)]">王道</Link>
           <Link href="/guide" className="brush-underline transition-colors hover:text-[var(--color-cream)]">作り方</Link>
           {user && <Link href="/shelf" className="brush-underline transition-colors hover:text-[var(--color-cream)]">マイフレーバー</Link>}
         </nav>
