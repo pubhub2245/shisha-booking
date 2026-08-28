@@ -147,8 +147,8 @@ export default async function RecordPage() {
 
       {/* ---------- 探す・登録する（主導線にしない） ---------- */}
       <div className="mt-10 flex flex-wrap items-center gap-4">
-        <Link href="/search" className="text-sm brush-underline" style={{ fontWeight: 600 }}>
-          作り方を探す
+        <Link href="/flavors" className="text-sm brush-underline" style={{ fontWeight: 600 }}>
+          フレーバーから探す
         </Link>
         <Link href="/post" className="text-sm" style={{ color: 'var(--color-ash-dim)' }}>
           自分の作り方を登録する

@@ -3,7 +3,7 @@ import { getCurrentUser } from '@/lib/auth'
 import { getUnreadNotificationCount } from '@/lib/queries'
 import { signOut } from '@/actions/auth'
 import { BRAND } from '@/lib/site'
-import { IconSearch, IconBell } from '@/components/nav-icons'
+import { IconBell } from '@/components/nav-icons'
 
 export async function SiteHeader() {
   const user = await getCurrentUser()
@@ -41,14 +41,6 @@ export async function SiteHeader() {
         </nav>
 
         <div className="flex items-center gap-3">
-          <Link
-            href="/search"
-            aria-label="検索"
-            className="hidden h-9 w-9 items-center justify-center rounded-full transition-colors hover:bg-[var(--accent-tint)] md:flex"
-            style={{ color: 'var(--color-ash)' }}
-          >
-            <IconSearch />
-          </Link>
           {user ? (
             <>
               <Link
