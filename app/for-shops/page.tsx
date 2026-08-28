@@ -43,13 +43,6 @@ export default function ForShops() {
         来店のきっかけになります。実際に吸われ、再現された作り方の中から煙道が確認・認定した「王道」が、
         店舗への指名や来店のきっかけになります。
       </p>
-      <p className="mt-2 text-sm" style={{ color: 'var(--color-ash-dim)' }}>
-        個人の作り手（スタッフ）としての参加は{' '}
-        <Link href="/founders" className="hover:underline" style={{ color: 'var(--color-ember-hot)', fontWeight: 600 }}>
-          創設メンバー募集
-        </Link>
-        {' '}もご覧ください。
-      </p>
 
       <div className="mt-10 grid gap-5 sm:grid-cols-3">
         {benefits.map((b) => (

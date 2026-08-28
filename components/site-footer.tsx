@@ -11,7 +11,6 @@ const LINKS: { href: string; label: string }[] = [
   { href: '/post', label: '投稿する' },
   { href: '/shops', label: '店舗一覧' },
   { href: '/for-shops', label: '店舗の方へ' },
-  { href: '/founders', label: '創設メンバー募集' },
   { href: '/ideas', label: '意見箱' },
 ]
 

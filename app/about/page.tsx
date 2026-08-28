@@ -47,11 +47,10 @@ export default function AboutPage() {
       <div className="card mt-10 flex flex-col items-center gap-4 p-8 text-center">
         <h2 className="text-xl" style={{ fontWeight: 700 }}>あなたの作り方も、王道に。</h2>
         <p className="text-sm" style={{ color: 'var(--color-ash)' }}>
-          いまは立ち上げ期。最初の作り手＝<b>創設メンバー</b>を募集しています。
+          同じフレーバーを、あなたのやり方で一台。その記録が次の一台の土台になります。
         </p>
         <div className="flex flex-wrap justify-center gap-3">
-          <Link href="/founders" className="btn btn-ember">創設メンバーになる</Link>
-          <Link href="/" className="btn btn-ghost">図鑑を見る</Link>
+          <Link href="/flavors" className="btn btn-ember">フレーバーを見る</Link>
         </div>
       </div>
     </div>

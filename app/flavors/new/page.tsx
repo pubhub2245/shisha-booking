@@ -25,7 +25,6 @@ export default async function AddFlavorPage() {
           <p className="mt-2 text-sm" style={{ color: 'var(--color-ash)' }}>
             図鑑の正確さを保つため、追加は信頼できる作り手のみが行えます。
           </p>
-          <Link href="/founders" className="btn btn-ember mt-5 text-sm">創設メンバーについて</Link>
         </div>
       </div>
     )
