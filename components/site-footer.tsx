@@ -7,15 +7,18 @@ const LINKS: { href: string; label: string }[] = [
   { href: '/flavors', label: 'フレーバー' },
   { href: '/guide', label: '作り方ガイド' },
   { href: '/post', label: '自分の作り方を記録する' },
+]
+
+/** 店舗まわり。コアループの外側なので、規約と同じ弱い段に置く */
+const SUB_LINKS: { href: string; label: string }[] = [
   { href: '/shops', label: '店舗一覧' },
   { href: '/for-shops', label: '店舗の方へ' },
-  { href: '/ideas', label: '意見箱' },
 ]
 
 /**
  * フッター。
  * 上の帯と骨格が重ならないよう、ここは「左にブランド、右に3列の一覧」にしてある。
- * 12本のリンクを一列に流すと、それだけで既製品の見た目になる。
+ * リンクを一列に流すと、それだけで既製品の見た目になる。
  */
 export function SiteFooter() {
   return (
@@ -52,6 +55,9 @@ export function SiteFooter() {
 
       <div className="wrap flex flex-col gap-3 border-t pb-10 pt-6 sm:flex-row sm:items-end sm:justify-between" style={{ borderColor: 'var(--line)' }}>
         <nav className="flex flex-wrap gap-x-5 gap-y-1 text-xs" style={{ color: 'var(--color-ash-dim)' }}>
+          {SUB_LINKS.map((l) => (
+            <Link key={l.href} href={l.href} className="brush-underline hover:text-[var(--color-cream)]">{l.label}</Link>
+          ))}
           <Link href="/legal/terms" className="brush-underline hover:text-[var(--color-cream)]">利用規約</Link>
           <Link href="/legal/privacy" className="brush-underline hover:text-[var(--color-cream)]">プライバシーポリシー</Link>
           <Link href="/legal/tokushoho" className="brush-underline hover:text-[var(--color-cream)]">特定商取引法に基づく表記</Link>
