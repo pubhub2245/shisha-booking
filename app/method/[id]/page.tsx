@@ -6,7 +6,6 @@ import {
   getLikedMixIds,
   getBookmarkedMixIds,
   getMixComments,
-  getRelatedMixes,
   isMixUnlocked,
   getMadeStatus,
   getSmokeStatus,
@@ -41,7 +40,6 @@ import { CommentForm } from '@/components/comment-form'
 import { CommentThread } from '@/components/comment-thread'
 import { ViewTracker } from '@/components/view-tracker'
 import { LockedNote } from '@/components/locked-note'
-import { MixCard } from '@/components/mix-card'
 import { deleteMix } from '@/actions/mixes'
 import { PinButton } from '@/components/pin-button'
 import { MixNaming } from '@/components/mix-naming'
@@ -117,8 +115,7 @@ export default async function MixDetail({
     isMixUnlocked(id),
   ])
   if (!mix) notFound()
-  const [related, madeStatus, smokeStatus, orthodoxy, tasteSummary, photos, repCats, mixNames, onsite] = await Promise.all([
-    getRelatedMixes(mix as MixWithRelations),
+  const [madeStatus, smokeStatus, orthodoxy, tasteSummary, photos, repCats, mixNames, onsite] = await Promise.all([
     getMadeStatus(id),
     getSmokeStatus(id),
     getOrthodoxyStatus(mix),
@@ -794,18 +791,6 @@ export default async function MixDetail({
           },
         ].filter(Boolean) as SectionTab[]}
       />
-
-      {/* ---------- RELATED ---------- */}
-      {related.length > 0 && (
-        <section className="mt-12">
-          <h2 className="mb-3 text-sm eyebrow">Related — 似た系統の作り方</h2>
-          <div className="grid gap-5 sm:grid-cols-2">
-            {related.map((m) => (
-              <MixCard key={m.id} mix={m} liked={likedIds.has(m.id)} isAuthed={!!user} />
-            ))}
-          </div>
-        </section>
-      )}
 
       <div className="mt-12 flex flex-wrap justify-center gap-3">
         <Link href={`/post?from=${mix.id}`} className="btn btn-ember">この作り方をベースに投稿</Link>

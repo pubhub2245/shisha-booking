@@ -1924,24 +1924,6 @@ export async function getMixesUsingFlavor(flavor: Flavor): Promise<MixWithRelati
   }
 }
 
-/** 味わいタグが重なる関連ミックス（自分を除く） */
-export async function getRelatedMixes(mix: Mix, limit = 4): Promise<MixWithRelations[]> {
-  try {
-    if (!mix.taste_tags || mix.taste_tags.length === 0) return []
-    const supabase = await createClient()
-    const { data } = await supabase
-      .from('mixes')
-      .select('*')
-      .overlaps('taste_tags', mix.taste_tags)
-      .neq('id', mix.id)
-      .order('like_count', { ascending: false })
-      .limit(limit)
-    return attachRelations(supabase, (data ?? []) as Mix[])
-  } catch {
-    return []
-  }
-}
-
 // ---------- 送客クリックの集計（管理者向け） ----------
 export type ClickStats = {
   total: number
