@@ -33,6 +33,8 @@ export async function SiteHeader() {
         <nav className="hidden items-center gap-6 text-sm md:flex" style={{ color: 'var(--color-ash)' }}>
           <Link href="/" className="brush-underline transition-colors hover:text-[var(--color-cream)]">フレーバー</Link>
           <Link href="/guide" className="brush-underline transition-colors hover:text-[var(--color-cream)]">作り方</Link>
+          {/* 記録はコアループの主行動。モバイル下部ナビ以外からも辿れるようにする */}
+          {user && <Link href="/record" className="brush-underline transition-colors hover:text-[var(--color-cream)]" style={{ fontWeight: 700 }}>記録する</Link>}
           {user && <Link href="/shelf" className="brush-underline transition-colors hover:text-[var(--color-cream)]">マイフレーバー</Link>}
         </nav>
 
