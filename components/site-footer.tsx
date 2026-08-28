@@ -6,7 +6,7 @@ const LINKS: { href: string; label: string }[] = [
   { href: '/', label: '図鑑' },
   { href: '/flavors', label: 'フレーバー' },
   { href: '/guide', label: '作り方ガイド' },
-  { href: '/post', label: '投稿する' },
+  { href: '/post', label: '自分の作り方を記録する' },
   { href: '/shops', label: '店舗一覧' },
   { href: '/for-shops', label: '店舗の方へ' },
   { href: '/ideas', label: '意見箱' },
