@@ -135,7 +135,6 @@ export default async function Home() {
               <span className="w" style={{ ['--th' as string]: 0.16 }}>前の一台と比べる。</span>
             </h2>
             <div className="after mt-7 flex flex-wrap items-center gap-4">
-              <Link href="/signup" className="btn btn-ember text-sm">はじめる</Link>
               <Link href="/about" className="text-sm" style={{ color: 'var(--color-ember-hot)', fontWeight: 600 }}>
                 煙道とは →
               </Link>
@@ -374,7 +373,6 @@ function StillHero({ title, lede, cta, gated }: { title: string; lede: string; c
         <p className="mt-4 max-w-[30ch] text-sm leading-relaxed">{lede}</p>
         {cta && (
           <div className="mt-6 flex flex-wrap items-center gap-4">
-            <Link href="/signup" className="btn btn-ember text-sm">はじめる</Link>
             <Link href="/about" className="text-sm" style={{ color: 'var(--color-ember-hot)', fontWeight: 600 }}>
               煙道とは →
             </Link>
