@@ -35,7 +35,6 @@ export default async function TimelinePage() {
           </p>
           <div className="mt-5 flex flex-wrap justify-center gap-3">
             <Link href="/" className="btn btn-ember">図鑑で探す</Link>
-            <Link href="/ranking" className="btn btn-ghost">人気から探す</Link>
           </div>
         </div>
       )}

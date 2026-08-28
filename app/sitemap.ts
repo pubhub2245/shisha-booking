@@ -8,7 +8,7 @@ export const dynamic = 'force-dynamic'
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const staticRoutes: MetadataRoute.Sitemap = [
-    '', '/flavors', '/ranking', '/guide', '/search', '/ideas', '/about', '/for-shops', '/shops', '/signup',
+    '', '/flavors', '/guide', '/search', '/ideas', '/about', '/for-shops', '/shops', '/signup',
     ...BOWL_OPTIONS.filter((o) => o.v !== 'other').map((o) => `/bowl/${o.v}`),
     ...HMS_OPTIONS.filter((o) => o.v !== 'other').map((o) => `/hms/${o.v}`),
   ].map((path) => ({ url: `${SITE_URL}${path}`, changeFrequency: 'daily', priority: path === '' ? 1 : 0.6 }))

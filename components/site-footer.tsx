@@ -9,7 +9,6 @@ const LINKS: { href: string; label: string }[] = [
   { href: '/theme', label: '今月の検証' },
   { href: '/guide', label: '作り方ガイド' },
   { href: '/post', label: '投稿する' },
-  { href: '/ranking', label: 'ランキング' },
   { href: '/areas', label: '地域別ランキング' },
   { href: '/shops', label: '店舗一覧' },
   { href: '/for-shops', label: '店舗の方へ' },
