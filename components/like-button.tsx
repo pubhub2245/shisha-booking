@@ -10,12 +10,15 @@ export function LikeButton({
   initialLiked,
   isAuthed,
   size = 'sm',
+  showCount = true,
 }: {
   mixId: string
   initialCount: number
   initialLiked: boolean
   isAuthed: boolean
   size?: 'sm' | 'lg'
+  /** 他人の総数を出すか。作り方の詳細では出さない（序列を持ち込まないため） */
+  showCount?: boolean
 }) {
   const router = useRouter()
   const [count, setCount] = useState(initialCount)
@@ -67,7 +70,7 @@ export function LikeButton({
       <span className={pop ? 'like-pop' : ''} aria-hidden style={{ lineHeight: 1 }}>
         {liked ? '' : ''}
       </span>
-      <span style={{ fontWeight: 600 }}>{count}</span>
+      {showCount && <span style={{ fontWeight: 600 }}>{count}</span>}
     </button>
   )
 }

@@ -406,6 +406,7 @@ export default async function MixDetail({
               initialCount={mix.like_count}
               initialLiked={likedIds.has(mix.id)}
               isAuthed={!!user}
+              showCount={false}
             />
             <ShareBar url={mixUrl} text={shareText} />
           </div>
@@ -424,7 +425,7 @@ export default async function MixDetail({
         <div className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm" style={{ color: 'var(--color-ash)' }}>
           {mix.author && <Avatar name={mix.author.display_name || mix.author.username} seed={mix.author.id} size={24} />}
           <span>by <AuthorLink author={mix.author} /></span>
-          <span style={{ color: 'var(--color-ash-dim)' }}>・ {relativeTime(mix.created_at)} ・ 閲覧 {mix.view_count}</span>
+          <span style={{ color: 'var(--color-ash-dim)' }}>・ {relativeTime(mix.created_at)}</span>
         </div>
 
         {mix.taste_tags.length > 0 && (
