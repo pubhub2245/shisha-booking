@@ -18,7 +18,6 @@ import {
   getNationalRepCategories,
   getMixNames,
   getOnsiteContext,
-  getRegionRepLabel,
 } from '@/lib/queries'
 import { getCurrentUser } from '@/lib/auth'
 import { LikeButton } from '@/components/like-button'
@@ -119,7 +118,7 @@ export default async function MixDetail({
     isMixUnlocked(id),
   ])
   if (!mix) notFound()
-  const [related, madeStatus, smokeStatus, orthodoxy, tasteSummary, photos, repCats, mixNames, onsite, regionRep] = await Promise.all([
+  const [related, madeStatus, smokeStatus, orthodoxy, tasteSummary, photos, repCats, mixNames, onsite] = await Promise.all([
     getRelatedMixes(mix as MixWithRelations),
     getMadeStatus(id),
     getSmokeStatus(id),
@@ -129,7 +128,6 @@ export default async function MixDetail({
     getNationalRepCategories(id),
     getMixNames(id),
     getOnsiteContext(mix),
-    getRegionRepLabel(id),
   ])
   // ---- そのフレーバーの中での文脈 ----
   // 作り方は必ずフレーバー1つに対するものなので、combo_key はそのままフレーバーのキーになる。
@@ -322,15 +320,6 @@ export default async function MixDetail({
           {isRep && (
             <Link href="/national" className="seal text-xs">
               {repLabel}系で人気
-            </Link>
-          )}
-          {regionRep && (
-            <Link
-              href={`/areas#${regionRep}`}
-              className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs"
-              style={{ background: 'var(--accent-tint)', color: 'var(--color-ember-hot)', fontWeight: 800, border: '1px solid var(--color-ember)' }}
-            >
-              {regionRep}で人気
             </Link>
           )}
           {/* 完全公開の充実レシピを称える（詳しい中身があり、ロックが効いていない）。
