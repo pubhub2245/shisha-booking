@@ -30,7 +30,7 @@ import { ShareBar } from '@/components/share-bar'
 import { ReportButton } from '@/components/report-button'
 import { VerifiedBadge } from '@/components/verified-badge'
 import { HeatCurveChart } from '@/components/heat-curve-chart'
-import { hmsOption, charcoalLabel, windCoverLabel, bowlOption, packOption, orientationLabel, charcoalAmountLabel } from '@/lib/heat'
+import { hmsOption, hmsSlug, charcoalLabel, windCoverLabel, bowlOption, packOption, orientationLabel, charcoalAmountLabel } from '@/lib/heat'
 import { HmsIcon } from '@/components/hms-icon'
 import { BowlIcon } from '@/components/bowl-icon'
 import { PackIcon } from '@/components/pack-icon'
@@ -48,7 +48,7 @@ import { SectionTabs, type SectionTab } from '@/components/section-tabs'
 import { unlockPassed, isActivelyLocked, isSectionLocked, LOCK_FEATURE_ENABLED } from '@/lib/lock'
 import { SITE_URL, BRAND } from '@/lib/site'
 import { goHref } from '@/lib/go'
-import type { MixWithRelations, MixAuthor } from '@/lib/types/database'
+import type { MixAuthor } from '@/lib/types/database'
 
 export const dynamic = 'force-dynamic'
 
@@ -579,7 +579,7 @@ export default async function MixDetail({
                     {/* 種類ごとの解説・相性の良いボウルは出さない。作る人はもう知っている。
                         知りたい人のために /hms/[type] への導線だけ残す。 */}
                     {mix.hms_type !== 'other' && hmsOption(mix.hms_type) && (
-                      <Link href={`/hms/${hmsOption(mix.hms_type)!.v}`} className="mt-1 inline-block text-xs underline underline-offset-2" style={{ color: 'var(--color-ember-hot)' }}>
+                      <Link href={`/hms/${hmsSlug(hmsOption(mix.hms_type)!)}`} className="mt-1 inline-block text-xs underline underline-offset-2" style={{ color: 'var(--color-ember-hot)' }}>
                         {hmsOption(mix.hms_type)!.l}の実例を見る →
                       </Link>
                     )}

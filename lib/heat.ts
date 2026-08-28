@@ -3,7 +3,8 @@
 // ヒートマネジメントシステム（HMS）の種類。
 // icon は components/hms-icon.tsx の自作イラストと対応（写真は権利の都合で自作の図で代替）。
 export type HmsOption = {
-  v: string
+  v: string // DB(mixes.hms_type)に保存される値。変えると既存データと合わなくなる
+  slug?: string // URL用。v と製品名がずれている場合だけ指定する
   l: string // 日本語名
   en: string // ブランド/英語名
   desc: string // 特徴（1文）
@@ -24,6 +25,7 @@ export const HMS_OPTIONS: readonly HmsOption[] = [
   },
   {
     v: 'provost',
+    slug: 'amavost',
     l: 'アマボースト',
     en: 'Amavost',
     desc: 'ボウルに被せて密閉性を高めるタイプ。装甲が薄く直置きに近い熱。立ち上がりが速く濃いめ・煙量重視向け。',
@@ -76,8 +78,16 @@ export const HMS_OPTIONS: readonly HmsOption[] = [
   { v: 'other', l: 'その他', en: '', desc: 'その他のヒートマネジメント。', icon: 'other' },
 ]
 
-// 旧データ（value）との互換エイリアス
-const HMS_ALIASES: Record<string, string> = { kaloud: 'lotus' }
+// 旧データ（value）との互換エイリアス。URL用スラッグもここで受ける
+const HMS_ALIASES: Record<string, string> = { kaloud: 'lotus', amavost: 'provost' }
+
+/** 一覧に出す HMD。/guide と /hms/[type] は必ずここから引く（片方だけ欠ける事故を防ぐ） */
+export const HMS_LISTED: readonly HmsOption[] = HMS_OPTIONS.filter((o) => o.v !== 'other')
+
+/** URL に使うスラッグ。保存値(v)と製品名がずれている場合は slug を使う */
+export function hmsSlug(o: HmsOption): string {
+  return o.slug ?? o.v
+}
 
 export function hmsOption(v: string | null | undefined): HmsOption | null {
   if (!v) return null

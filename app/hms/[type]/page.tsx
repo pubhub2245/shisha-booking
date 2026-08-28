@@ -8,7 +8,7 @@ import { MixCard } from '@/components/mix-card'
 import { flavorLine } from '@/lib/mix'
 import { HmsIcon } from '@/components/hms-icon'
 import { BowlIcon } from '@/components/bowl-icon'
-import { HMS_OPTIONS, hmsOption, hmsBowls } from '@/lib/heat'
+import { HMS_LISTED, hmsOption, hmsBowls, hmsSlug } from '@/lib/heat'
 import { SourceLine } from '@/components/source-line'
 import { HMS_SOURCES } from '@/lib/sources'
 
@@ -123,8 +123,8 @@ export default async function HmsTypePage({ params }: { params: Promise<{ type: 
       <section className="mt-12">
         <h2 className="mb-3 text-sm eyebrow">他のHMS</h2>
         <div className="flex flex-wrap gap-2">
-          {HMS_OPTIONS.filter((o) => o.v !== 'other' && o.v !== hms.v).map((o) => (
-            <Link key={o.v} href={`/hms/${o.v}`} className="chip inline-flex items-center gap-1">
+          {HMS_LISTED.filter((o) => o.v !== hms.v).map((o) => (
+            <Link key={o.v} href={`/hms/${hmsSlug(o)}`} className="chip inline-flex items-center gap-1">
               <span style={{ color: 'var(--color-ember-hot)' }}><HmsIcon type={o.icon} size={16} /></span>
               {o.l}
             </Link>

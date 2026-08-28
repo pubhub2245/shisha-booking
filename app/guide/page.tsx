@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { IconOrb } from '@/components/icon-orb'
 import { LineIcon, type IconName } from '@/components/line-icons'
-import { HMS_OPTIONS, hmsBowls } from '@/lib/heat'
+import { HMS_LISTED, hmsBowls, hmsSlug } from '@/lib/heat'
 import { HmsIcon } from '@/components/hms-icon'
 import { BowlIcon } from '@/components/bowl-icon'
 import { SourceLine } from '@/components/source-line'
@@ -269,9 +269,9 @@ export default function GuidePage() {
             熱源（HMD）とボウルには相性がある。ファンネル系は中央の穴が詰まりにくくエアフローが安定し、味変化がゆるやかで少量でも煙が出やすい。以下は選ぶときの目安。
           </p>
           <div className="mt-4 flex flex-col gap-3">
-            {HMS_OPTIONS.filter((o) => o.v !== 'other' && (hmsBowls(o.v).length > 0 || o.bowlNote)).map((o) => (
+            {HMS_LISTED.map((o) => (
               <div key={o.v} className="rounded-lg border p-4" style={{ borderColor: 'var(--line)' }}>
-                <Link href={`/hms/${o.v}`} className="-my-1 flex min-h-11 items-center gap-2.5 py-1 hover:underline">
+                <Link href={`/hms/${hmsSlug(o)}`} className="-my-1 flex min-h-11 items-center gap-2.5 py-1 hover:underline">
                   <span style={{ color: 'var(--color-ember-hot)' }}><HmsIcon type={o.icon} size={30} /></span>
                   <span className="text-sm" style={{ fontWeight: 700 }}>{o.l}</span>
                   {o.en && <span className="text-xs" style={{ color: 'var(--color-ash-dim)' }}>{o.en}</span>}

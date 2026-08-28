@@ -5,7 +5,6 @@ import { comboKey, comboSlug, comboKeyFromSlug, flavorKey, isLegacyMultiFlavorKe
 import { mixQuality, mixCompleteness } from '@/lib/quality'
 import { searchVariants } from '@/lib/kana'
 import { TYPE_TAGS } from '@/lib/tags'
-import { REGIONS, regionOf, type RegionKey } from '@/lib/regions'
 import { mixSupportScore, shopSupportScore, openRankValue } from '@/lib/score'
 import { isActivelyLocked, isFullyOpen } from '@/lib/lock'
 import { jstMonthStartIso } from '@/lib/time'
@@ -47,7 +46,6 @@ import type {
   MixNameWithVotes,
   OnsiteContext,
   ShopRankItem,
-  RegionMix,
 } from '@/lib/types/database'
 
 export type FeedOptions = {
