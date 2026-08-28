@@ -25,12 +25,6 @@ export const metadata: Metadata = {
 
 const methodLabel = (m: { id: string; title: string | null }) => m.title?.trim() || `作り方 ${m.id.slice(0, 4)}`
 
-const STEPS = [
-  { n: '壱', t: '他人の作り方を試す', d: 'いつもの一台を、誰かのやり方に置き換える' },
-  { n: '弐', t: '作って、記録する', d: '作った・どうだった・味の印象を残す' },
-  { n: '参', t: '前の一台と比べる', d: 'あなたの中で、どちらが良かったかを言う' },
-]
-
 /** ヒーローの資産。動画は差し替え可能な層で、無くてもページは完成している。
     ・形式を2つ持つのは、H.264 を積んでいないブラウザでスクラブを死なせないため
     ・切り出しを2つ持つのは、横長のコマをそのまま縦画面に敷くと主題が切れるため。
@@ -304,39 +298,6 @@ export default async function Home() {
         </section>
       )}
 
-      {/* ---------- 煙道とは ── 縦に一本、火から立ちのぼる道 ---------- */}
-      {!user && (
-        <section className="sect band band-deep py-14 sm:py-20">
-          <div className="wrap grid gap-10 md:grid-cols-2 md:gap-16">
-            <div data-rise>
-              <h2 className="eyebrow">煙道とは</h2>
-              <p className="claim mt-4">
-                一人の正解を集めるのではなく、<em>みんなの試行</em>から最適解を見つける。
-              </p>
-              <p className="mt-5 max-w-[34ch] text-sm leading-relaxed" style={{ color: 'var(--color-ash)' }}>
-                実際に作られ、吸われ、比べられた作り方だけが残ります。
-                投稿の数ではなく、何度作られたかで決まります。
-              </p>
-              <div className="mt-7 flex flex-wrap items-center gap-5">
-                <Link href="/signup" className="btn btn-ember text-sm">はじめる</Link>
-                <Link href="/about" className="brush-underline text-sm" style={{ color: 'var(--color-ember-text)', fontWeight: 600 }}>
-                  もっと読む →
-                </Link>
-              </div>
-            </div>
-
-            <ol className="path" data-rise>
-              {STEPS.map((s) => (
-                <li key={s.n} className="path-step">
-                  <span className="path-n">{s.n}</span>
-                  <span className="path-t">{s.t}</span>
-                  <span className="path-d">{s.d}</span>
-                </li>
-              ))}
-            </ol>
-          </div>
-        </section>
-      )}
     </>
   )
 }
