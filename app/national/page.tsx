@@ -3,7 +3,6 @@ import type { Metadata } from 'next'
 import { getOrthodoxList, getLikedMixIds } from '@/lib/queries'
 import { getCurrentUser } from '@/lib/auth'
 import { MixCard } from '@/components/mix-card'
-import { RankingTabs } from '@/components/ranking-tabs'
 import { EmptyState } from '@/components/empty-state'
 
 export const dynamic = 'force-dynamic'
@@ -25,8 +24,6 @@ export default async function NationalTeamPage() {
 
   return (
     <div className="wrap max-w-5xl py-10">
-      <RankingTabs current="national" />
-
       {/* ヒーロー */}
       <div className="text-center">
         <p className="eyebrow">The Royal Road</p>
@@ -48,7 +45,7 @@ export default async function NationalTeamPage() {
           <EmptyState
             icon="王"
             title="まだ王道はありません"
-            action={<Link href="/" className="btn btn-ember text-sm">今日の一台を探す</Link>}
+            action={<Link href="/flavors" className="btn btn-ember text-sm">フレーバーを見る</Link>}
           >
             作り方が集まり、実際に吸われた記録や再現が積み重なると、煙道が確認して王道を認定します。
           </EmptyState>
@@ -83,12 +80,6 @@ export default async function NationalTeamPage() {
           </div>
         </>
       )}
-
-      <div className="mt-12 text-center">
-        <Link href="/" className="btn btn-ghost text-sm">
-          フレーバーを見る
-        </Link>
-      </div>
     </div>
   )
 }
