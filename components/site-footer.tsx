@@ -2,16 +2,14 @@ import Link from 'next/link'
 import { BRAND } from '@/lib/site'
 
 /** 主要な導線。3列に組んで、羅列ではなく一覧として読ませる */
+/* 中身がまだ無いページ（ランキング・地域別・店舗一覧・王道）へは送らない。
+   同じURLの呼び名はヘッダーと同じ語にする（/ は「フレーバー」、/post は「作り方を登録」）。 */
 const LINKS: { href: string; label: string }[] = [
-  { href: '/', label: '図鑑' },
-  { href: '/flavors', label: 'フレーバー' },
-  { href: '/national', label: '王道' },
+  { href: '/', label: 'フレーバー' },
+  { href: '/flavors', label: 'フレーバー一覧' },
   { href: '/theme', label: '今月の検証' },
   { href: '/guide', label: '作り方ガイド' },
-  { href: '/post', label: '投稿する' },
-  { href: '/ranking', label: 'ランキング' },
-  { href: '/areas', label: '地域別ランキング' },
-  { href: '/shops', label: '店舗一覧' },
+  { href: '/post', label: '作り方を登録' },
   { href: '/for-shops', label: '店舗の方へ' },
   { href: '/founders', label: '創設メンバー募集' },
   { href: '/ideas', label: '意見箱' },
@@ -20,7 +18,7 @@ const LINKS: { href: string; label: string }[] = [
 /**
  * フッター。
  * 上の帯と骨格が重ならないよう、ここは「左にブランド、右に3列の一覧」にしてある。
- * 12本のリンクを一列に流すと、それだけで既製品の見た目になる。
+ * リンクを一列に流すと、それだけで既製品の見た目になる。
  */
 export function SiteFooter() {
   return (

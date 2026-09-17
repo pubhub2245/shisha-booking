@@ -891,62 +891,6 @@ body.paused *::after {
 
 .smoke-content { position: relative; }
 
-/* ---- 火を入れる ---- */
-.fire { margin-top: 22px; display: flex; flex-direction: column; align-items: center; gap: 4px; }
-
-.fire-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 11px;
-  padding: 10px 20px 10px 14px;
-  border-radius: 999px;
-  border: 1px solid var(--line-ui);
-  background: transparent;
-  color: var(--color-cream);
-  font: inherit;
-  font-size: 0.82rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  cursor: pointer;
-  position: relative;
-  overflow: hidden;
-  /* 長押しでスクロール・選択・コンテキストメニューが始まらないようにする */
-  touch-action: none;
-  user-select: none;
-  -webkit-user-select: none;
-  -webkit-tap-highlight-color: transparent;
-  transition: border-color .3s var(--ease-out), color .3s var(--ease-out);
-}
-/* 溜まっていく熾り。幅ではなく scaleX を動かす（行の幅を揺らさない） */
-.fire-btn::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  transform-origin: left center;
-  transform: scaleX(var(--fire));
-  background: linear-gradient(90deg, rgb(224 113 74 / 0.22), rgb(224 113 74 / 0.06));
-  pointer-events: none;
-}
-.fire-btn:hover { border-color: var(--color-seal); }
-.smoke-stage.is-lit .fire-btn { border-color: var(--color-seal); color: var(--color-seal); cursor: default; }
-
-.fire-coal { position: relative; display: inline-block; width: 14px; height: 14px; }
-.fire-glow {
-  position: absolute; inset: 0;
-  border-radius: 999px;
-  background: radial-gradient(circle, var(--color-ember-deep) 0 36%, rgb(224 113 74 / 0.4) 62%, transparent 74%);
-  opacity: calc(0.18 + 0.82 * var(--fire));
-  transform: scale(calc(0.7 + 0.4 * var(--fire)));
-}
-
-.fire-status {
-  min-height: 1.3em;
-  font-size: 0.76rem;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  color: var(--color-ember-text);
-}
-
 /* ---- 動きが苦手な人への配慮 ---- */
 @media (prefers-reduced-motion: reduce) {
   .puff { animation: none; opacity: .34; transform: translate3d(0, -40%, 0) scale(1.1, 1.7); }
@@ -1380,8 +1324,9 @@ body.paused *::after {
     linear-gradient(180deg, rgb(9 8 6 / .55) 0%, rgb(9 8 6 / .12) 40%, rgb(9 8 6 / .88) 100%);
 }
 .still .beat-inner { padding-block: clamp(48px, 10vh, 96px) }
-@media (max-width: 640px) {
-  /* 横長のコマをそのまま縦画面に敷かない。主題を残した別の切り出しに替える */
+@media (max-width: 760px) {
+  /* 横長のコマをそのまま縦画面に敷かない。主題を残した別の切り出しに替える。
+     境目はスクロール駆動の縦資産（scrub-hero の PORTRAIT）と同じ 760px に揃える */
   .still { background-image: image-set(url("/hero-still-portrait.webp") 1x) !important }
 }
 .still h1 { color: #eceadf }
