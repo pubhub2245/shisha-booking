@@ -15,6 +15,8 @@ import { HeatCurveChart, type CurveSeries } from '@/components/heat-curve-chart'
 import { CURVE_COLORS, bowlLabel, packLabel, hmsLabel, charcoalAmountLabel } from '@/lib/heat'
 import { buildDesignSpace, diffMethods, describeDiff, rankNextCandidates } from '@/lib/method-diff'
 import { goHref } from '@/lib/go'
+import { getFlavorIndex } from '@/lib/flavor-index-data'
+import { similarFlavors, MIN_ITEMS } from '@/lib/flavor-index'
 
 export const dynamic = 'force-dynamic'
 
@@ -63,12 +65,17 @@ export default async function FlavorPage({ params }: { params: Promise<{ id: str
   if (!hub) notFound()
 
   const { flavor, key, methods, stats, progress, orthodoxMixId } = hub
-  const [myMade, user, shelfIds, shops] = await Promise.all([
+  const [myMade, user, shelfIds, shops, flavorIndex] = await Promise.all([
     getMyThemeMade(key),
     getCurrentUser(),
     getMyShelfFlavorIds(),
     getShopsWithFlavor(flavor),
+    getFlavorIndex(),
   ])
+  // 「似た味」は5件そろった時だけページになるので、リンクも同じ条件でしか出さない
+  // （出ないページへのリンクを置かない）
+  const similar = similarFlavors(flavorIndex, flavor.id)
+  const similarTags = flavorIndex.find((f) => f.id === flavor.id)?.tags ?? []
 
   const madeIds = new Set(myMade.map((r) => r.mixId))
   const myLatest = myMade[0] ? methods.find((m) => m.id === myMade[0].mixId) ?? null : null
@@ -289,6 +296,19 @@ export default async function FlavorPage({ params }: { params: Promise<{ id: str
               <Link key={s.id} href={`/shop/${s.id}`} className="chip">{s.name}</Link>
             ))}
           </div>
+        </section>
+      )}
+
+      {/* ---------- 似た味（同じ系統のフレーバーへ） ---------- */}
+      {similar.length >= MIN_ITEMS && (
+        <section className="mt-10">
+          <h2 className="mb-2 text-sm eyebrow">似た味をさがす</h2>
+          <p className="text-sm" style={{ color: 'var(--color-ash)' }}>
+            {similarTags.length > 0 ? `${similarTags.join('・')} の系統が重なる` : '系統が重なる'}フレーバーが {similar.length}種。
+          </p>
+          <Link href={`/flavor/${flavor.id}/similar`} className="mt-1 inline-block text-sm brush-underline" style={{ fontWeight: 600 }}>
+            {flavor.name} に似た味を見る
+          </Link>
         </section>
       )}
 

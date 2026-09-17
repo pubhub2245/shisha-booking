@@ -1,6 +1,8 @@
 import type { MetadataRoute } from 'next'
 import { createClient } from '@/lib/supabase/server'
 import { BOWL_OPTIONS, HMS_OPTIONS } from '@/lib/heat'
+import { getFlavorIndex } from '@/lib/flavor-index-data'
+import { publishableTypes, publishableSimilarIds } from '@/lib/flavor-index'
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://shisha-booking.vercel.app'
 
@@ -8,7 +10,7 @@ export const dynamic = 'force-dynamic'
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const staticRoutes: MetadataRoute.Sitemap = [
-    '', '/flavors', '/ranking', '/guide', '/search', '/ideas', '/about', '/for-shops', '/shops', '/signup',
+    '', '/flavors', '/taste', '/ranking', '/guide', '/search', '/ideas', '/about', '/for-shops', '/shops', '/signup',
     ...BOWL_OPTIONS.filter((o) => o.v !== 'other').map((o) => `/bowl/${o.v}`),
     ...HMS_OPTIONS.filter((o) => o.v !== 'other').map((o) => `/hms/${o.v}`),
   ].map((path) => ({ url: `${SITE_URL}${path}`, changeFrequency: 'daily', priority: path === '' ? 1 : 0.6 }))
@@ -43,7 +45,21 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: 'weekly',
       priority: 0.5,
     }))
-    return [...staticRoutes, ...mixRoutes, ...flavorRoutes, ...shopRoutes, ...brandRoutes]
+    // 味の系統・似た味は「実データが5件以上そろった組み合わせ」だけを載せる。
+    // 作れない組み合わせを sitemap に書くと 404 を検索エンジンに教えることになる。
+    const index = await getFlavorIndex()
+    const tasteRoutes: MetadataRoute.Sitemap = publishableTypes(index).map((t) => ({
+      url: `${SITE_URL}/taste/${encodeURIComponent(t.type)}`,
+      changeFrequency: 'weekly',
+      priority: 0.6,
+    }))
+    const similarRoutes: MetadataRoute.Sitemap = publishableSimilarIds(index).map((id) => ({
+      url: `${SITE_URL}/flavor/${id}/similar`,
+      changeFrequency: 'weekly',
+      priority: 0.4,
+    }))
+
+    return [...staticRoutes, ...mixRoutes, ...flavorRoutes, ...shopRoutes, ...brandRoutes, ...tasteRoutes, ...similarRoutes]
   } catch {
     return staticRoutes
   }
