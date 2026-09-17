@@ -29,7 +29,7 @@ export function HmsPicker({
       aliasMap={{ kaloud: 'lotus' }}
       otherName={otherName}
       otherDefault={otherDefault}
-      otherPlaceholder="HMSの名称を入力（例：〇〇 ヒートマネジメント）"
+      otherPlaceholder="HMDの名称を入力（例：〇〇 ヒートマネジメント）"
       renderIcon={(icon, size) => <HmsIcon type={icon} size={size} />}
     />
   )

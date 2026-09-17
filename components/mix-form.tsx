@@ -315,7 +315,7 @@ export function MixForm({
         </div>
         {canSell && (
           <div className="mt-2 rounded-lg px-3 py-2 text-xs leading-relaxed" style={{ background: 'var(--accent-tint)', color: 'var(--color-ash)' }}>
-            ロックした投稿は<b>王道・地方の王道の選出対象外</b>になります（標準＝みんなの図鑑は公開レシピで作るため）。
+            ロックした投稿は<b>王道・地方の王道の選出対象外</b>になります（標準＝みんなの図鑑は公開の作り方で作るため）。
             ロックは核心の<b>「最後のひと工夫」だけ</b>に絞るのがおすすめ。
           </div>
         )}

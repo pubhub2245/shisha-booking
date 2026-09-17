@@ -292,7 +292,13 @@ export function ScrubHero({
   return (
     <div className="scrub" ref={rootRef}>
       <div className="scrub-stage" ref={stageRef}>
-        <div className="scrub-poster" ref={posterRef} aria-hidden="true" />
+        {/* JS が来る前・来ない時も真っ黒にしない。横画面のポスターを最初から敷き、JS が縦画面なら差し替える */}
+        <div
+          className="scrub-poster"
+          ref={posterRef}
+          aria-hidden="true"
+          style={{ backgroundImage: `url("${wide.poster}")` }}
+        />
         <video
           className="scrub-video"
           ref={videoRef}

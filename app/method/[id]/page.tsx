@@ -340,7 +340,7 @@ export default async function MixDetail({
               className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs"
               style={{ background: 'rgb(31 138 118 / 0.12)', color: 'var(--color-coal)', fontWeight: 800, border: '1px solid rgb(31 138 118 / 0.4)' }}
             >
-              フル公開レシピ
+              全部公開の作り方
             </span>
           )}
         </div>
@@ -675,7 +675,7 @@ export default async function MixDetail({
                   ))}
               </dl>
               <p className="mt-3 text-[0.68rem]" style={{ color: 'var(--color-ash-dim)' }}>
-                HMS・ボウル・盛り方の解説と参考リンクは{' '}
+                HMD・ボウル・盛り方の解説と参考リンクは{' '}
                 <Link href="/guide#hms-bowl" className="underline underline-offset-2" style={{ color: 'var(--color-ash)' }}>
                   作り方ガイド
                 </Link>
@@ -734,7 +734,7 @@ export default async function MixDetail({
                   {[
                     { k: '本体・パイプ', v: mix.gear_stem },
                     { k: 'ボウル', v: mix.gear_bowl_name },
-                    { k: 'HMS', v: mix.gear_hms_name },
+                    { k: 'HMD', v: mix.gear_hms_name },
                     { k: '炭', v: mix.gear_charcoal },
                     { k: 'ベース', v: mix.base_liquid },
                   ]

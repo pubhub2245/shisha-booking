@@ -17,7 +17,7 @@ export const dynamic = 'force-dynamic'
 export async function generateMetadata({ params }: { params: Promise<{ type: string }> }): Promise<Metadata> {
   const { type } = await params
   const hms = hmsOption(type)
-  if (!hms) return { title: 'HMS' }
+  if (!hms) return { title: 'HMD' }
   return {
     title: `${hms.l}の実例・使い方`,
     description: `${hms.l}（${hms.en}）を使ったシーシャの作り方・盛り方の実例まとめ。${hms.desc}`,
@@ -50,7 +50,7 @@ export default async function HmsTypePage({ params }: { params: Promise<{ type: 
           <HmsIcon type={hms.icon} size={48} />
         </span>
         <div>
-          <p className="eyebrow">HMS / HMD</p>
+          <p className="eyebrow">HMD（ヒートマネジメント）</p>
           <h1 className="mt-1 text-2xl" style={{ fontWeight: 800 }}>
             {hms.l}
             {hms.en && <span className="ml-2 text-sm" style={{ color: 'var(--color-ash-dim)', fontWeight: 400 }}>{hms.en}</span>}
@@ -121,7 +121,7 @@ export default async function HmsTypePage({ params }: { params: Promise<{ type: 
       )}
 
       <section className="mt-12">
-        <h2 className="mb-3 text-sm eyebrow">他のHMS</h2>
+        <h2 className="mb-3 text-sm eyebrow">他のHMD</h2>
         <div className="flex flex-wrap gap-2">
           {HMS_OPTIONS.filter((o) => o.v !== 'other' && o.v !== hms.v).map((o) => (
             <Link key={o.v} href={`/hms/${o.v}`} className="chip inline-flex items-center gap-1">

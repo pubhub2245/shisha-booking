@@ -94,6 +94,14 @@ export default async function Home() {
       {/* 部屋。ページ全体の後ろで、ひとつの環境として呼吸する */}
       <div className="room" aria-hidden />
 
+      {/* JS が動かない環境（第三の門）。スクロール駆動は帯の文字が透明のままなので、控えの静止ヒーローに切り替える。
+          CSS の門と同じ組（.scrub を隠し .still-gate を出す）。見せるために JS を必要としない、の最終防衛線 */}
+      {!user && (
+        <noscript>
+          <style>{'.scrub{display:none}.still-gate{display:grid}'}</style>
+        </noscript>
+      )}
+
       {user ? (
         <StillHero
           title="今日は、どれを作りますか。"
