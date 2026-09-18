@@ -12,6 +12,7 @@ import { FIRST_THEME } from '@/lib/theme'
 import { rankNextCandidates, describeDiff } from '@/lib/method-diff'
 import { formatJaDate } from '@/lib/time'
 import { ScrubHero } from '@/components/scrub-hero'
+import { FireButton } from '@/components/fire-button'
 import { Gauge } from '@/components/gauge'
 import { Axes } from '@/components/axes'
 
@@ -148,6 +149,7 @@ export default async function Home() {
                 煙道とは →
               </Link>
             </div>
+            <FireButton />
           </>
         </ScrubHero>
       )}
@@ -388,6 +390,7 @@ function StillHero({ title, lede, cta, gated }: { title: string; lede: string; c
             </Link>
           </div>
         )}
+        <FireButton />
       </div>
     </section>
   )
