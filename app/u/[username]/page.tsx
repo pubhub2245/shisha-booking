@@ -181,7 +181,7 @@ export default async function ProfilePage({ params }: { params: Promise<{ userna
         return (
           <section className="mt-8">
             <h2 className="mb-3 flex items-center gap-1.5 text-lg" style={{ fontWeight: 700 }}>
-              看板レシピ
+              看板の作り方
             </h2>
             <div className="rounded-2xl p-0.5" style={{ background: 'linear-gradient(135deg, var(--color-ember), #d4a017)' }}>
               <div className="rounded-[calc(1rem-1px)]" style={{ background: 'var(--surface)' }}>

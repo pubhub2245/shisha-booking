@@ -12,6 +12,7 @@ import { FIRST_THEME } from '@/lib/theme'
 import { rankNextCandidates, describeDiff } from '@/lib/method-diff'
 import { formatJaDate } from '@/lib/time'
 import { ScrubHero } from '@/components/scrub-hero'
+import { FireButton } from '@/components/fire-button'
 import { Gauge } from '@/components/gauge'
 import { Axes } from '@/components/axes'
 
@@ -94,6 +95,14 @@ export default async function Home() {
       {/* 部屋。ページ全体の後ろで、ひとつの環境として呼吸する */}
       <div className="room" aria-hidden />
 
+      {/* JS が動かない環境（第三の門）。スクロール駆動は帯の文字が透明のままなので、控えの静止ヒーローに切り替える。
+          CSS の門と同じ組（.scrub を隠し .still-gate を出す）。見せるために JS を必要としない、の最終防衛線 */}
+      {!user && (
+        <noscript>
+          <style>{'.scrub{display:none}.still-gate{display:grid}'}</style>
+        </noscript>
+      )}
+
       {user ? (
         <StillHero
           title="今日は、どれを作りますか。"
@@ -140,11 +149,12 @@ export default async function Home() {
                 煙道とは →
               </Link>
             </div>
+            <FireButton />
           </>
         </ScrubHero>
       )}
 
-      {/* ログアウト時は静止ヒーローも用意する。五つの門のどれかに当たった人はこちらを見る */}
+      {/* ログアウト時は静止ヒーローも用意する。二つの門（動きが苦手な設定・寝かせたスマホ）か JS 無効に当たった人はこちらを見る */}
       {!user && (
         <StillHero
           gated
@@ -380,6 +390,7 @@ function StillHero({ title, lede, cta, gated }: { title: string; lede: string; c
             </Link>
           </div>
         )}
+        <FireButton />
       </div>
     </section>
   )

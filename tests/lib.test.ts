@@ -18,6 +18,7 @@ import { relativeTime, formatJaDate, jstMonthStartIso } from '@/lib/time'
 import { buildNthMap, type ExperienceRow } from '@/lib/endo-log'
 import { diffMethods, describeDiff, diffMeaning, rankNextCandidates, buildDesignSpace, designSpaceIsFlat } from '@/lib/method-diff'
 import { charcoalAmountLabel } from '@/lib/heat'
+import { ageFromYearMonth, isOldEnough, safeNextPath } from '@/lib/age'
 
 describe('combo', () => {
   it('flavorKey normalizes brand/name (trim + lowercase)', () => {
@@ -400,5 +401,28 @@ describe('炭の量', () => {
       { id: 'count', charcoal_count: 2, charcoal_size_mm: 26 },
     ])
     expect(ranked.map((r) => r.method.id)).toEqual(['count', 'size'])
+  })
+})
+
+describe('age', () => {
+  const today = new Date(2026, 8, 17) // 2026-09-17
+  it('誕生月が来ていれば年の差がそのまま年齢', () => {
+    expect(ageFromYearMonth('2006', '9', today)).toBe(20)
+    expect(isOldEnough('2006', '9', today)).toBe(true)
+  })
+  it('誕生月が未到来なら1引く', () => {
+    expect(ageFromYearMonth('2006', '10', today)).toBe(19)
+    expect(isOldEnough('2006', '10', today)).toBe(false)
+  })
+  it('年か月が無効なら null で通さない', () => {
+    expect(ageFromYearMonth('', '1', today)).toBeNull()
+    expect(ageFromYearMonth('2000', '13', today)).toBeNull()
+    expect(isOldEnough(undefined, undefined, today)).toBe(false)
+  })
+  it('戻り先はサイト内のパスだけ許す', () => {
+    expect(safeNextPath('/flavors')).toBe('/flavors')
+    expect(safeNextPath('//evil.example')).toBe('/')
+    expect(safeNextPath('https://evil.example')).toBe('/')
+    expect(safeNextPath(null)).toBe('/')
   })
 })

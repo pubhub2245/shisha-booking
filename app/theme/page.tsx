@@ -1,4 +1,4 @@
-import { redirect, notFound } from 'next/navigation'
+import { redirect } from 'next/navigation'
 import { getFlavorsWithMethods } from '@/lib/queries'
 import { flavorKey } from '@/lib/combo'
 import { FIRST_THEME } from '@/lib/theme'
@@ -12,6 +12,8 @@ export const dynamic = 'force-dynamic'
 export default async function ThemeRedirect() {
   const flavors = await getFlavorsWithMethods()
   const hit = flavors.find((f) => flavorKey(f.flavor.brand, f.flavor.name) === FIRST_THEME.comboKey)
-  if (!hit) notFound()
+  // テーマのフレーバーがまだ登録されていないときは、404 にせずフレーバー一覧へ逃がす
+  // （ヘッダーと下部ナビの主導線なので、行き止まりにしない）
+  if (!hit) redirect('/flavors')
   redirect(`/flavor/${hit.flavor.id}`)
 }

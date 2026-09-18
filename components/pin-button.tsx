@@ -37,7 +37,7 @@ export function PinButton({ mixId, initialPinned }: { mixId: string; initialPinn
           : { borderColor: 'var(--line-strong)', color: 'var(--color-ash)', fontWeight: 600 }
       }
       title="プロフィール上部に固定表示する自信作"
-    > {pinned ? '看板レシピ' : '看板に設定'}
+    > {pinned ? '看板の作り方' : '看板に設定'}
     </button>
   )
 }

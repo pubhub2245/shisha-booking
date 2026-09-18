@@ -892,13 +892,15 @@ body.paused *::after {
 .smoke-content { position: relative; }
 
 /* ---- 火を入れる ---- */
-.fire { margin-top: 22px; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+/* 置かれるのは常に左揃えの文の下（ヒーローの3つ目の帯・静止ヒーロー）なので、頭を文に合わせる */
+.fire { margin-top: 22px; display: flex; flex-direction: column; align-items: flex-start; gap: 4px; }
 
 .fire-btn {
   display: inline-flex;
   align-items: center;
   gap: 11px;
   padding: 10px 20px 10px 14px;
+  min-height: 44px;  /* 指で押せる大きさ（44×44px）を下回らせない */
   border-radius: 999px;
   border: 1px solid var(--line-ui);
   background: transparent;
@@ -929,6 +931,8 @@ body.paused *::after {
 }
 .fire-btn:hover { border-color: var(--color-seal); }
 .smoke-stage.is-lit .fire-btn { border-color: var(--color-seal); color: var(--color-seal); cursor: default; }
+/* 煙の器の中に置かれていない所（ヒーロー）では、火の印はこの一式の中だけで完結させる */
+.fire.is-lit .fire-btn { border-color: var(--color-seal); color: var(--color-seal); cursor: default; }
 
 .fire-coal { position: relative; display: inline-block; width: 14px; height: 14px; }
 .fire-glow {
@@ -1076,6 +1080,7 @@ body.paused *::after {
 .hero-room .fire-btn:hover { border-color: #e05b46; }
 .hero-room.is-lit .fire-btn,
 .hero-room .smoke-stage.is-lit .fire-btn { border-color: #e05b46; color: #e05b46; }
+.hero-room .fire.is-lit .fire-btn { border-color: #e05b46; color: #e05b46; }
 .hero-room .fire-status { color: #7cc6a2; }
 
 /* 写真の中で本物の煙が立っている以上、CSS の煙は「もう一本」ではなく
@@ -1380,8 +1385,9 @@ body.paused *::after {
     linear-gradient(180deg, rgb(9 8 6 / .55) 0%, rgb(9 8 6 / .12) 40%, rgb(9 8 6 / .88) 100%);
 }
 .still .beat-inner { padding-block: clamp(48px, 10vh, 96px) }
-@media (max-width: 640px) {
-  /* 横長のコマをそのまま縦画面に敷かない。主題を残した別の切り出しに替える */
+@media (max-width: 760px) {
+  /* 横長のコマをそのまま縦画面に敷かない。主題を残した別の切り出しに替える。
+     境目はスクロール駆動の縦資産（scrub-hero の PORTRAIT）と同じ 760px に揃える */
   .still { background-image: image-set(url("/hero-still-portrait.webp") 1x) !important }
 }
 .still h1 { color: #eceadf }

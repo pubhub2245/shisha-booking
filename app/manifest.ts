@@ -8,8 +8,8 @@ export default function manifest(): MetadataRoute.Manifest {
     description: `1つのフレーバーを、どう作るか。実際に作られた作り方を試して、比べられます。`,
     start_url: '/',
     display: 'standalone',
-    background_color: '#f3ede1',
-    theme_color: '#f3ede1',
+    background_color: '#0d0c0a',
+    theme_color: '#0d0c0a',
     icons: [
       { src: '/icon', sizes: '64x64', type: 'image/png' },
     ],

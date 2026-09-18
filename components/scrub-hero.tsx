@@ -16,8 +16,8 @@ import { useEffect, useRef } from 'react'
  * - seek は1本ずつ。前の seek が終わる前に書くと Chrome で目に見えてガタつく
  * - DOM への書き込みは値が変わったときだけ
  * - 動画が来なくてもページは完成している。ポスターの上で全部読める
- * - 五つの門（スマホ・縦持ちタブレット・粗いポインタ縦・寝かせたスマホ・
- *   動きが苦手な設定）では動画を読み込まない。門は CSS と字句まで一致させる
+ * - 二つの門（動きが苦手な設定・寝かせたスマホ）では動画を読み込まない。
+ *   門は CSS と字句まで一致させる（GATES と globals.css の .still-gate の条件）
  */
 
 /** 静止に落とす門。CSS 側と文字ごと一致させること。 */
@@ -292,7 +292,13 @@ export function ScrubHero({
   return (
     <div className="scrub" ref={rootRef}>
       <div className="scrub-stage" ref={stageRef}>
-        <div className="scrub-poster" ref={posterRef} aria-hidden="true" />
+        {/* JS が来る前・来ない時も真っ黒にしない。横画面のポスターを最初から敷き、JS が縦画面なら差し替える */}
+        <div
+          className="scrub-poster"
+          ref={posterRef}
+          aria-hidden="true"
+          style={{ backgroundImage: `url("${wide.poster}")` }}
+        />
         <video
           className="scrub-video"
           ref={videoRef}

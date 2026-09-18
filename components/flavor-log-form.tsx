@@ -57,7 +57,7 @@ export function FlavorLogForm({
             <input name="steep_heat" inputMode="numeric" placeholder="例：70" />
           </div>
           <div className="field">
-            <label>HMS</label>
+            <label>HMD</label>
             <select name="hms_type" defaultValue="">
               <option value="">未設定</option>
               {HMS_OPTIONS.map((o) => (

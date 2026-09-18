@@ -9,6 +9,7 @@ import { MobileNav } from "@/components/mobile-nav";
 import { AgeGate } from "@/components/age-gate";
 import { MotionGuards } from "@/components/motion-guards";
 import { BRAND, BRAND_TITLE } from "@/lib/site";
+import { AGE_NG_COOKIE, AGE_OK_COOKIE } from "@/lib/age";
 
 const notoSansJp = Noto_Sans_JP({
   weight: ["400", "500", "700"],
@@ -67,7 +68,7 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#f3ede1" },
+    { media: "(prefers-color-scheme: light)", color: "#0d0c0a" },
     { media: "(prefers-color-scheme: dark)", color: "#16130d" },
   ],
 };
@@ -75,7 +76,10 @@ export const viewport: Viewport = {
 export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
-  const ageOk = (await cookies()).get("age_ok")?.value === "1";
+  const jar = await cookies();
+  const ageOk = jar.get(AGE_OK_COOKIE)?.value === "1";
+  // JS が動かない環境で /age に送って 20歳未満だったとき、断りの画面を出すための印
+  const ageNg = jar.get(AGE_NG_COOKIE)?.value === "1";
   return (
     <html lang="ja" className={`${notoSansJp.variable} ${shipporiMincho.variable} ${mplusCode.variable}`}>
       <body className="flex min-h-dvh flex-col pb-16 md:pb-0">
@@ -85,7 +89,7 @@ export default async function RootLayout({
         <main id="main" tabIndex={-1} className="flex-1 outline-none">{children}</main>
         <SiteFooter />
         <MobileNav />
-        {!ageOk && <AgeGate />}
+        {!ageOk && <AgeGate initialBlocked={ageNg} />}
         <Analytics />
       </body>
     </html>

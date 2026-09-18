@@ -17,7 +17,7 @@ const benefits: { icon: string; title: string; body: string }[] = [
   {
     icon: '書',
     title: 'ノウハウが資産に',
-    body: '作り方ノートを蓄積。将来的にはレシピ・ノウハウの販売で新たな収益も。',
+    body: '作り方ノートを蓄積。将来的には作り方・ノウハウの販売で新たな収益も。',
   },
   {
     icon: '棚',
