@@ -25,8 +25,9 @@ export default async function FlavorsPage() {
         <Link href="/founders" className="hover:underline" style={{ color: 'var(--color-ember-hot)', fontWeight: 600 }}>認証プロ・創設メンバー</Link>
         は新しいフレーバーを追加できます。
       </p>
-      <div className="mt-3">
+      <div className="mt-3 flex flex-wrap items-center gap-2">
         <Link href="/flavors/new" className="btn btn-ghost text-sm">＋ フレーバーを図鑑に追加</Link>
+        <Link href="/taste" className="btn btn-ghost text-sm">味の系統から探す</Link>
       </div>
 
       {lite.length === 0 ? (
