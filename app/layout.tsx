@@ -8,6 +8,7 @@ import { SiteFooter } from "@/components/site-footer";
 import { MobileNav } from "@/components/mobile-nav";
 import { AgeGate } from "@/components/age-gate";
 import { MotionGuards } from "@/components/motion-guards";
+import VisitBeacon from "@/components/visit-beacon";
 import { BRAND, BRAND_TITLE } from "@/lib/site";
 import { AGE_NG_COOKIE, AGE_OK_COOKIE } from "@/lib/age";
 
@@ -91,6 +92,8 @@ export default async function RootLayout({
         <MobileNav />
         {!ageOk && <AgeGate initialBlocked={ageNg} />}
         <Analytics />
+        {/* 訪問を数えるだけの合図。画面には何も出ず、表示はJSに頼らないまま */}
+        <VisitBeacon />
       </body>
     </html>
   );
